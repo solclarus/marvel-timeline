@@ -1,4 +1,4 @@
-# marvel-timeline
+# Marvel Timeline
 
 An interactive map of Marvel viewing order across the MCU, Fox X-Men, legacy Spider-Man, and the SSU. Pick a work to see what it builds on.
 
