@@ -2,7 +2,7 @@
 
 An interactive map of Marvel viewing order across the MCU, Fox X-Men, legacy Spider-Man, and the SSU. Pick a work to see what it builds on.
 
-Static SPA built with Vite + React.
+Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-timeline/.
 
 ## Development
 
@@ -23,4 +23,4 @@ Everything lives in `src/data/works.ts`: works, dependencies, release dates, and
 | `pnpm test`                 | Layout unit tests              |
 | `pnpm lint` / `pnpm format` | oxlint / oxfmt                 |
 
-CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, tests, and build on every push and PR.
+CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, tests, and build on every push and PR, and deploys `main` to GitHub Pages.
