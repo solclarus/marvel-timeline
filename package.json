@@ -1,0 +1,42 @@
+{
+  "name": "marvel-timeline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.7.0",
+    "@fontsource-variable/geist": "^5.3.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.37.0",
+    "motion": "^13.1.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-zoom-pan-pinch": "^4.2.0",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@rolldown/plugin-babel": "^0.2.4",
+    "@tailwindcss/vite": "^4",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5",
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11"
+  },
+  "packageManager": "pnpm@10.33.2"
+}

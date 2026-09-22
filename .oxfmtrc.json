@@ -1,0 +1,5 @@
+{
+  "$schema": "https://oxc.rs/schemas/oxfmt-config.json",
+  "sortImports": {},
+  "sortTailwindcss": { "stylesheet": "./src/globals.css" }
+}

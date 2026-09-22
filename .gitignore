@@ -1,0 +1,16 @@
+# vscode
+.vscode
+
+# dependencies
+/node_modules
+
+# build
+/dist
+
+# misc
+.DS_Store
+*.tsbuildinfo
+
+# env files
+.env*
+!.env.example
