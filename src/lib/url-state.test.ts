@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { GROUPS } from "./graph/groups";
 import { DEFAULT_URL_STATE, parseUrlState, serializeUrlState, type UrlState } from "./url-state";
 
 describe("url state", () => {
@@ -31,12 +32,9 @@ describe("url state", () => {
   });
 
   it("shows every group by default", () => {
-    expect([...parseUrlState("").visibleGroups]).toEqual([
-      "x-men",
-      "mcu",
-      "spider-man-legacy",
-      "ssu",
-    ]);
+    expect([...parseUrlState("").visibleGroups]).toEqual(
+      GROUPS.franchise.map((group) => group.key),
+    );
   });
 
   it("shows the franchise of a linked work", () => {
@@ -52,7 +50,7 @@ describe("url state", () => {
   });
 
   it("ignores franchise keys when grouping by Earth", () => {
-    expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(7);
+    expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(GROUPS.earth.length);
   });
 
   it("shows all media when the linked work is a series", () => {

@@ -25,10 +25,34 @@ export interface GroupMeta {
   cardClass: string;
 }
 
-const FRANCHISE_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];
+const FRANCHISE_ORDER: Franchise[] = [
+  "legacy",
+  "x-men",
+  "mcu",
+  "defenders",
+  "spider-man-legacy",
+  "ssu",
+  "spider-verse",
+  "animation",
+];
 // Mirrors the franchise order, with the MCU's other Earths beside 616.
-// Earth-838 is left out: no work is set there, it's only crossed into.
-const EARTH_ORDER: EarthId[] = ["10005", "616", "828", "multiverse", "96283", "120703", "688"];
+// Earths 838, 65, and 42 are left out: no work is set there, they're only
+// crossed into.
+const EARTH_ORDER: EarthId[] = [
+  "26320",
+  "701306",
+  "121698",
+  "10005",
+  "616",
+  "828",
+  "86445",
+  "multiverse",
+  "96283",
+  "120703",
+  "688",
+  "1610",
+  "92131",
+];
 
 export const GROUPS: Record<GroupBy, GroupMeta[]> = {
   franchise: FRANCHISE_ORDER.map((key) => ({ key, ...FRANCHISE_META[key] })),
