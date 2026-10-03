@@ -109,7 +109,7 @@ export function GraphNode({
     >
       {hasIncoming && <span aria-hidden className={nubClass.incoming} />}
       <div
-        className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""} ${nextUp ? "ring-3 ring-sky-500 ring-offset-2 ring-offset-stone-200" : ""}`}
+        className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
       >
         <PosterThumb work={work} />
       </div>
