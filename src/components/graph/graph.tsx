@@ -9,6 +9,7 @@ import { WORKS } from "@/data/works";
 import {
   groupKeyOf,
   isWorkVisible,
+  PHASE_GROUP,
   regroup,
   type GroupBy,
   type Grouping,
@@ -119,36 +120,38 @@ export function Graph() {
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const eraBands = computeEraBands(mode, layout, grouping);
 
-  // Hovering a card (anywhere inside it, posters included) focuses its
-  // group once the pointer rests, so sweeping across cards doesn't flicker.
-  // `pendingGroup` keeps where the pointer entered the card, for the chip.
-  const [pendingGroup, setPendingGroup] = useState<{ key: string; x: number; y: number } | null>(
-    null,
-  );
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  // Hovering a card or phase band (anywhere inside it, posters included)
+  // focuses its works once the pointer rests, so sweeping across doesn't
+  // flicker. Phase bands sit inside a card and win over it. `pending` keeps
+  // where the pointer entered, for the chip.
+  const [pending, setPending] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   useEffect(() => {
-    if (pendingGroup === null) return;
-    const timer = window.setTimeout(() => setHoveredGroup(pendingGroup.key), GROUP_HOVER_DELAY_MS);
+    if (pending === null) return;
+    const timer = window.setTimeout(() => setHovered(pending.id), GROUP_HOVER_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [pendingGroup]);
+  }, [pending]);
   // Stale once the pointer moves on; a selection wins over it.
-  const focusedGroup = !selectedId && hoveredGroup === pendingGroup?.key ? hoveredGroup : null;
-  const focusedCard = groupCards.find((card) => card.key === focusedGroup);
+  const focusedId = !selectedId && hovered === pending?.id ? hovered : null;
+  const focusedPhase = phaseBands.find((band) => `phase:${band.phase}` === focusedId);
+  const focusedCard = groupCards.find((card) => `group:${card.key}` === focusedId);
   const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse") return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const card = groupCardAt(groupCards, {
+    const point = {
       x: ((event.clientX - rect.left) / rect.width) * 100,
       y: ((event.clientY - rect.top) / rect.height) * 100,
-    });
-    const key = card?.key ?? null;
-    // Same card: keep the state as is, so moving within it doesn't re-render.
-    setPendingGroup((current) =>
-      (current?.key ?? null) === key
+    };
+    const phase = groupCardAt(phaseBands, point);
+    const card = phase ? undefined : groupCardAt(groupCards, point);
+    const id = phase ? `phase:${phase.phase}` : card ? `group:${card.key}` : null;
+    // Same target: keep the state as is, so moving within it doesn't re-render.
+    setPending((current) =>
+      (current?.id ?? null) === id
         ? current
-        : key === null
+        : id === null
           ? null
-          : { key, x: event.clientX, y: event.clientY },
+          : { id, x: event.clientX, y: event.clientY },
     );
   };
 
@@ -157,9 +160,19 @@ export function Graph() {
     : new Map<string, number>();
   const activeSet = selectedId
     ? new Set([selectedId, ...distances.keys()])
-    : focusedGroup !== null
-      ? new Set(WORKS.filter((w) => groupKeyOf(w, grouping.by) === focusedGroup).map((w) => w.id))
-      : null;
+    : focusedPhase
+      ? new Set(
+          WORKS.filter(
+            (w) =>
+              w.phase === focusedPhase.phase &&
+              groupKeyOf(w, grouping.by) === PHASE_GROUP[grouping.by],
+          ).map((w) => w.id),
+        )
+      : focusedCard
+        ? new Set(
+            WORKS.filter((w) => groupKeyOf(w, grouping.by) === focusedCard.key).map((w) => w.id),
+          )
+        : null;
 
   const nodeState = (id: string): NodeState =>
     !activeSet
@@ -410,13 +423,13 @@ export function Graph() {
                 role="presentation"
                 onClick={() => setSelectedId(null)}
                 onPointerMove={handleCanvasPointerMove}
-                onPointerLeave={() => setPendingGroup(null)}
+                onPointerLeave={() => setPending(null)}
               >
                 {groupCards.map(
                   ({ key, label, colorClass, cardClass, top, height, left, width }) => (
                     <div
                       key={key}
-                      className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedGroup ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
+                      className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedCard?.key ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
@@ -492,13 +505,17 @@ export function Graph() {
           </TransformComponent>
 
           <PosterTooltip />
-          {focusedCard && pendingGroup && (
+          {(focusedPhase || focusedCard) && pending && (
             <GroupHoverChip
-              key={focusedCard.key}
-              label={focusedCard.label}
-              colorClass={focusedCard.colorClass}
+              key={pending.id}
+              label={focusedPhase ? `Phase ${focusedPhase.phase}` : focusedCard!.label}
+              dot={
+                focusedPhase
+                  ? { color: focusedPhase.borderColor }
+                  : { className: focusedCard!.colorClass }
+              }
               count={activeSet?.size ?? 0}
-              initial={pendingGroup}
+              initial={pending}
             />
           )}
 
