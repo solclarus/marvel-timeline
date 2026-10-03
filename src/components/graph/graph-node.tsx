@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import * as m from "motion/react-m";
 
 import {
@@ -36,6 +37,9 @@ interface Props {
   axis: Axis;
   hasIncoming: boolean;
   hasOutgoing: boolean;
+  watched: boolean;
+  // Every prerequisite is watched.
+  nextUp: boolean;
 }
 
 const NUB_CLASS = {
@@ -63,6 +67,8 @@ export function GraphNode({
   axis,
   hasIncoming,
   hasOutgoing,
+  watched,
+  nextUp,
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
@@ -96,16 +102,24 @@ export function GraphNode({
           }}
           whileHover={{ scale: style.scale * 1.15 }}
           whileTap={{ scale: style.scale * 0.95 }}
-          aria-label={work.title}
+          aria-label={`${work.title}${watched ? " (watched)" : nextUp ? " (up next)" : ""}`}
         />
       }
     >
       {hasIncoming && <span aria-hidden className={nubClass.incoming} />}
       <div
-        className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
+        className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""} ${nextUp ? "ring-3 ring-sky-500 ring-offset-2 ring-offset-stone-200" : ""}`}
       >
         <PosterThumb work={work} />
       </div>
+      {watched && (
+        <span
+          aria-hidden
+          className={`absolute -top-1.5 -right-1.5 z-10 flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow ${style.grayscale ? "grayscale" : ""}`}
+        >
+          <Check className="size-3.5" strokeWidth={3} />
+        </span>
+      )}
       {hasOutgoing && <span aria-hidden className={nubClass.outgoing} />}
     </TooltipTrigger>
   );

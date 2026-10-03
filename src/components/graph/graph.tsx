@@ -26,6 +26,7 @@ import {
   type FocusMode,
 } from "@/lib/graph/relations";
 import { parseUrlState, serializeUrlState } from "@/lib/url-state";
+import { computeNextUp, useWatched } from "@/lib/watched";
 
 import { DetailPanel } from "./detail-panel";
 import { FocusFab } from "./focus-fab";
@@ -68,6 +69,8 @@ export function Graph() {
     initial.visibleFranchises,
   );
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
+  const { watched, toggleWatched } = useWatched();
+  const nextUp = computeNextUp(watched);
 
   // React Compiler memoizes these, which keeps `layout`/`focusLayout` stable
   // for the reframe effect's deps.
@@ -275,6 +278,8 @@ export function Graph() {
                       axis="y"
                       hasIncoming={focusEdgeVisibility.hasIncoming.has(id)}
                       hasOutgoing={focusEdgeVisibility.hasOutgoing.has(id)}
+                      watched={watched.has(id)}
+                      nextUp={nextUp.has(id)}
                     />
                   );
                 })}
@@ -355,6 +360,8 @@ export function Graph() {
                       axis={axis}
                       hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
                       hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
+                      watched={watched.has(work.id)}
+                      nextUp={nextUp.has(work.id)}
                     />
                   );
                 })}
@@ -364,7 +371,12 @@ export function Graph() {
 
           <PosterTooltip />
 
-          <DetailPanel selectedId={selectedId} onClear={() => setSelectedId(null)} />
+          <DetailPanel
+            selectedId={selectedId}
+            onClear={() => setSelectedId(null)}
+            watched={watched}
+            onToggleWatched={toggleWatched}
+          />
 
           {selectedId && (
             <FocusFab
