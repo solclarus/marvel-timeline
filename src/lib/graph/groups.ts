@@ -20,9 +20,9 @@ export interface GroupMeta {
   key: string;
   label: string;
   colorClass: string;
-  // Earths only: their works sit in an outlined card, set apart from the
-  // MCU phases' filled ones.
-  cardClass?: string;
+  // Each group's works sit in an outlined card, set apart from the MCU
+  // phases' filled ones.
+  cardClass: string;
 }
 
 const FRANCHISE_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];

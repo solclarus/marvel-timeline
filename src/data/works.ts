@@ -18,42 +18,42 @@ export const EARTH_META: Record<EarthId, { label: string; colorClass: string; ca
     "616": {
       label: "Earth-616",
       colorClass: "bg-rose-500",
-      cardClass: "border-rose-500/85",
+      cardClass: "border-rose-500/70",
     },
     "838": {
       label: "Earth-838",
       colorClass: "bg-amber-500",
-      cardClass: "border-amber-500/85",
+      cardClass: "border-amber-500/70",
     },
     "828": {
       label: "Earth-828",
       colorClass: "bg-teal-500",
-      cardClass: "border-teal-500/85",
+      cardClass: "border-teal-500/70",
     },
     "10005": {
       label: "Earth-10005",
       colorClass: "bg-indigo-500",
-      cardClass: "border-indigo-500/85",
+      cardClass: "border-indigo-500/70",
     },
     "96283": {
       label: "Earth-96283",
       colorClass: "bg-slate-500",
-      cardClass: "border-slate-500/85",
+      cardClass: "border-slate-500/70",
     },
     "120703": {
       label: "Earth-120703",
       colorClass: "bg-cyan-600",
-      cardClass: "border-cyan-600/85",
+      cardClass: "border-cyan-600/70",
     },
     "688": {
       label: "Earth-688",
       colorClass: "bg-violet-500",
-      cardClass: "border-violet-500/85",
+      cardClass: "border-violet-500/70",
     },
     multiverse: {
       label: "Multiverse",
       colorClass: "bg-fuchsia-500",
-      cardClass: "border-fuchsia-500/85",
+      cardClass: "border-fuchsia-500/70",
     },
   };
 
@@ -107,18 +107,35 @@ export interface WorkEdge {
   kind: EdgeKind;
 }
 
+// `cardClass`: see EARTH_META.
 export const FRANCHISE_META: Record<
   Franchise,
-  { label: string; colorClass: string; earth: EarthId }
+  { label: string; colorClass: string; cardClass: string; earth: EarthId }
 > = {
-  mcu: { label: "MCU", colorClass: "bg-rose-500", earth: "616" },
-  "x-men": { label: "X-Men (Fox)", colorClass: "bg-indigo-500", earth: "10005" },
+  mcu: {
+    label: "MCU",
+    colorClass: "bg-rose-500",
+    cardClass: "border-rose-500/70",
+    earth: "616",
+  },
+  "x-men": {
+    label: "X-Men (Fox)",
+    colorClass: "bg-indigo-500",
+    cardClass: "border-indigo-500/70",
+    earth: "10005",
+  },
   "spider-man-legacy": {
     label: "Legacy Spider-Man",
     colorClass: "bg-slate-500",
+    cardClass: "border-slate-500/70",
     earth: "96283",
   },
-  ssu: { label: "SSU", colorClass: "bg-violet-500", earth: "688" },
+  ssu: {
+    label: "SSU",
+    colorClass: "bg-violet-500",
+    cardClass: "border-violet-500/70",
+    earth: "688",
+  },
 };
 
 export const WORKS: WorkNode[] = [
