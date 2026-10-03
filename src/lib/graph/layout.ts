@@ -26,35 +26,21 @@ export interface GraphLayout {
   rowCount: number;
 }
 
-// Colorblind-safe order; re-validate before reordering.
-const BAND_COLORS = [
-  "rgba(42,120,214,0.10)", // blue
-  "rgba(235,104,52,0.10)", // orange
-  "rgba(27,175,122,0.10)", // aqua
-  "rgba(237,161,0,0.12)", // yellow
-  "rgba(232,123,164,0.10)", // magenta
-  "rgba(0,131,0,0.10)", // green
-];
-const BAND_BORDER_COLORS = [
-  "rgba(42,120,214,0.45)",
-  "rgba(235,104,52,0.45)",
-  "rgba(27,175,122,0.45)",
-  "rgba(237,161,0,0.5)",
-  "rgba(232,123,164,0.45)",
-  "rgba(0,131,0,0.45)",
-];
+// Decade bands step through the rainbow, red (oldest) to violet (newest),
+// so the backdrop itself reads as time moving left to right. Each band is
+// one flat, soft color; `step` runs 0..1 across the decades on screen.
+function decadeTint(step: number) {
+  const hue = Math.round(step * 270);
+  return {
+    color: `hsla(${hue}, 85%, 55%, 0.12)`,
+    borderColor: `hsla(${hue}, 70%, 45%, 0.5)`,
+  };
+}
 
 // Phases stack without overlapping, so one tint serves them all; their
 // borders and labels tell them apart. A soft blue, clear of the MCU card's
 // rose outline and the slate/gold edges.
 const PHASE_COLOR = { color: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.4)" };
-
-function bandColor(index: number) {
-  return {
-    color: BAND_COLORS[index % BAND_COLORS.length],
-    borderColor: BAND_BORDER_COLORS[index % BAND_BORDER_COLORS.length],
-  };
-}
 
 function visibleBands(grouping: Grouping) {
   return visibleGroups(grouping).map((group) => group.key);
@@ -82,6 +68,13 @@ export function computeLayout(
     : computeTimelineLayout(mode, grouping, graph);
 }
 
+// The year a timeline places a work at: its release year, or for the
+// chronology its in-story year when known.
+export function timelineYear(work: WorkNode, mode: Exclude<ViewMode, "recommended">): number {
+  const releaseYear = Number(work.releaseDate.slice(0, 4));
+  return mode === "release" ? releaseYear : (work.setYear ?? releaseYear);
+}
+
 function computeTimelineLayout(
   mode: Exclude<ViewMode, "recommended">,
   grouping: Grouping,
@@ -89,26 +82,61 @@ function computeTimelineLayout(
 ): GraphLayout {
   const bands = visibleBands(grouping);
   const worksInScope = graph.works.filter((w) => isWorkVisible(w, grouping));
-  const sorted = [...worksInScope].sort((a, b) => {
-    return mode === "chronology"
-      ? a.chronologyOrder - b.chronologyOrder
-      : a.releaseDate.localeCompare(b.releaseDate);
-  });
-  const rank = new Map(sorted.map((w, i) => [w.id, i]));
-  const denom = Math.max(1, sorted.length - 1);
   const rows = Math.max(1, bands.length);
   const rowHeight = 100 / rows;
+  const rowOf = (work: WorkNode) => Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
 
-  const positions = new Map<string, Point>();
-  for (const work of worksInScope) {
-    const rowIndex = Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
-    positions.set(work.id, {
-      x: ((rank.get(work.id) ?? 0) / denom) * 100,
-      y: rowIndex * rowHeight + rowHeight / 2,
+  // Release dates already run in one order across every row: one column per
+  // work, by date.
+  if (mode === "release") {
+    const sorted = [...worksInScope].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+    const denom = Math.max(1, sorted.length - 1);
+    const positions = new Map<string, Point>();
+    sorted.forEach((work, rank) => {
+      positions.set(work.id, {
+        x: (rank / denom) * 100,
+        y: rowOf(work) * rowHeight + rowHeight / 2,
+      });
     });
+    return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
   }
 
-  return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
+  // The chronology's order is curated per franchise, so it can't be one
+  // sequence across rows. Instead every row shares a year axis: each year
+  // gets as many columns as its busiest row needs (empty years take none),
+  // and a row's works within a year keep their chronology order.
+  const byRowYear = new Map<string, WorkNode[]>();
+  for (const work of worksInScope) {
+    const key = `${rowOf(work)}|${timelineYear(work, mode)}`;
+    if (!byRowYear.has(key)) byRowYear.set(key, []);
+    byRowYear.get(key)!.push(work);
+  }
+  const years = [...new Set(worksInScope.map((w) => timelineYear(w, mode)))].sort((a, b) => a - b);
+  const yearStart = new Map<number, number>();
+  let columns = 0;
+  for (const year of years) {
+    yearStart.set(year, columns);
+    let widest = 0;
+    for (let row = 0; row < rows; row++) {
+      widest = Math.max(widest, byRowYear.get(`${row}|${year}`)?.length ?? 0);
+    }
+    columns += widest;
+  }
+
+  const denom = Math.max(1, columns - 1);
+  const positions = new Map<string, Point>();
+  for (const [key, works] of byRowYear) {
+    const [row, year] = key.split("|").map(Number);
+    works
+      .sort((a, b) => a.chronologyOrder - b.chronologyOrder)
+      .forEach((work, i) => {
+        positions.set(work.id, {
+          x: ((yearStart.get(year)! + i) / denom) * 100,
+          y: row * rowHeight + rowHeight / 2,
+        });
+      });
+  }
+  return { positions, totalLanes: Math.max(1, columns), rowCount: rows };
 }
 
 // Grouped by Earth, each band is split again by franchise, so a franchise
@@ -313,8 +341,7 @@ function datedWorks(
   return WORKS.filter((w) => isWorkVisible(w, grouping))
     .map((work) => {
       const pos = layout.positions.get(work.id);
-      const releaseYear = Number(work.releaseDate.slice(0, 4));
-      const year = mode === "release" ? releaseYear : (work.setYear ?? releaseYear);
+      const year = timelineYear(work, mode);
       return pos ? { pos, year, decade: Math.floor(year / 10) * 10 } : null;
     })
     .filter((e) => e !== null)
@@ -361,7 +388,9 @@ export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: G
       decade: run.decade,
       left,
       width: right - left,
-      ...bandColor(colorIndex.get(run.decade) ?? 0),
+      ...decadeTint(
+        decadeOrder.length > 1 ? colorIndex.get(run.decade)! / (decadeOrder.length - 1) : 1,
+      ),
     };
   });
 }
