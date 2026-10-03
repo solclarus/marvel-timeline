@@ -12,7 +12,7 @@ test("loads every work without errors", async ({ page }) => {
 
 test("restores a shared link", async ({ page }) => {
   await page.goto("./?work=logan&group=earth");
-  await expect(page.locator("p.font-semibold").first()).toHaveText("Logan");
+  await expect(page.locator("[data-slot=detail-title]").first()).toHaveText("Logan");
   await expect(page).toHaveURL(/work=logan/);
   await expect(page).toHaveURL(/group=earth/);
 });
@@ -23,7 +23,7 @@ test("search selects a work and puts it in the URL", async ({ page }) => {
   await page.keyboard.type("ragnarok");
   await page.getByRole("option", { name: /Thor: Ragnarok/ }).click();
   await expect(page).toHaveURL(/work=thor-ragnarok/);
-  await expect(page.locator("p.font-semibold").first()).toHaveText("Thor: Ragnarok");
+  await expect(page.locator("[data-slot=detail-title]").first()).toHaveText("Thor: Ragnarok");
 });
 
 test("manual zoom sticks after the selection fit", async ({ page }) => {
@@ -78,7 +78,7 @@ test("a poster TMDB can't serve falls back to its title", async ({ page }) => {
 
 test("switching works keeps the detail panel in place", async ({ page }) => {
   await page.goto("./?work=iron-man");
-  const panel = page.locator("p.font-semibold").first();
+  const panel = page.locator("[data-slot=detail-title]").first();
   await expect(panel).toHaveText("Iron Man");
   const top = () =>
     panel.evaluate((el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top);

@@ -118,7 +118,10 @@ export function Graph() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedId(null);
+      // A dialog takes Escape for itself; the selection stays.
+      if (event.key === "Escape" && !document.querySelector("[data-slot=dialog-content]")) {
+        setSelectedId(null);
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -338,7 +341,12 @@ export function Graph() {
             />
           )}
 
-          <DetailPanel selectedId={selectedId} onClear={() => setSelectedId(null)} />
+          <DetailPanel
+            selectedId={selectedId}
+            onClear={() => setSelectedId(null)}
+            onSelect={handleSearchSelect}
+            graph={graph}
+          />
 
           <CommandBar
             onSearchSelect={handleSearchSelect}
