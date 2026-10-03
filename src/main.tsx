@@ -1,4 +1,4 @@
-import { domAnimation, LazyMotion } from "motion/react";
+import { domAnimation, LazyMotion, MotionConfig } from "motion/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -10,9 +10,12 @@ import "@/globals.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LazyMotion features={domAnimation} strict>
-      <TooltipProvider>
-        <Graph />
-      </TooltipProvider>
+      {/* Skips transform animations when the OS asks for reduced motion. */}
+      <MotionConfig reducedMotion="user">
+        <TooltipProvider>
+          <Graph />
+        </TooltipProvider>
+      </MotionConfig>
     </LazyMotion>
   </StrictMode>,
 );
