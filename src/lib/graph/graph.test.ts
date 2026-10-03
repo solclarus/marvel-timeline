@@ -467,3 +467,25 @@ describe("timeline layouts", () => {
     expect(hues).toEqual([...hues].sort((a, b) => a - b));
   });
 });
+
+describe("decade bands", () => {
+  const grouping: Grouping = {
+    by: "franchise",
+    visible: new Set(GROUPS.franchise.map((g) => g.key)),
+  };
+
+  for (const mode of ["release", "chronology"] as const) {
+    it(`tile the canvas with no decade narrower than three columns (${mode})`, () => {
+      const layout = computeLayout(mode, grouping);
+      const bands = computeEraBands(mode, layout, grouping);
+      const column = 100 / layout.totalLanes;
+      expect(bands.every((band) => band.width >= 3 * column - 1e-9)).toBe(true);
+      const gaps = bands
+        .slice(1)
+        .map((band, i) => Math.abs(band.left - (bands[i].left + bands[i].width)));
+      expect(Math.max(0, ...gaps)).toBeLessThan(1e-9);
+      expect(bands[0].left).toBeCloseTo(0);
+      expect(bands.at(-1)!.left + bands.at(-1)!.width).toBeCloseTo(100);
+    });
+  }
+});
