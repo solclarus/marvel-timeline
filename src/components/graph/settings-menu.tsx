@@ -1,4 +1,4 @@
-import { SlidersHorizontal } from "lucide-react";
+import { Earth, GitBranch, Library, SlidersHorizontal, Waypoints } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,11 +25,14 @@ interface Props {
   onFocusModeChange: (mode: FocusMode) => void;
 }
 
-const GROUP_BY_LABEL: Record<GroupBy, string> = { franchise: "Franchise", earth: "Earth" };
+const GROUP_BY_OPTIONS: Record<GroupBy, { label: string; icon: typeof Earth }> = {
+  franchise: { label: "Franchise", icon: Library },
+  earth: { label: "Earth", icon: Earth },
+};
 // How far a selection's highlight reaches.
-const FOCUS_MODE_LABEL: Record<FocusMode, string> = {
-  chain: "All related",
-  immediate: "Direct only",
+const FOCUS_MODE_OPTIONS: Record<FocusMode, { label: string; icon: typeof Earth }> = {
+  chain: { label: "All related", icon: Waypoints },
+  immediate: { label: "Direct only", icon: GitBranch },
 };
 
 export function SettingsMenu({
@@ -55,11 +58,15 @@ export function SettingsMenu({
             value={focusMode}
             onValueChange={(value: FocusMode) => onFocusModeChange(value)}
           >
-            {(Object.keys(FOCUS_MODE_LABEL) as FocusMode[]).map((mode) => (
-              <DropdownMenuRadioItem key={mode} value={mode} className="text-xs">
-                {FOCUS_MODE_LABEL[mode]}
-              </DropdownMenuRadioItem>
-            ))}
+            {(Object.keys(FOCUS_MODE_OPTIONS) as FocusMode[]).map((mode) => {
+              const { label, icon: Icon } = FOCUS_MODE_OPTIONS[mode];
+              return (
+                <DropdownMenuRadioItem key={mode} value={mode} className="text-xs">
+                  <Icon className="size-4" />
+                  {label}
+                </DropdownMenuRadioItem>
+              );
+            })}
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -69,11 +76,15 @@ export function SettingsMenu({
             value={grouping.by}
             onValueChange={(value: GroupBy) => onGroupByChange(value)}
           >
-            {(Object.keys(GROUP_BY_LABEL) as GroupBy[]).map((by) => (
-              <DropdownMenuRadioItem key={by} value={by} className="text-xs">
-                {GROUP_BY_LABEL[by]}
-              </DropdownMenuRadioItem>
-            ))}
+            {(Object.keys(GROUP_BY_OPTIONS) as GroupBy[]).map((by) => {
+              const { label, icon: Icon } = GROUP_BY_OPTIONS[by];
+              return (
+                <DropdownMenuRadioItem key={by} value={by} className="text-xs">
+                  <Icon className="size-4" />
+                  {label}
+                </DropdownMenuRadioItem>
+              );
+            })}
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
