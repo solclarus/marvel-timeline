@@ -1,5 +1,10 @@
 import type { GroupBy } from "@/lib/graph/groups";
-import type { computeEraBands, computeGroupCards, computePhaseBands } from "@/lib/graph/layout";
+import type {
+  computeEraBands,
+  computeGroupCards,
+  computePhaseBands,
+  computeYearMarks,
+} from "@/lib/graph/layout";
 import { useI18n } from "@/lib/i18n";
 
 import { BorderLabel } from "./border-label";
@@ -9,6 +14,7 @@ interface Props {
   groupCards: ReturnType<typeof computeGroupCards>;
   phaseBands: ReturnType<typeof computePhaseBands>;
   eraBands: ReturnType<typeof computeEraBands>;
+  yearMarks: ReturnType<typeof computeYearMarks>;
   focusedCardKey: string | undefined;
   pinnedId: string | null;
   onTogglePinned: (id: string) => void;
@@ -27,6 +33,7 @@ export function MapBackdrop({
   groupCards,
   phaseBands,
   eraBands,
+  yearMarks,
   focusedCardKey,
   pinnedId,
   onTogglePinned,
@@ -73,6 +80,18 @@ export function MapBackdrop({
           style={{ ...box(band), backgroundColor: band.color, borderColor: band.borderColor }}
         >
           <BorderLabel dot={{ color: band.borderColor }}>{t.decade(band.decade)}</BorderLabel>
+        </div>
+      ))}
+      {yearMarks.map((mark) => (
+        <div
+          key={mark.key}
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 w-px bg-stone-500/15"
+          style={{ left: `${mark.x}%` }}
+        >
+          <span className="absolute top-1 left-1 text-[10px] font-medium text-stone-500/70 tabular-nums">
+            {mark.year}
+          </span>
         </div>
       ))}
     </>

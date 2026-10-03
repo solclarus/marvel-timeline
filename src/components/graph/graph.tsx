@@ -21,6 +21,7 @@ import {
   computeGroupCards,
   computeLayout,
   computePhaseBands,
+  computeYearMarks,
   type Axis,
   type ViewMode,
 } from "@/lib/graph/layout";
@@ -86,6 +87,7 @@ export function Graph() {
   const groupCards = computeGroupCards(mode, layout, grouping);
   const phaseBands = computePhaseBands(mode, layout, grouping, graph);
   const eraBands = computeEraBands(mode, layout, grouping);
+  const yearMarks = computeYearMarks(mode, layout, grouping);
 
   const focus = useHoverFocus({
     groupCards,
@@ -280,6 +282,7 @@ export function Graph() {
                 groupCards={groupCards}
                 phaseBands={phaseBands}
                 eraBands={eraBands}
+                yearMarks={yearMarks}
                 focusedCardKey={focus.focusedCard?.key}
                 pinnedId={focus.pinnedId}
                 onTogglePinned={focus.togglePinned}

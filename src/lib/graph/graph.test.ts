@@ -5,7 +5,7 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
-import { computeLayout, computePhaseBands, type ViewMode } from "./layout";
+import { computeLayout, computePhaseBands, computeYearMarks, type ViewMode } from "./layout";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -409,5 +409,23 @@ describe("edgesToDraw", () => {
     const drawn = edgesToDraw("release", edges, "iron-man", active);
     expect(drawn.length).toBeGreaterThan(0);
     expect(drawn.every((e) => active.has(e.from) && active.has(e.to))).toBe(true);
+  });
+});
+
+describe("computeYearMarks", () => {
+  const grouping: Grouping = {
+    by: "franchise",
+    visible: new Set(GROUPS.franchise.map((g) => g.key)),
+  };
+
+  it("marks each year change within a decade, in order, and none in recommended mode", () => {
+    expect(
+      computeYearMarks("recommended", computeLayout("recommended", grouping), grouping),
+    ).toEqual([]);
+    const marks = computeYearMarks("release", computeLayout("release", grouping), grouping);
+    expect(marks.length).toBeGreaterThan(10);
+    const years = marks.map((m) => m.year);
+    expect(years).toEqual([...years].sort((a, b) => a - b));
+    expect(years.some((y) => y % 10 === 0)).toBe(false);
   });
 });
