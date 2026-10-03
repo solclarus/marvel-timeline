@@ -43,7 +43,9 @@ test("reduced motion selects a poster without animating its scale", async ({ pag
         requestAnimationFrame(sample);
       }),
   );
-  await ironMan.click();
+  // A DOM click, not a mouse one: the pointer resting on the poster would add
+  // its hover scale on top.
+  await ironMan.evaluate((el) => (el as HTMLElement).click());
   const seen = await scales;
   expect(seen.at(-1)).toBe(1.25);
   expect(seen.filter((scale) => scale > 1.001 && scale < 1.249)).toEqual([]);
