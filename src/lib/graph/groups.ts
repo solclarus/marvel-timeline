@@ -20,14 +20,15 @@ export interface GroupMeta {
   key: string;
   label: string;
   colorClass: string;
-  // Earths only: their works sit on a tinted card, like the MCU phases.
+  // Earths only: their works sit in an outlined card, set apart from the
+  // MCU phases' filled ones.
   cardClass?: string;
 }
 
 const FRANCHISE_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];
 // Mirrors the franchise order, with the MCU's other Earths beside 616.
 // Earth-838 is left out: no work is set there, it's only crossed into.
-const EARTH_ORDER: EarthId[] = ["10005", "616", "828", "multiverse", "96283", "120703", "1048"];
+const EARTH_ORDER: EarthId[] = ["10005", "616", "828", "multiverse", "96283", "120703", "688"];
 
 export const GROUPS: Record<GroupBy, GroupMeta[]> = {
   franchise: FRANCHISE_ORDER.map((key) => ({ key, ...FRANCHISE_META[key] })),

@@ -1,51 +1,59 @@
 export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
 // Earth designations as the films and series use them. "multiverse" is for
-// works that span too many Earths to list.
-export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "1048" | "multiverse";
+// works that span too many Earths to list. Where each number is stated:
+// - 616: Doctor Strange in the Multiverse of Madness, Deadpool & Wolverine
+//   (on screen; earlier handbooks called the MCU Earth-199999)
+// - 838: Doctor Strange in the Multiverse of Madness
+// - 828: The Fantastic Four: First Steps (on screen before the credits scene)
+// - 10005: Deadpool & Wolverine (TVA); Official Handbook A to Z (2008)
+// - 96283: Official Handbook of the Marvel Universe
+// - 120703: Spider-Man: No Way Home script; dated from TASM's 2012-07-03 release
+// - 688: Spider-Man: Across the Spider-Verse (the Spot's visit to the Venom world)
+export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "688" | "multiverse";
 
-// `cardClass` tints the background card around an Earth's works; the class
-// names are spelled out in full so Tailwind can see them.
+// `cardClass` colors the outline of the card around an Earth's works; the
+// class names are spelled out in full so Tailwind can see them.
 export const EARTH_META: Record<EarthId, { label: string; colorClass: string; cardClass: string }> =
   {
     "616": {
       label: "Earth-616",
       colorClass: "bg-rose-500",
-      cardClass: "border-rose-500/45 bg-rose-500/8",
+      cardClass: "border-rose-500/85",
     },
     "838": {
       label: "Earth-838",
       colorClass: "bg-amber-500",
-      cardClass: "border-amber-500/50 bg-amber-500/10",
+      cardClass: "border-amber-500/85",
     },
     "828": {
       label: "Earth-828",
       colorClass: "bg-teal-500",
-      cardClass: "border-teal-500/45 bg-teal-500/8",
+      cardClass: "border-teal-500/85",
     },
     "10005": {
       label: "Earth-10005",
       colorClass: "bg-indigo-500",
-      cardClass: "border-indigo-500/45 bg-indigo-500/8",
+      cardClass: "border-indigo-500/85",
     },
     "96283": {
       label: "Earth-96283",
       colorClass: "bg-slate-500",
-      cardClass: "border-slate-500/45 bg-slate-500/8",
+      cardClass: "border-slate-500/85",
     },
     "120703": {
       label: "Earth-120703",
       colorClass: "bg-cyan-600",
-      cardClass: "border-cyan-600/45 bg-cyan-600/8",
+      cardClass: "border-cyan-600/85",
     },
-    "1048": {
-      label: "Earth-1048",
+    "688": {
+      label: "Earth-688",
       colorClass: "bg-violet-500",
-      cardClass: "border-violet-500/45 bg-violet-500/8",
+      cardClass: "border-violet-500/85",
     },
     multiverse: {
       label: "Multiverse",
       colorClass: "bg-fuchsia-500",
-      cardClass: "border-fuchsia-500/45 bg-fuchsia-500/8",
+      cardClass: "border-fuchsia-500/85",
     },
   };
 
@@ -110,7 +118,7 @@ export const FRANCHISE_META: Record<
     colorClass: "bg-slate-500",
     earth: "96283",
   },
-  ssu: { label: "SSU", colorClass: "bg-violet-500", earth: "1048" },
+  ssu: { label: "SSU", colorClass: "bg-violet-500", earth: "688" },
 };
 
 export const WORKS: WorkNode[] = [
@@ -1210,7 +1218,7 @@ export const WORKS: WorkNode[] = [
     id: "morbius",
     title: "Morbius",
     franchise: "ssu",
-    earths: ["1048", "616"],
+    earths: ["688", "616"],
     dependsOn: [{ id: "venom", kind: "reference" }],
     chronologyOrder: 72,
     recommendedOrder: null,
@@ -1222,7 +1230,7 @@ export const WORKS: WorkNode[] = [
     id: "venom-let-there-be-carnage",
     title: "Venom: Let There Be Carnage",
     franchise: "ssu",
-    earths: ["1048", "616"],
+    earths: ["688", "616"],
     dependsOn: [{ id: "venom", kind: "direct-sequel" }],
     chronologyOrder: 73,
     recommendedOrder: null,
@@ -1245,7 +1253,7 @@ export const WORKS: WorkNode[] = [
     id: "venom-the-last-dance",
     title: "Venom: The Last Dance",
     franchise: "ssu",
-    earths: ["1048", "616"],
+    earths: ["688", "616"],
     dependsOn: [{ id: "venom-let-there-be-carnage", kind: "direct-sequel" }],
     chronologyOrder: 75,
     recommendedOrder: null,
