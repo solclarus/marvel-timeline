@@ -5,7 +5,7 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
-import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
+import { computeEdgeVisibility, GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
 import { clampPan, isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
 const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
@@ -242,5 +242,22 @@ describe("clampPan", () => {
       y: -200,
       scale: 0.5,
     });
+  });
+});
+
+describe("computeEdgeVisibility", () => {
+  const all = new Set(WORKS.map((w) => w.id));
+
+  it("gives nubs only to ends of drawn edges", () => {
+    const { hasIncoming, hasOutgoing } = computeEdgeVisibility(all);
+    for (const id of hasIncoming) expect(EDGES.some((e) => e.to === id)).toBe(true);
+    for (const id of hasOutgoing) expect(EDGES.some((e) => e.from === id)).toBe(true);
+  });
+
+  it("drops nubs for edges faded out by a selection", () => {
+    const active = new Set(["iron-man", "iron-man-2"]);
+    const { hasIncoming, hasOutgoing } = computeEdgeVisibility(all, active);
+    expect([...hasOutgoing]).toEqual(["iron-man"]);
+    expect([...hasIncoming]).toEqual(["iron-man-2"]);
   });
 });

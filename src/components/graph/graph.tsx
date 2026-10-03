@@ -167,7 +167,7 @@ export function Graph() {
 
   const visibleWorks = WORKS.filter((w) => isWorkVisible(w, grouping));
   const visibleIds = new Set(visibleWorks.map((w) => w.id));
-  const edgeVisibility = computeEdgeVisibility(visibleIds);
+  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet);
 
   const axis: Axis = mode === "recommended" ? "y" : "x";
   const geometry = computeEdgeGeometry(
