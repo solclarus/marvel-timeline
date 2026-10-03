@@ -1115,6 +1115,9 @@ export const WORKS: WorkNode[] = [
     releaseDate: "2013-07-24",
     poster: "/t2wVAcoRlKvEIVSbiYDb8d0QqqS.jpg",
   },
+  // Kept on Earth-10005 with the other Fox films: Deadpool & Wolverine
+  // treats Logan's Wolverine as that Earth's anchor. Some wikis split it off
+  // as an alternate future (Earth-17315).
   {
     id: "logan",
     title: "Logan",
@@ -1210,6 +1213,8 @@ export const WORKS: WorkNode[] = [
   },
 
   // --- SSU ---
+  // Kept on the SSU's Earth-688: Sony bills it as part of the SSU, though
+  // its director has called it a standalone world.
   {
     id: "madame-web",
     title: "Madame Web",
@@ -1410,7 +1415,8 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 78.5,
     recommendedOrder: 59.5,
     tmdb: { type: "tv", id: 202555, season: 3 },
-    releaseDate: "2025-03-04",
+    // Only "March 2027" is announced; update the day once it's set.
+    releaseDate: "2027-03-01",
     poster: "/xDUoAsU8lQHOOoRkFiBuarmACDN.jpg",
   },
 ];
