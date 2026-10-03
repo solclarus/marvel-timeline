@@ -6,13 +6,20 @@ import {
 } from "react-zoom-pan-pinch";
 
 import { WORKS } from "@/data/works";
-import { isWorkVisible, regroup, type GroupBy, type Grouping } from "@/lib/graph/groups";
+import {
+  groupKeyOf,
+  isWorkVisible,
+  regroup,
+  type GroupBy,
+  type Grouping,
+} from "@/lib/graph/groups";
 import {
   canvasSize,
   computeEdgeGeometry,
   computeEraBands,
   computeFocusLayout,
   computeGroupCards,
+  groupCardAt,
   computeLayout,
   computePhaseBands,
   type Axis,
@@ -54,6 +61,7 @@ import { ZoomFab } from "./zoom-fab";
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 1.5;
 const INITIAL_ZOOM = 0.6;
+const GROUP_HOVER_DELAY_MS = 250;
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
@@ -110,10 +118,35 @@ export function Graph() {
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const eraBands = computeEraBands(mode, layout, grouping);
 
+  // Hovering a card (anywhere inside it, posters included) focuses its
+  // group once the pointer rests, so sweeping across cards doesn't flicker.
+  const [pendingGroup, setPendingGroup] = useState<string | null>(null);
+  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  useEffect(() => {
+    if (pendingGroup === null) return;
+    const timer = window.setTimeout(() => setHoveredGroup(pendingGroup), GROUP_HOVER_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [pendingGroup]);
+  // Stale once the pointer moves on; a selection wins over it.
+  const focusedGroup = !selectedId && hoveredGroup === pendingGroup ? hoveredGroup : null;
+  const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse") return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const card = groupCardAt(groupCards, {
+      x: ((event.clientX - rect.left) / rect.width) * 100,
+      y: ((event.clientY - rect.top) / rect.height) * 100,
+    });
+    setPendingGroup(card?.key ?? null);
+  };
+
   const distances = selectedId
     ? getRelatedDistances(selectedId, focusMode)
     : new Map<string, number>();
-  const activeSet = selectedId ? new Set([selectedId, ...distances.keys()]) : null;
+  const activeSet = selectedId
+    ? new Set([selectedId, ...distances.keys()])
+    : focusedGroup !== null
+      ? new Set(WORKS.filter((w) => groupKeyOf(w, grouping.by) === focusedGroup).map((w) => w.id))
+      : null;
 
   const nodeState = (id: string): NodeState =>
     !activeSet
@@ -363,12 +396,14 @@ export function Graph() {
                 style={{ width: canvasWidth, height: canvasHeight }}
                 role="presentation"
                 onClick={() => setSelectedId(null)}
+                onPointerMove={handleCanvasPointerMove}
+                onPointerLeave={() => setPendingGroup(null)}
               >
                 {groupCards.map(
                   ({ key, label, colorClass, cardClass, top, height, left, width }) => (
                     <div
                       key={key}
-                      className={`absolute rounded-2xl border-2 border-dashed bg-white/35 ${cardClass}`}
+                      className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedGroup ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
