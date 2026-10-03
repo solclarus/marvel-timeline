@@ -5,6 +5,7 @@ import type { GroupBy, Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
 
+import { AboutDialog } from "./about-dialog";
 import { FabBar, FabDivider } from "./fab";
 import { ModeMenu } from "./mode-menu";
 import { SearchBox } from "./search-box";
@@ -68,6 +69,7 @@ export function CommandBar({
           focusMode={focusMode}
           onFocusModeChange={onFocusModeChange}
         />
+        <AboutDialog />
       </FabBar>
     </div>
   );

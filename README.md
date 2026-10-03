@@ -40,3 +40,9 @@ Everything lives in `src/data/works.ts`: works, dependencies, Earths, release da
 | `pnpm check:tmdb`           | Compare dates and posters with TMDB (needs a token) |
 
 CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, tests, and build on every push and PR, and deploys `main` to GitHub Pages.
+
+## License & credits
+
+Source code: [MIT](LICENSE). The license doesn't extend to film and series titles, characters, logos, or posters, which belong to their owners; this is an unofficial fan project, not affiliated with Marvel, Disney, Sony Pictures, Netflix, or 20th Century Studios.
+
+Release dates and posters come from [TMDB](https://www.themoviedb.org/). This website uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB. The same notices are shown in the app's About dialog.
