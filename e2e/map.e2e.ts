@@ -75,3 +75,19 @@ test("a poster TMDB can't serve falls back to its title", async ({ page }) => {
   const ironMan = page.locator('[id="iron-man"] [data-poster-fallback]');
   await expect(ironMan).toHaveText("Iron Man");
 });
+
+test("switching works keeps the detail panel in place", async ({ page }) => {
+  await page.goto("./?work=iron-man");
+  const panel = page.locator("p.font-semibold").first();
+  await expect(panel).toHaveText("Iron Man");
+  const before = await panel.evaluate(
+    (el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top,
+  );
+  await page.locator('button[aria-label="Iron Man 2"]').click();
+  // Sampled right away: an entrance replay would start 12px higher.
+  const during = await panel.evaluate(
+    (el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top,
+  );
+  expect(Math.abs(during - before)).toBeLessThan(1);
+  await expect(panel).toHaveText("Iron Man 2");
+});

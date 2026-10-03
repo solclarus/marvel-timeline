@@ -4,6 +4,7 @@ import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import type { GraphLayout } from "@/lib/graph/layout";
 import { getRelatedDistances, type FocusMode, type WorkGraph } from "@/lib/graph/relations";
 import { fitBox } from "@/lib/graph/wheel-zoom";
+import { motionMs } from "@/lib/motion";
 
 const PAD = 24;
 const ANIMATION_MS = 450;
@@ -52,7 +53,7 @@ export function useSelectionFit({
       top: Math.min(...ys) - node.height / 2 - PAD,
       bottom: Math.max(...ys) + node.height / 2 + PAD,
     };
-    const animationTime = hasFittedRef.current ? ANIMATION_MS : 0;
+    const animationTime = hasFittedRef.current ? motionMs(ANIMATION_MS) : 0;
     hasFittedRef.current = true;
 
     // Two frames, so the library's ResizeObserver (which cancels in-flight

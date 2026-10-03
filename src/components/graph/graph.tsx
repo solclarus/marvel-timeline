@@ -32,6 +32,7 @@ import {
   type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
+import { motionMs } from "@/lib/motion";
 import { parseUrlState } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
@@ -149,6 +150,27 @@ export function Graph() {
     scale: FIT_SCALE,
   });
 
+  // Tabbing onto a poster outside the viewport pans it to the center: the
+  // wrapper's native scroll is pinned, so the browser can't scroll it in.
+  const handleKeyboardFocus = (id: string) => {
+    const ref = transformRef.current;
+    const wrapper = ref?.instance.wrapperComponent;
+    const element = document.getElementById(id);
+    if (!ref || !wrapper || !element) return;
+    const view = wrapper.getBoundingClientRect();
+    const poster = element.getBoundingClientRect();
+    const inView =
+      poster.left >= view.left &&
+      poster.right <= view.right &&
+      poster.top >= view.top + 88 &&
+      poster.bottom <= view.bottom - 88;
+    if (inView) return;
+    const { positionX, positionY, scale } = ref.instance.state;
+    const dx = view.left + view.width / 2 - (poster.left + poster.width / 2);
+    const dy = view.top + view.height / 2 - (poster.top + poster.height / 2);
+    ref.setTransform(positionX + dx, positionY + dy, scale, motionMs(250));
+  };
+
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id));
   };
@@ -216,7 +238,7 @@ export function Graph() {
       onPanningStop={(ref) => {
         const { positionX: x, positionY: y, scale } = ref.instance.state;
         const next = keepInView(ref, { x, y, scale });
-        if (next.x !== x || next.y !== y) ref.setTransform(next.x, next.y, scale, 200);
+        if (next.x !== x || next.y !== y) ref.setTransform(next.x, next.y, scale, motionMs(200));
       }}
       onInit={(ref) => {
         transformRef.current = ref;
@@ -279,6 +301,7 @@ export function Graph() {
                       activeSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
                     }
                     onSelect={handleSelect}
+                    onKeyboardFocus={handleKeyboardFocus}
                     axis={axis}
                     hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
                     hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
@@ -323,9 +346,9 @@ export function Graph() {
             zoom={zoomPercent}
             minZoom={MIN_ZOOM}
             maxZoom={MAX_ZOOM}
-            onZoomIn={() => utils.zoomIn(0.25)}
-            onZoomOut={() => utils.zoomOut(0.25)}
-            onFit={() => utils.fitToView()}
+            onZoomIn={() => utils.zoomIn(0.25, motionMs(200))}
+            onZoomOut={() => utils.zoomOut(0.25, motionMs(200))}
+            onFit={() => utils.fitToView({ animationTime: motionMs(200) })}
           />
         </div>
       )}

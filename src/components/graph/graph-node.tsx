@@ -33,6 +33,8 @@ interface Props {
   state: NodeState;
   delay: number;
   onSelect: (id: string) => void;
+  // Keyboard focus landed here (not a click): bring the poster into view.
+  onKeyboardFocus: (id: string) => void;
   axis: Axis;
   hasIncoming: boolean;
   hasOutgoing: boolean;
@@ -60,6 +62,7 @@ export function GraphNode({
   state,
   delay,
   onSelect,
+  onKeyboardFocus,
   axis,
   hasIncoming,
   hasOutgoing,
@@ -80,7 +83,11 @@ export function GraphNode({
             e.stopPropagation();
             onSelect(work.id);
           }}
-          className="absolute"
+          onFocus={(e) => {
+            if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
+          }}
+          className="absolute rounded-[4px] outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-200"
+          aria-pressed={state === "selected"}
           style={{ width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
           initial={false}
           animate={{

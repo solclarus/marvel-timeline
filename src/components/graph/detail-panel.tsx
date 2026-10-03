@@ -16,44 +16,54 @@ export function DetailPanel({ selectedId, onClear }: Props) {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
       <div className="mx-auto max-w-4xl">
+        {/* The panel itself slides in and out once; switching works only fades
+            its contents, so picking another work doesn't replay the entrance. */}
         <AnimatePresence>
           {work && (
             <m.div
-              key={work.id}
+              key="detail-panel"
               initial={{ opacity: 0, y: -12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ duration: 0.2 }}
               className="pointer-events-auto flex items-start gap-3 rounded-lg border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
             >
-              <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
-                <img
-                  src={posterUrl(work)}
-                  alt=""
-                  className="size-full object-cover"
-                  // A failed poster leaves the muted box rather than a broken icon.
-                  onError={(event) => (event.currentTarget.style.visibility = "hidden")}
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                  <span
-                    className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
+              <m.div
+                key={work.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15 }}
+                className="flex min-w-0 flex-1 items-start gap-3"
+              >
+                <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
+                  <img
+                    src={posterUrl(work)}
+                    alt=""
+                    className="size-full object-cover"
+                    // A failed poster leaves the muted box rather than a broken icon.
+                    onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                   />
-                  {FRANCHISE_META[work.franchise].label}
-                  <span aria-hidden>·</span>
-                  {earthsOf(work).map((earth, i) => (
-                    <span key={earth} className="flex items-center gap-1">
-                      {i > 0 && <span aria-hidden>/ </span>}
-                      <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
-                      {EARTH_META[earth].label}
-                    </span>
-                  ))}
-                  <span aria-hidden>·</span>
-                  {work.releaseDate.slice(0, 4)}
-                </p>
-                <p className="font-semibold">{work.title}</p>
-              </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                    <span
+                      className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
+                    />
+                    {FRANCHISE_META[work.franchise].label}
+                    <span aria-hidden>·</span>
+                    {earthsOf(work).map((earth, i) => (
+                      <span key={earth} className="flex items-center gap-1">
+                        {i > 0 && <span aria-hidden>/ </span>}
+                        <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
+                        {EARTH_META[earth].label}
+                      </span>
+                    ))}
+                    <span aria-hidden>·</span>
+                    {work.releaseDate.slice(0, 4)}
+                  </p>
+                  <p className="font-semibold">{work.title}</p>
+                </div>
+              </m.div>
               <button
                 type="button"
                 onClick={onClear}
