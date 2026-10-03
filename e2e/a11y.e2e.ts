@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { opacityOf } from "./helpers";
-
 test("a poster reached by Tab is brought into view and selectable with Enter", async ({ page }) => {
   await page.goto("./");
   await expect(page.locator('button[aria-label="Iron Man"]')).toBeVisible();
@@ -23,11 +21,30 @@ test("a poster reached by Tab is brought into view and selectable with Enter", a
   await expect(page).toHaveURL(new RegExp(`work=${id}`));
 });
 
-test("reduced motion applies changes without animating", async ({ page }) => {
+test("reduced motion selects a poster without animating its scale", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
-  await expect(page.locator('button[aria-label="Iron Man"]')).toBeVisible();
-  await page.locator('button[aria-label="Iron Man"]').click();
-  // Unrelated posters dim at once rather than over a 0.3s fade.
-  await expect.poll(() => opacityOf(page, "thor"), { timeout: 150 }).toBeLessThan(0.5);
+  const ironMan = page.locator('button[aria-label="Iron Man"]');
+  await expect(ironMan).toBeVisible();
+  // Record the poster's scale every frame from the click on: with motion it
+  // springs through in-between values, without it jumps from 1 to 1.25.
+  const scales = page.evaluate(
+    () =>
+      new Promise<number[]>((resolve) => {
+        const el = document.getElementById("iron-man")!;
+        const seen: number[] = [];
+        const start = performance.now();
+        const sample = () => {
+          const matrix = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+          seen.push(Math.round(matrix.a * 1000) / 1000);
+          if (performance.now() - start < 700) requestAnimationFrame(sample);
+          else resolve(seen);
+        };
+        requestAnimationFrame(sample);
+      }),
+  );
+  await ironMan.click();
+  const seen = await scales;
+  expect(seen.at(-1)).toBe(1.25);
+  expect(seen.filter((scale) => scale > 1.001 && scale < 1.249)).toEqual([]);
 });
