@@ -26,8 +26,10 @@ export function FabBar({
   );
 }
 
-export function FabDivider() {
-  return <div className="mx-0.5 h-5 w-px bg-border/60" />;
+export function FabDivider({ vertical = false }: { vertical?: boolean }) {
+  return (
+    <div className={vertical ? "my-0.5 h-px w-5 bg-border/60" : "mx-0.5 h-5 w-px bg-border/60"} />
+  );
 }
 
 export const fabMenuClass = "w-auto min-w-44 bg-card/95 backdrop-blur-md";

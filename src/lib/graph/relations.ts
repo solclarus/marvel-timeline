@@ -1,10 +1,72 @@
-import { EDGES, HARD_EDGE_KINDS, WORKS, type WorkNode } from "@/data/works";
+import {
+  EDGES,
+  HARD_EDGE_KINDS,
+  WORKS,
+  type EdgeKind,
+  type WorkEdge,
+  type WorkNode,
+} from "@/data/works";
 
 export type FocusMode = "chain" | "immediate";
 
-function buildAdjacency(direction: "incoming" | "outgoing") {
+// Which works the map shows: everything, or theatrical films only.
+export type MediaFilter = "all" | "movies";
+
+export const WORK_BY_ID = new Map<string, WorkNode>(WORKS.map((w) => [w.id, w]));
+
+// The dependency graph over a subset of works. Works left out are bridged:
+// a film that builds on a series that builds on a film gets an edge from
+// that earlier film, so chains survive hiding the series.
+export interface WorkGraph {
+  works: WorkNode[];
+  edges: WorkEdge[];
+  // child → parents and parent → children, prerequisite edges only
+  // ("reference" excluded).
+  incoming: Map<string, string[]>;
+  outgoing: Map<string, string[]>;
+  // Row in recommended mode: longest path from a root, floored per MCU phase
+  // so phases stack as clean bands.
+  step: Map<string, number>;
+  maxStep: number;
+}
+
+const weaker = (a: EdgeKind, b: EdgeKind): EdgeKind => (a === "reference" ? a : b);
+
+function bridgeEdges(included: Set<string>): WorkEdge[] {
+  const byPair = new Map<string, WorkEdge>();
+  const add = (edge: WorkEdge) => {
+    const key = `${edge.from}->${edge.to}`;
+    // A direct (or stronger) edge wins over a bridged reference one.
+    const existing = byPair.get(key);
+    if (!existing || (existing.kind === "reference" && edge.kind !== "reference")) {
+      byPair.set(key, edge);
+    }
+  };
+
+  for (const work of WORKS) {
+    if (!included.has(work.id)) continue;
+    // Walk back through left-out works until reaching included ones.
+    const stack = (work.dependsOn ?? []).map((dep) => ({ id: dep.id, kind: dep.kind }));
+    const seen = new Set<string>();
+    while (stack.length > 0) {
+      const { id, kind } = stack.pop()!;
+      if (included.has(id)) {
+        add({ from: id, to: work.id, kind });
+        continue;
+      }
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const dep of WORK_BY_ID.get(id)?.dependsOn ?? []) {
+        stack.push({ id: dep.id, kind: weaker(dep.kind, kind) });
+      }
+    }
+  }
+  return [...byPair.values()];
+}
+
+function buildAdjacency(edges: WorkEdge[], direction: "incoming" | "outgoing") {
   const map = new Map<string, string[]>();
-  for (const edge of EDGES) {
+  for (const edge of edges) {
     if (!HARD_EDGE_KINDS.includes(edge.kind)) continue;
     const [key, value] = direction === "incoming" ? [edge.to, edge.from] : [edge.from, edge.to];
     if (!map.has(key)) map.set(key, []);
@@ -13,17 +75,9 @@ function buildAdjacency(direction: "incoming" | "outgoing") {
   return map;
 }
 
-// child → parents, prerequisite edges only ("reference" excluded).
-export const INCOMING = buildAdjacency("incoming");
-export const OUTGOING = buildAdjacency("outgoing");
-
-export const WORK_BY_ID = new Map<string, WorkNode>(WORKS.map((w) => [w.id, w]));
-
-// Row = longest path from a root, floored per MCU phase so phases stack
-// as clean bands.
-function buildGlobalSteps() {
+function buildSteps(works: WorkNode[], incoming: Map<string, string[]>) {
   const phaseById = new Map(
-    WORKS.filter((w) => w.phase !== undefined).map((w) => [w.id, w.phase!]),
+    works.filter((w) => w.phase !== undefined).map((w) => [w.id, w.phase!]),
   );
   const steps = new Map<string, number>();
   const visiting = new Set<string>();
@@ -34,7 +88,7 @@ function buildGlobalSteps() {
     if (cached !== undefined) return cached;
     if (visiting.has(id)) return 0;
     visiting.add(id);
-    const parents = INCOMING.get(id) ?? [];
+    const parents = incoming.get(id) ?? [];
     const natural = parents.length === 0 ? 0 : Math.max(...parents.map(stepOf)) + 1;
     const phase = phaseById.get(id);
     const step = phase !== undefined ? Math.max(natural, floorOf(phase)) : natural;
@@ -47,7 +101,7 @@ function buildGlobalSteps() {
     if (phase <= 1) return 0;
     const cached = floors.get(phase);
     if (cached !== undefined) return cached;
-    const previousPhaseWorks = WORKS.filter((w) => w.phase === phase - 1);
+    const previousPhaseWorks = works.filter((w) => w.phase === phase - 1);
     const value =
       1 +
       (previousPhaseWorks.length > 0
@@ -57,26 +111,55 @@ function buildGlobalSteps() {
     return value;
   }
 
-  for (const work of WORKS) stepOf(work.id);
+  for (const work of works) stepOf(work.id);
   return steps;
 }
 
-export const GLOBAL_STEP = buildGlobalSteps();
-export const MAX_STEP = Math.max(...GLOBAL_STEP.values());
+export function buildWorkGraph(include: (work: WorkNode) => boolean): WorkGraph {
+  const works = WORKS.filter(include);
+  const included = new Set(works.map((w) => w.id));
+  const edges = works.length === WORKS.length ? EDGES : bridgeEdges(included);
+  const incoming = buildAdjacency(edges, "incoming");
+  const outgoing = buildAdjacency(edges, "outgoing");
+  const step = buildSteps(works, incoming);
+  return {
+    works,
+    edges,
+    incoming,
+    outgoing,
+    step,
+    maxStep: Math.max(0, ...step.values()),
+  };
+}
+
+export const WORK_GRAPHS: Record<MediaFilter, WorkGraph> = {
+  all: buildWorkGraph(() => true),
+  movies: buildWorkGraph((work) => work.tmdb.type === "movie"),
+};
+
+// The full graph, for code that doesn't depend on the media filter.
+export const INCOMING = WORK_GRAPHS.all.incoming;
+export const OUTGOING = WORK_GRAPHS.all.outgoing;
+export const GLOBAL_STEP = WORK_GRAPHS.all.step;
+export const MAX_STEP = WORK_GRAPHS.all.maxStep;
 
 // Negative for ancestors, positive for descendants.
-export function getRelatedDistances(id: string, mode: FocusMode) {
+export function getRelatedDistances(
+  id: string,
+  mode: FocusMode,
+  graph: WorkGraph = WORK_GRAPHS.all,
+) {
   const distances = new Map<string, number>();
   const seen = new Set<string>([id]);
   const queue: Array<[string, number, "in" | "out"]> = [];
 
-  for (const parent of INCOMING.get(id) ?? []) {
+  for (const parent of graph.incoming.get(id) ?? []) {
     if (seen.has(parent)) continue;
     seen.add(parent);
     distances.set(parent, -1);
     queue.push([parent, 1, "in"]);
   }
-  for (const child of OUTGOING.get(id) ?? []) {
+  for (const child of graph.outgoing.get(id) ?? []) {
     if (seen.has(child)) continue;
     seen.add(child);
     distances.set(child, 1);
@@ -87,7 +170,7 @@ export function getRelatedDistances(id: string, mode: FocusMode) {
 
   while (queue.length > 0) {
     const [current, dist, dir] = queue.shift()!;
-    const neighbors = dir === "in" ? INCOMING.get(current) : OUTGOING.get(current);
+    const neighbors = dir === "in" ? graph.incoming.get(current) : graph.outgoing.get(current);
     for (const next of neighbors ?? []) {
       if (seen.has(next)) continue;
       seen.add(next);
@@ -105,10 +188,11 @@ export function getRelatedDistances(id: string, mode: FocusMode) {
 export function computeEdgeVisibility(
   visibleIds: Set<string>,
   activeSet: Set<string> | null = null,
+  graph: WorkGraph = WORK_GRAPHS.all,
 ) {
   const hasIncoming = new Set<string>();
   const hasOutgoing = new Set<string>();
-  for (const edge of EDGES) {
+  for (const edge of graph.edges) {
     if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) continue;
     if (activeSet && (!activeSet.has(edge.from) || !activeSet.has(edge.to))) continue;
     hasOutgoing.add(edge.from);

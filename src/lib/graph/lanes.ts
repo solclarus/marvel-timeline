@@ -1,6 +1,6 @@
 import type { WorkNode } from "@/data/works";
 
-import { INCOMING, OUTGOING, WORK_BY_ID } from "./relations";
+import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "./relations";
 
 // git log --graph–style lanes: a work continues its parent's lane, a
 // convergence frees the extra lanes, and a `thread` keeps one lane for its
@@ -8,6 +8,7 @@ import { INCOMING, OUTGOING, WORK_BY_ID } from "./relations";
 export function assignLanes(
   orderedWorks: WorkNode[],
   stepMap: Map<string, number>,
+  graph: WorkGraph = WORK_GRAPHS.all,
 ): Map<string, number> {
   const lane = new Map<string, number>();
   const freeLanes: number[] = [];
@@ -44,7 +45,9 @@ export function assignLanes(
       lastSeenStep = step;
     }
 
-    const parents = (INCOMING.get(work.id) ?? []).filter((p) => idsInScope.has(p) && lane.has(p));
+    const parents = (graph.incoming.get(work.id) ?? []).filter(
+      (p) => idsInScope.has(p) && lane.has(p),
+    );
     let assigned: number;
 
     if (work.thread && laneByThread.has(work.thread)) {
@@ -102,6 +105,7 @@ export function centerMainLane(
   works: WorkNode[],
   preferredId: string | undefined,
   stepMap: Map<string, number>,
+  graph: WorkGraph = WORK_GRAPHS.all,
 ): { laneMap: Map<string, number>; mainLane: number } {
   let laneCount = laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1;
   if (laneCount <= 2) return { laneMap, mainLane: 0 };
@@ -110,7 +114,8 @@ export function centerMainLane(
   for (const work of works) {
     const lane = laneMap.get(work.id);
     if (lane === undefined) continue;
-    const degree = (INCOMING.get(work.id)?.length ?? 0) + (OUTGOING.get(work.id)?.length ?? 0);
+    const degree =
+      (graph.incoming.get(work.id)?.length ?? 0) + (graph.outgoing.get(work.id)?.length ?? 0);
     weightByLane.set(lane, (weightByLane.get(lane) ?? 0) + degree);
   }
 

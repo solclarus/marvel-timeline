@@ -1,7 +1,7 @@
 import * as m from "motion/react-m";
 import { useEffect, useState } from "react";
 
-import { EDGES, type EdgeKind } from "@/data/works";
+import type { EdgeKind, WorkEdge } from "@/data/works";
 import { elbowPath } from "@/lib/graph/edge-path";
 import type { Axis, Point } from "@/lib/graph/layout";
 
@@ -16,6 +16,7 @@ export const KIND_STYLE: Record<EdgeKind, { stroke: string; width: number; dash?
 const HOVER_DELAY_MS = 250;
 
 interface Props {
+  edges: WorkEdge[];
   positions: Map<string, Point>;
   activeSet: Set<string> | null;
   distances: Map<string, number>;
@@ -31,6 +32,7 @@ function edgeKey(edge: { from: string; to: string }) {
 }
 
 export function GraphEdges({
+  edges,
   positions,
   activeSet,
   distances,
@@ -62,7 +64,7 @@ export function GraphEdges({
     onLeave: () => void;
   }> = [];
 
-  for (const edge of EDGES) {
+  for (const edge of edges) {
     if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) continue;
     const fromCenter = positions.get(edge.from);
     const toCenter = positions.get(edge.to);

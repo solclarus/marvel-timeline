@@ -2,7 +2,7 @@ import { WORKS } from "@/data/works";
 
 import { groupKeyOf, isWorkVisible, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
-import { GLOBAL_STEP, MAX_STEP } from "./relations";
+import { WORK_GRAPHS, type WorkGraph } from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
 // "compact" redraws only the selection and its relatives.
@@ -62,18 +62,23 @@ function recommendedTimeRank(): Map<string, number> {
 
 // Timelines place works by rank rather than date so a long gap doesn't
 // crush everything else.
-export function computeLayout(mode: ViewMode, grouping: Grouping): GraphLayout {
+export function computeLayout(
+  mode: ViewMode,
+  grouping: Grouping,
+  graph: WorkGraph = WORK_GRAPHS.all,
+): GraphLayout {
   return mode === "recommended"
-    ? computeGitGraphLayout(grouping)
-    : computeTimelineLayout(mode, grouping);
+    ? computeGitGraphLayout(grouping, graph)
+    : computeTimelineLayout(mode, grouping, graph);
 }
 
 function computeTimelineLayout(
   mode: Exclude<ViewMode, "recommended">,
   grouping: Grouping,
+  graph: WorkGraph,
 ): GraphLayout {
   const bands = visibleBands(grouping);
-  const worksInScope = WORKS.filter((w) => isWorkVisible(w, grouping));
+  const worksInScope = graph.works.filter((w) => isWorkVisible(w, grouping));
   const sorted = [...worksInScope].sort((a, b) => {
     return mode === "chronology"
       ? a.chronologyOrder - b.chronologyOrder
@@ -96,21 +101,25 @@ function computeTimelineLayout(
   return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
 }
 
-function computeGitGraphLayout(grouping: Grouping): GraphLayout {
+function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayout {
+  const { step: stepMap, maxStep } = graph;
   const bands = visibleBands(grouping);
   const timeRank = recommendedTimeRank();
   const laneByBand = new Map<string, Map<string, number>>();
   const laneCount = new Map<string, number>();
   for (const band of bands) {
-    const worksInBand = WORKS.filter((w) => groupKeyOf(w, grouping.by) === band).sort((a, b) => {
-      const stepDiff = GLOBAL_STEP.get(a.id)! - GLOBAL_STEP.get(b.id)!;
-      return stepDiff !== 0 ? stepDiff : timeRank.get(a.id)! - timeRank.get(b.id)!;
-    });
+    const worksInBand = graph.works
+      .filter((w) => groupKeyOf(w, grouping.by) === band)
+      .sort((a, b) => {
+        const stepDiff = stepMap.get(a.id)! - stepMap.get(b.id)!;
+        return stepDiff !== 0 ? stepDiff : timeRank.get(a.id)! - timeRank.get(b.id)!;
+      });
     const { laneMap } = centerMainLane(
-      assignLanes(worksInBand, GLOBAL_STEP),
+      assignLanes(worksInBand, stepMap, graph),
       worksInBand,
       undefined,
-      GLOBAL_STEP,
+      stepMap,
+      graph,
     );
     laneCount.set(band, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
     laneByBand.set(band, laneMap);
@@ -127,20 +136,20 @@ function computeGitGraphLayout(grouping: Grouping): GraphLayout {
 
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
-  const rowHeight = 100 / (MAX_STEP + 1);
-  for (const work of WORKS) {
+  const rowHeight = 100 / (maxStep + 1);
+  for (const work of graph.works) {
     const band = groupKeyOf(work, grouping.by);
     const laneMap = laneByBand.get(band);
     if (!laneMap) continue;
     const laneIndex = laneMap.get(work.id) ?? 0;
-    const step = GLOBAL_STEP.get(work.id) ?? 0;
+    const step = stepMap.get(work.id) ?? 0;
     positions.set(work.id, {
       x: (bandStart.get(band)! + laneIndex) * laneWidth + laneWidth / 2,
       y: step * rowHeight + rowHeight / 2,
     });
   }
 
-  return { positions, totalLanes: total, rowCount: MAX_STEP + 1 };
+  return { positions, totalLanes: total, rowCount: maxStep + 1 };
 }
 
 // Cells leave room around each 68x102 poster for the phase and group cards'
@@ -209,9 +218,14 @@ export function groupCardAt<T extends { left: number; top: number; width: number
   );
 }
 
-export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+export function computePhaseBands(
+  mode: ViewMode,
+  layout: GraphLayout,
+  grouping: Grouping,
+  graph: WorkGraph = WORK_GRAPHS.all,
+) {
   if (mode !== "recommended") return [];
-  const rowHeight = 100 / (MAX_STEP + 1);
+  const rowHeight = 100 / (graph.maxStep + 1);
   const laneWidth = 100 / layout.totalLanes;
   const gapPercent = (10 / canvasSize(layout).height) * 100;
   const byPhase = new Map<number, { minStep: number; minX: number; maxX: number }>();
@@ -221,7 +235,7 @@ export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping:
     }
     const pos = layout.positions.get(work.id);
     if (!pos) continue;
-    const step = GLOBAL_STEP.get(work.id) ?? 0;
+    const step = graph.step.get(work.id) ?? 0;
     const entry = byPhase.get(work.phase);
     if (!entry) {
       byPhase.set(work.phase, { minStep: step, minX: pos.x, maxX: pos.x });
@@ -235,7 +249,7 @@ export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping:
   return phases.map((phase, i) => {
     const entry = byPhase.get(phase)!;
     const next = phases[i + 1] !== undefined ? byPhase.get(phases[i + 1]) : undefined;
-    const bottomStep = next ? next.minStep : MAX_STEP + 1;
+    const bottomStep = next ? next.minStep : graph.maxStep + 1;
     return {
       phase,
       top: entry.minStep * rowHeight + gapPercent / 2,
@@ -288,11 +302,12 @@ export interface FocusLayout extends GraphLayout {
   height: number;
 }
 
-// Rows are hop distance from the selection rather than GLOBAL_STEP, so e.g.
+// Rows are hop distance from the selection rather than the graph step, so e.g.
 // all of Endgame's direct parents share a row.
 export function computeFocusLayout(
   selectedId: string,
   distances: Map<string, number>,
+  graph: WorkGraph = WORK_GRAPHS.all,
 ): FocusLayout {
   const localStep = new Map<string, number>([[selectedId, 0], ...distances]);
   const relatedWorks = WORKS.filter((w) => localStep.has(w.id)).sort((a, b) => {
@@ -301,10 +316,11 @@ export function computeFocusLayout(
   });
 
   const { laneMap } = centerMainLane(
-    assignLanes(relatedWorks, localStep),
+    assignLanes(relatedWorks, localStep, graph),
     relatedWorks,
     selectedId,
     localStep,
+    graph,
   );
   const totalLanes = laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1;
 

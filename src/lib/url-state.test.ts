@@ -16,18 +16,19 @@ describe("url state", () => {
       displayMode: "compact",
       groupBy: "franchise",
       visibleGroups: new Set(["mcu", "x-men"]),
+      media: "movies",
     };
     const search = serializeUrlState(state);
     expect(search).toBe(
-      "?work=logan&mode=chronology&focus=immediate&view=compact&show=x-men%2Cmcu",
+      "?work=logan&mode=chronology&focus=immediate&view=compact&media=movies&show=x-men%2Cmcu",
     );
     expect(parseUrlState(search)).toEqual(state);
   });
 
   it("falls back to defaults for unknown values", () => {
-    expect(parseUrlState("?work=nope&mode=nope&focus=nope&view=nope&group=nope&show=nope")).toEqual(
-      DEFAULT_URL_STATE,
-    );
+    expect(
+      parseUrlState("?work=nope&mode=nope&focus=nope&view=nope&group=nope&show=nope&media=nope"),
+    ).toEqual(DEFAULT_URL_STATE);
   });
 
   it("shows every group by default", () => {
@@ -53,5 +54,10 @@ describe("url state", () => {
 
   it("ignores franchise keys when grouping by Earth", () => {
     expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(7);
+  });
+
+  it("shows all media when the linked work is a series", () => {
+    expect(parseUrlState("?work=wandavision&media=movies").media).toBe("all");
+    expect(parseUrlState("?work=logan&media=movies").media).toBe("movies");
   });
 });
