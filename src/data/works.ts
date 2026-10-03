@@ -1340,7 +1340,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 78,
     recommendedOrder: 59,
     tmdb: { type: "movie", id: 1003596 },
-    releaseDate: "2026-12-16",
+    releaseDate: "2026-12-15",
     poster: "/jzPwsojjFStf5lR5Nm07w2hH56G.jpg",
   },
   {
