@@ -144,15 +144,18 @@ function FocusedList({
             {minutes > 0 && ` · ${t.totalTime(t.duration(minutes), missing)}`}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={focus.onClear}
-          aria-label={t.backToFullList}
-          title={t.backToFullList}
-          className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
-        >
-          <X className="size-4" />
-        </button>
+        {/* With a selection, the detail card's ✕ closes this too. */}
+        {!selectedId && (
+          <button
+            type="button"
+            onClick={focus.onClear}
+            aria-label={t.backToFullList}
+            title={t.backToFullList}
+            className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
       {focus.empty && <p className="mb-3 px-2 text-sm text-muted-foreground">{focus.empty}</p>}
       <ol className="flex flex-col gap-1">
