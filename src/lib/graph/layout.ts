@@ -153,32 +153,9 @@ export function canvasSize(layout: GraphLayout) {
   };
 }
 
-export function computeGroupRows(mode: ViewMode, grouping: Grouping) {
-  if (mode === "recommended" || grouping.by === "earth") return [];
-  const groups = visibleGroups(grouping);
-  const rowHeight = 100 / Math.max(1, groups.length);
-  return groups.map((group, i) => ({ ...group, top: i * rowHeight, height: rowHeight }));
-}
-
-// Recommended mode's bands are lane spans; labeled only when there's more
-// than one to tell apart.
-export function computeGroupColumns(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
-  const groups = visibleGroups(grouping);
-  if (mode !== "recommended" || grouping.by === "earth" || groups.length < 2) return [];
-  const laneWidth = 100 / layout.totalLanes;
-  return groups.flatMap((group) => {
-    const xs = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
-      .map((w) => layout.positions.get(w.id)?.x)
-      .filter((x) => x !== undefined);
-    if (xs.length === 0) return [];
-    const left = Math.min(...xs) - laneWidth / 2;
-    return [{ ...group, left, width: Math.max(...xs) + laneWidth / 2 - left }];
-  });
-}
-
-// One outlined card per Earth, hugging its works like the phase bands do.
+// One outlined card per franchise or Earth, hugging its works like the
+// phase bands do.
 export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
-  if (grouping.by !== "earth") return [];
   const { width, height } = canvasSize(layout);
   const crossCount = mode === "recommended" ? layout.totalLanes : layout.rowCount;
   const flowCount = mode === "recommended" ? layout.rowCount : layout.totalLanes;

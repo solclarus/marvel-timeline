@@ -13,8 +13,6 @@ import {
   computeEraBands,
   computeFocusLayout,
   computeGroupCards,
-  computeGroupColumns,
-  computeGroupRows,
   computeLayout,
   computePhaseBands,
   type Axis,
@@ -108,8 +106,6 @@ export function Graph() {
   // for the reframe effect's deps.
   const layout = computeLayout(mode, grouping);
   const { width: canvasWidth, height: canvasHeight } = canvasSize(layout);
-  const groupRows = computeGroupRows(mode, grouping);
-  const groupColumns = computeGroupColumns(mode, layout, grouping);
   const groupCards = computeGroupCards(mode, layout, grouping);
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const eraBands = computeEraBands(mode, layout, grouping);
@@ -372,7 +368,7 @@ export function Graph() {
                   ({ key, label, colorClass, cardClass, top, height, left, width }) => (
                     <div
                       key={key}
-                      className={`absolute rounded-2xl border-3 border-dashed bg-white/35 ${cardClass ?? ""}`}
+                      className={`absolute rounded-2xl border-2 border-dashed bg-white/35 ${cardClass}`}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
@@ -412,24 +408,6 @@ export function Graph() {
                     }}
                   >
                     <BandLabel color={borderColor}>{label}</BandLabel>
-                  </div>
-                ))}
-                {groupRows.map(({ key, label, colorClass, top, height }) => (
-                  <div
-                    key={key}
-                    className="absolute inset-x-0 border-t border-border/40 first:border-t-0"
-                    style={{ top: `${top}%`, height: `${height}%` }}
-                  >
-                    <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
-                  </div>
-                ))}
-                {groupColumns.map(({ key, label, colorClass, left, width }) => (
-                  <div
-                    key={key}
-                    className="absolute inset-y-0 border-l border-dashed border-border/50 first:border-l-0"
-                    style={{ left: `${left}%`, width: `${width}%` }}
-                  >
-                    <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
                   </div>
                 ))}
                 <GraphEdges
