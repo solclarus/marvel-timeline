@@ -3,11 +3,12 @@ import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { useState } from "react";
 
-import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
+import { EARTH_META, earthsOf, FRANCHISE_META } from "@/data/works";
 import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 
 import { MediumBadge } from "./medium-badge";
+import { Poster } from "./poster";
 import { UpcomingBadge } from "./upcoming-badge";
 import { WorkDetailDialog } from "./work-detail-dialog";
 
@@ -51,13 +52,7 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                 className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-item p-1 text-left hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
               >
                 <span className="relative block h-16 w-11 shrink-0 overflow-hidden rounded-thumb bg-muted sm:h-24 sm:w-16">
-                  <img
-                    src={posterUrl(work)}
-                    alt=""
-                    className="size-full object-cover"
-                    // A failed poster leaves the muted box rather than a broken icon.
-                    onError={(event) => (event.currentTarget.style.visibility = "hidden")}
-                  />
+                  <Poster key={work.id} work={work} />
                 </span>
                 <span className="block min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">

@@ -41,9 +41,9 @@ describe("works data", () => {
     expect(new Set(WORKS.map((w) => w.id)).size).toBe(WORKS.length);
   });
 
-  it("has an ISO release date and a poster path for every work", () => {
+  it("has an ISO release date and a poster path (or none yet) for every work", () => {
     const invalid = WORKS.filter(
-      (w) => !/^\d{4}-\d{2}-\d{2}$/.test(w.releaseDate) || !/^\/\w+\.jpg$/.test(w.poster),
+      (w) => !/^\d{4}-\d{2}-\d{2}$/.test(w.releaseDate) || !/^(\/\w+\.jpg)?$/.test(w.poster),
     ).map((w) => w.id);
     expect(invalid).toEqual([]);
   });
