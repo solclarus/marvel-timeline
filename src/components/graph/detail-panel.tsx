@@ -1,16 +1,19 @@
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
+import { Button } from "@/components/ui/button";
 import { FRANCHISE_META, posterUrl } from "@/data/works";
 import { WORK_BY_ID } from "@/lib/graph/relations";
 
 interface Props {
   selectedId: string | null;
   onClear: () => void;
+  watched: Set<string>;
+  onToggleWatched: (id: string) => void;
 }
 
-export function DetailPanel({ selectedId, onClear }: Props) {
+export function DetailPanel({ selectedId, onClear, watched, onToggleWatched }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
@@ -39,6 +42,16 @@ export function DetailPanel({ selectedId, onClear }: Props) {
                   {` · ${work.releaseDate.slice(0, 4)}`}
                 </p>
                 <p className="font-semibold">{work.title}</p>
+                <Button
+                  variant={watched.has(work.id) ? "default" : "outline"}
+                  size="sm"
+                  className="mt-2 rounded-full"
+                  onClick={() => onToggleWatched(work.id)}
+                  aria-pressed={watched.has(work.id)}
+                >
+                  <Check />
+                  {watched.has(work.id) ? "Watched" : "Mark as watched"}
+                </Button>
               </div>
               <button
                 type="button"

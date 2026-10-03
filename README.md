@@ -20,7 +20,7 @@ Everything lives in `src/data/works.ts`: works, dependencies, release dates, and
 | Command                     | Description                    |
 | --------------------------- | ------------------------------ |
 | `pnpm build`                | Typecheck and build to `dist/` |
-| `pnpm test`                 | Layout unit tests              |
+| `pnpm test`                 | Unit tests                     |
 | `pnpm lint` / `pnpm format` | oxlint / oxfmt                 |
 
 CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, tests, and build on every push and PR, and deploys `main` to GitHub Pages.
