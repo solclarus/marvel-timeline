@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 
 import { Graph } from "@/components/graph/graph";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { I18nProvider } from "@/lib/i18n";
 
 import "@/globals.css";
 
@@ -12,9 +13,11 @@ createRoot(document.getElementById("root")!).render(
     <LazyMotion features={domAnimation} strict>
       {/* Skips transform animations when the OS asks for reduced motion. */}
       <MotionConfig reducedMotion="user">
-        <TooltipProvider>
-          <Graph />
-        </TooltipProvider>
+        <I18nProvider>
+          <TooltipProvider>
+            <Graph />
+          </TooltipProvider>
+        </I18nProvider>
       </MotionConfig>
     </LazyMotion>
   </StrictMode>,

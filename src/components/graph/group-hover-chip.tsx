@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useI18n } from "@/lib/i18n";
+
 interface Props {
   label: string;
   // A Tailwind class for groups, an inline color for phase bands.
@@ -13,6 +15,7 @@ interface Props {
 // the pointer itself so the map doesn't re-render on every move, and hides
 // over posters, which show their own tooltip.
 export function GroupHoverChip({ label, dot, count, initial }: Props) {
+  const { t } = useI18n();
   const [pointer, setPointer] = useState({ ...initial, overPoster: false });
 
   useEffect(() => {
@@ -37,9 +40,7 @@ export function GroupHoverChip({ label, dot, count, initial }: Props) {
         style={{ backgroundColor: dot.color }}
       />
       <span className="font-semibold">{label}</span>
-      <span className="text-muted-foreground">
-        {count} {count === 1 ? "work" : "works"}
-      </span>
+      <span className="text-muted-foreground">{t.workCount(count)}</span>
     </div>
   );
 }

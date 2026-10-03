@@ -4,6 +4,7 @@ import * as m from "motion/react-m";
 
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
 import { WORK_BY_ID } from "@/lib/graph/relations";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   selectedId: string | null;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function DetailPanel({ selectedId, onClear }: Props) {
+  const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
@@ -49,26 +51,26 @@ export function DetailPanel({ selectedId, onClear }: Props) {
                     <span
                       className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                     />
-                    {FRANCHISE_META[work.franchise].label}
+                    {franchiseLabel(work.franchise)}
                     <span aria-hidden>·</span>
                     {earthsOf(work).map((earth, i) => (
                       <span key={earth} className="flex items-center gap-1">
                         {i > 0 && <span aria-hidden>/ </span>}
                         <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
-                        {EARTH_META[earth].label}
+                        {earthLabel(earth)}
                       </span>
                     ))}
                     <span aria-hidden>·</span>
                     {work.releaseDate.slice(0, 4)}
                   </p>
-                  <p className="font-semibold">{work.title}</p>
+                  <p className="font-semibold">{titleOf(work)}</p>
                 </div>
               </m.div>
               <button
                 type="button"
                 onClick={onClear}
                 className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Clear selection"
+                aria-label={t.clearSelection}
               >
                 <X className="size-4" />
               </button>

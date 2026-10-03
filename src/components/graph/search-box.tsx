@@ -3,27 +3,35 @@ import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { FRANCHISE_META, posterUrl, WORKS, type WorkNode } from "@/data/works";
+import { useI18n } from "@/lib/i18n";
 
 const MAX_RESULTS = 8;
 
+// Case- and width-insensitive (NFKC folds full-width forms), with
+// punctuation such as ・ and ／ treated as spaces, in any script.
 const normalize = (text: string) =>
   text
+    .normalize("NFKC")
     .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 
-const INDEX = WORKS.map((work) => ({ work, key: normalize(work.title) }));
+// Both titles are searchable whatever the UI language.
+const INDEX = WORKS.map((work) => ({
+  work,
+  keys: [normalize(work.title), normalize(work.titleJa)],
+}));
 
 // Title prefix matches first, then word-start matches, then the rest, each
 // by release date.
 export function searchWorks(query: string): WorkNode[] {
   const q = normalize(query);
   if (!q) return [];
-  const rank = (key: string) => (key.startsWith(q) ? 0 : key.includes(` ${q}`) ? 1 : 2);
-  return INDEX.filter(({ key }) => key.includes(q))
+  const rank = (keys: string[]) =>
+    Math.min(...keys.map((key) => (key.startsWith(q) ? 0 : key.includes(` ${q}`) ? 1 : 2)));
+  return INDEX.filter(({ keys }) => keys.some((key) => key.includes(q)))
     .sort(
-      (a, b) => rank(a.key) - rank(b.key) || a.work.releaseDate.localeCompare(b.work.releaseDate),
+      (a, b) => rank(a.keys) - rank(b.keys) || a.work.releaseDate.localeCompare(b.work.releaseDate),
     )
     .slice(0, MAX_RESULTS)
     .map(({ work }) => work);
@@ -36,6 +44,7 @@ interface Props {
 // Searches every work, whatever the map currently shows; revealing the pick
 // is up to `onSelect`.
 export function SearchBox({ onSelect }: Props) {
+  const { t, titleOf, franchiseLabel } = useI18n();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const results = searchWorks(query);
@@ -63,12 +72,12 @@ export function SearchBox({ onSelect }: Props) {
     <Autocomplete.Root
       items={WORKS}
       filteredItems={results}
-      itemToStringValue={(work: WorkNode) => work.title}
+      itemToStringValue={(work: WorkNode) => titleOf(work)}
       autoHighlight
       value={query}
       onValueChange={(value, details) => {
         if (details.reason === "item-press") {
-          const work = results.find((w) => w.title === value);
+          const work = results.find((w) => titleOf(w) === value);
           if (work) onSelect(work.id);
           setQuery("");
           inputRef.current?.blur();
@@ -81,8 +90,8 @@ export function SearchBox({ onSelect }: Props) {
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Autocomplete.Input
           ref={inputRef}
-          aria-label="Search works"
-          placeholder="Search works…"
+          aria-label={t.searchLabel}
+          placeholder={t.searchPlaceholder}
           // Keeps the map's Escape (clear selection) out of it.
           onKeyDown={(event) => {
             if (event.key === "Escape") event.stopPropagation();
@@ -94,7 +103,7 @@ export function SearchBox({ onSelect }: Props) {
         <Autocomplete.Positioner side="top" sideOffset={18} align="start" className="z-50">
           <Autocomplete.Popup className="max-h-[60vh] w-(--anchor-width) min-w-64 overflow-y-auto rounded-lg border bg-card/95 p-1 text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md">
             <Autocomplete.Empty className="px-3 py-2 text-xs text-muted-foreground empty:hidden">
-              {query.trim() !== "" && "No matches"}
+              {query.trim() !== "" && t.noMatches}
             </Autocomplete.Empty>
             <Autocomplete.List>
               {(work: WorkNode) => (
@@ -111,14 +120,16 @@ export function SearchBox({ onSelect }: Props) {
                     onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">{work.title}</span>
+                    <span className="block truncate text-sm">{titleOf(work)}</span>
                     <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <span
                         className={`size-1.5 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                       />
-                      {FRANCHISE_META[work.franchise].label} · {work.releaseDate.slice(0, 4)}
+                      {franchiseLabel(work.franchise)} · {work.releaseDate.slice(0, 4)}
                       {work.tmdb.type === "tv" && (
-                        <span className="rounded-sm border px-1 text-[9px] font-semibold">TV</span>
+                        <span className="rounded-sm border px-1 text-[9px] font-semibold">
+                          {t.tvBadge}
+                        </span>
                       )}
                     </span>
                   </span>

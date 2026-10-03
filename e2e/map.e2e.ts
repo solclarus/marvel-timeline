@@ -80,14 +80,20 @@ test("switching works keeps the detail panel in place", async ({ page }) => {
   await page.goto("./?work=iron-man");
   const panel = page.locator("p.font-semibold").first();
   await expect(panel).toHaveText("Iron Man");
-  const before = await panel.evaluate(
-    (el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top,
-  );
+  const top = () =>
+    panel.evaluate((el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top);
+  // Let the panel's own entrance finish before taking the baseline.
+  let before = await top();
+  await expect
+    .poll(async () => {
+      const now = await top();
+      const settled = now === before;
+      before = now;
+      return settled;
+    })
+    .toBe(true);
   await page.locator('button[aria-label="Iron Man 2"]').click();
   // Sampled right away: an entrance replay would start 12px higher.
-  const during = await panel.evaluate(
-    (el) => el.closest("[class*=pointer-events-auto]")!.getBoundingClientRect().top,
-  );
-  expect(Math.abs(during - before)).toBeLessThan(1);
+  expect(Math.abs((await top()) - before)).toBeLessThan(1);
   await expect(panel).toHaveText("Iron Man 2");
 });

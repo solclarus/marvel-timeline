@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
+import { useI18n } from "@/lib/i18n";
 
 import { AboutDialog } from "./about-dialog";
 import { FabBar, FabDivider } from "./fab";
@@ -39,6 +40,7 @@ export function CommandBar({
   focusMode,
   onFocusModeChange,
 }: Props) {
+  const { t } = useI18n();
   const moviesOnly = media === "movies";
   return (
     <div className="fixed inset-x-4 bottom-4 z-40 flex justify-center sm:bottom-6">
@@ -52,15 +54,11 @@ export function CommandBar({
           className="rounded-full"
           onClick={() => onMediaChange(moviesOnly ? "all" : "movies")}
           aria-pressed={moviesOnly}
-          aria-label={
-            moviesOnly
-              ? "Showing films only. Show series too"
-              : "Showing films and series. Show films only"
-          }
-          title={moviesOnly ? "Films only" : "Films and series"}
+          aria-label={moviesOnly ? t.mediaShowAll : t.mediaShowMovies}
+          title={moviesOnly ? t.mediaMoviesTitle : t.mediaAllTitle}
         >
           {moviesOnly ? <Film className="size-4" /> : <Clapperboard className="size-4" />}
-          <span className="hidden sm:inline">{moviesOnly ? "MOVIES" : "ALL"}</span>
+          <span className="hidden sm:inline">{moviesOnly ? t.mediaMovies : t.mediaAll}</span>
         </Button>
         <SettingsMenu
           grouping={grouping}
