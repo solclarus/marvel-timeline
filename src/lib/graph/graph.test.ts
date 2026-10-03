@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
-import { computeActiveSet } from "./focus";
+import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeLayout, computePhaseBands, type ViewMode } from "./layout";
 import {
@@ -389,5 +389,25 @@ describe("computeActiveSet", () => {
     });
     expect(set!.has("venom")).toBe(true);
     expect(set!.has("iron-man")).toBe(false);
+  });
+});
+
+describe("edgesToDraw", () => {
+  const edges = WORK_GRAPHS.all.edges;
+
+  it("draws every edge in recommended mode", () => {
+    expect(edgesToDraw("recommended", edges, null, null)).toBe(edges);
+  });
+
+  it("draws nothing in timelines until something is selected", () => {
+    expect(edgesToDraw("release", edges, null, null)).toEqual([]);
+    expect(edgesToDraw("chronology", edges, null, new Set(["iron-man"]))).toEqual([]);
+  });
+
+  it("draws only a selection's ties in timelines", () => {
+    const active = new Set(["iron-man", "iron-man-2", "avengers"]);
+    const drawn = edgesToDraw("release", edges, "iron-man", active);
+    expect(drawn.length).toBeGreaterThan(0);
+    expect(drawn.every((e) => active.has(e.from) && active.has(e.to))).toBe(true);
   });
 });

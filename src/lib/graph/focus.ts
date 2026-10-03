@@ -1,4 +1,7 @@
+import type { WorkEdge } from "@/data/works";
+
 import { groupKeyOf, PHASE_GROUP, type Grouping } from "./groups";
+import type { ViewMode } from "./layout";
 import type { WorkGraph } from "./relations";
 
 // What the map highlights: a selection and its relatives, else a focused
@@ -36,4 +39,19 @@ export function computeActiveSet({
     );
   }
   return null;
+}
+
+// Edges to draw. Recommended mode is laid out by these dependencies, so it
+// shows them all. Release and timeline modes order works by date, where
+// long lines across the rows say little; they only show a selection's own
+// ties.
+export function edgesToDraw(
+  mode: ViewMode,
+  edges: WorkEdge[],
+  selectedId: string | null,
+  activeSet: Set<string> | null,
+): WorkEdge[] {
+  if (mode === "recommended") return edges;
+  if (!selectedId || !activeSet) return [];
+  return edges.filter((edge) => activeSet.has(edge.from) && activeSet.has(edge.to));
 }
