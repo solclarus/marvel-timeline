@@ -1,19 +1,16 @@
-import { GitBranch, Waypoints, X } from "lucide-react";
+import { X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
-import { Button } from "@/components/ui/button";
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
-import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
+import { WORK_BY_ID } from "@/lib/graph/relations";
 
 interface Props {
   selectedId: string | null;
   onClear: () => void;
-  focusMode: FocusMode;
-  onToggleFocusMode: () => void;
 }
 
-export function DetailPanel({ selectedId, onClear, focusMode, onToggleFocusMode }: Props) {
+export function DetailPanel({ selectedId, onClear }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
@@ -50,22 +47,6 @@ export function DetailPanel({ selectedId, onClear, focusMode, onToggleFocusMode 
                   {work.releaseDate.slice(0, 4)}
                 </p>
                 <p className="font-semibold">{work.title}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full"
-                    onClick={onToggleFocusMode}
-                    aria-label={
-                      focusMode === "chain"
-                        ? "Highlighting the full chain. Switch to direct neighbors only"
-                        : "Highlighting direct neighbors only. Switch to the full chain"
-                    }
-                  >
-                    {focusMode === "chain" ? <Waypoints /> : <GitBranch />}
-                    {focusMode === "chain" ? "All related" : "Direct only"}
-                  </Button>
-                </div>
               </div>
               <button
                 type="button"

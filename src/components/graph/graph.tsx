@@ -294,11 +294,25 @@ export function Graph() {
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
 
   // Selecting a work zooms the map so it and its relatives fit in the area
-  // the bars and detail panel leave uncovered. Also refits when the related
-  // set or the layout changes. The first fit (a shared link) jumps; later
-  // ones animate.
+  // the bars and detail panel leave uncovered, and refits when what's shown
+  // changes. Only then: the map re-renders on every zoom, and refitting on
+  // those would undo the viewer's own zooming. The first fit (a shared
+  // link) jumps; later ones animate.
+  const fitKey = selectedId
+    ? [
+        selectedId,
+        focusMode,
+        media,
+        mode,
+        grouping.by,
+        [...grouping.visible].sort().join(","),
+      ].join("|")
+    : null;
+  const lastFitKeyRef = useRef<string | null>(null);
   const hasFittedRef = useRef(false);
   useEffect(() => {
+    if (fitKey === lastFitKeyRef.current) return;
+    lastFitKeyRef.current = fitKey;
     if (!selectedId) return;
     const ids = [selectedId, ...getRelatedDistances(selectedId, focusMode, graph).keys()];
     const points = ids.map((id) => layout.positions.get(id)).filter((pos) => pos !== undefined);
@@ -328,7 +342,7 @@ export function Graph() {
           viewport,
           {
             top: 88,
-            bottom: phone ? 210 : 180,
+            bottom: phone ? 170 : 150,
             left: 24,
             right: viewport.width >= 768 ? 96 : 24,
           },
@@ -339,7 +353,7 @@ export function Graph() {
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [selectedId, focusMode, graph, layout, canvasWidth, canvasHeight]);
+  }, [fitKey, selectedId, focusMode, graph, layout, canvasWidth, canvasHeight]);
 
   return (
     <TransformWrapper
@@ -530,14 +544,7 @@ export function Graph() {
             />
           )}
 
-          <DetailPanel
-            selectedId={selectedId}
-            onClear={() => setSelectedId(null)}
-            focusMode={focusMode}
-            onToggleFocusMode={() =>
-              setFocusMode((current) => (current === "chain" ? "immediate" : "chain"))
-            }
-          />
+          <DetailPanel selectedId={selectedId} onClear={() => setSelectedId(null)} />
 
           <CommandBar
             onSearchSelect={handleSearchSelect}
@@ -548,9 +555,13 @@ export function Graph() {
             grouping={grouping}
             onToggleGroup={handleToggleGroup}
             onGroupByChange={handleGroupByChange}
+            focusMode={focusMode}
+            onFocusModeChange={setFocusMode}
           />
           <ZoomFab
             zoom={zoomPercent}
+            minZoom={MIN_ZOOM}
+            maxZoom={MAX_ZOOM}
             onZoomIn={() => utils.zoomIn(0.25)}
             onZoomOut={() => utils.zoomOut(0.25)}
             onFit={() => utils.fitToView()}

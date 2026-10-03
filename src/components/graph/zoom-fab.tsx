@@ -6,12 +6,17 @@ import { FabBar, FabDivider } from "./fab";
 
 interface Props {
   zoom: number;
+  minZoom: number;
+  maxZoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFit: () => void;
 }
 
-export function ZoomFab({ zoom, onZoomIn, onZoomOut, onFit }: Props) {
+// Scales are floats, so "at the limit" allows a little slack.
+const EPSILON = 0.001;
+
+export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: Props) {
   return (
     // Desktop only: phones pinch to zoom.
     <FabBar from="bottom" className="fixed right-6 bottom-6 z-40 hidden flex-col md:flex">
@@ -20,6 +25,7 @@ export function ZoomFab({ zoom, onZoomIn, onZoomOut, onFit }: Props) {
         size="icon"
         className="rounded-full"
         onClick={onZoomIn}
+        disabled={zoom >= maxZoom - EPSILON}
         aria-label="Zoom in"
       >
         <ZoomIn className="size-4" />
@@ -37,6 +43,7 @@ export function ZoomFab({ zoom, onZoomIn, onZoomOut, onFit }: Props) {
         size="icon"
         className="rounded-full"
         onClick={onZoomOut}
+        disabled={zoom <= minZoom + EPSILON}
         aria-label="Zoom out"
       >
         <ZoomOut className="size-4" />
