@@ -1,4 +1,10 @@
-import { FRANCHISE_META, type Franchise } from "@/data/works";
+import {
+  DEFAULT_VISIBLE_GROUPS,
+  GROUPS,
+  groupKeyOf,
+  isGroupKey,
+  type GroupBy,
+} from "@/lib/graph/groups";
 import type { DisplayMode, ViewMode } from "@/lib/graph/layout";
 import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
 
@@ -9,10 +15,11 @@ export interface UrlState {
   selectedId: string | null;
   focusMode: FocusMode;
   displayMode: DisplayMode;
-  visibleFranchises: Set<Franchise>;
+  groupBy: GroupBy;
+  visibleGroups: Set<string>;
 }
 
-const FRANCHISES = Object.keys(FRANCHISE_META) as Franchise[];
+const GROUP_BYS: readonly GroupBy[] = ["franchise", "earth"];
 const VIEW_MODES: readonly ViewMode[] = ["recommended", "release", "chronology"];
 const FOCUS_MODES: readonly FocusMode[] = ["chain", "immediate"];
 const DISPLAY_MODES: readonly DisplayMode[] = ["inline", "compact"];
@@ -22,7 +29,8 @@ export const DEFAULT_URL_STATE: UrlState = {
   selectedId: null,
   focusMode: "chain",
   displayMode: "inline",
-  visibleFranchises: new Set(["mcu"]),
+  groupBy: "franchise",
+  visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
 };
 
 function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
@@ -36,19 +44,19 @@ export function parseUrlState(search: string): UrlState {
   const work = params.get("work");
   const selected = work ? WORK_BY_ID.get(work) : undefined;
 
-  const shown = (params.get("show") ?? "")
-    .split(",")
-    .filter((f): f is Franchise => FRANCHISES.includes(f as Franchise));
-  const visibleFranchises = new Set(shown.length > 0 ? shown : DEFAULT_URL_STATE.visibleFranchises);
+  const groupBy = pick(params.get("group"), GROUP_BYS, DEFAULT_URL_STATE.groupBy);
+  const shown = (params.get("show") ?? "").split(",").filter((key) => isGroupKey(groupBy, key));
+  const visibleGroups = new Set(shown.length > 0 ? shown : DEFAULT_VISIBLE_GROUPS[groupBy]);
   // A linked work must be on the map.
-  if (selected) visibleFranchises.add(selected.franchise);
+  if (selected) visibleGroups.add(groupKeyOf(selected, groupBy));
 
   return {
     mode: pick(params.get("mode"), VIEW_MODES, DEFAULT_URL_STATE.mode),
     selectedId: selected?.id ?? null,
     focusMode: pick(params.get("focus"), FOCUS_MODES, DEFAULT_URL_STATE.focusMode),
     displayMode: pick(params.get("view"), DISPLAY_MODES, DEFAULT_URL_STATE.displayMode),
-    visibleFranchises,
+    groupBy,
+    visibleGroups,
   };
 }
 
@@ -60,8 +68,11 @@ export function serializeUrlState(state: UrlState): string {
   if (state.focusMode !== DEFAULT_URL_STATE.focusMode) params.set("focus", state.focusMode);
   if (state.displayMode !== DEFAULT_URL_STATE.displayMode) params.set("view", state.displayMode);
 
-  const shown = FRANCHISES.filter((f) => state.visibleFranchises.has(f));
-  const defaults = FRANCHISES.filter((f) => DEFAULT_URL_STATE.visibleFranchises.has(f));
+  if (state.groupBy !== DEFAULT_URL_STATE.groupBy) params.set("group", state.groupBy);
+
+  const keys = GROUPS[state.groupBy].map((group) => group.key);
+  const shown = keys.filter((key) => state.visibleGroups.has(key));
+  const defaults = keys.filter((key) => DEFAULT_VISIBLE_GROUPS[state.groupBy].includes(key));
   if (shown.join(",") !== defaults.join(",")) params.set("show", shown.join(","));
 
   const query = params.toString();

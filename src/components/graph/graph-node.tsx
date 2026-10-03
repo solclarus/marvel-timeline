@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { WorkNode } from "@/data/works";
+import { EARTH_META, earthsOf, type WorkNode } from "@/data/works";
 import type { Axis } from "@/lib/graph/layout";
 
 import { PosterThumb } from "./poster-thumb";
@@ -72,6 +72,7 @@ export function GraphNode({
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
+  const earths = earthsOf(work);
 
   return (
     <TooltipTrigger
@@ -102,7 +103,7 @@ export function GraphNode({
           }}
           whileHover={{ scale: style.scale * 1.15 }}
           whileTap={{ scale: style.scale * 0.95 }}
-          aria-label={`${work.title}${watched ? " (watched)" : nextUp ? " (up next)" : ""}`}
+          aria-label={`${work.title}${earths.length > 1 ? ` (${earths.map((e) => EARTH_META[e].label).join(" / ")})` : ""}${watched ? " (watched)" : nextUp ? " (up next)" : ""}`}
         />
       }
     >
@@ -111,6 +112,19 @@ export function GraphNode({
         className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""} ${nextUp ? "ring-3 ring-sky-500 ring-offset-2 ring-offset-stone-200" : ""}`}
       >
         <PosterThumb work={work} />
+        {earths.length > 1 && (
+          <span
+            aria-hidden
+            className="absolute top-1 left-1 flex gap-0.5 rounded-full bg-black/65 p-0.5"
+          >
+            {earths.map((earth) => (
+              <span
+                key={earth}
+                className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`}
+              />
+            ))}
+          </span>
+        )}
       </div>
       {watched && (
         <span

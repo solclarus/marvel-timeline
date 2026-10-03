@@ -5,22 +5,35 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FRANCHISE_META, type Franchise } from "@/data/works";
+import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
 
 import { fabMenuClass } from "./fab";
 
 interface Props {
-  visibleFranchises: Set<Franchise>;
-  onToggle: (franchise: Franchise) => void;
+  grouping: Grouping;
+  onToggle: (key: string) => void;
+  onGroupByChange: (by: GroupBy) => void;
   watchedCount: number;
   onClearWatched: () => void;
 }
 
-export function LegendFab({ visibleFranchises, onToggle, watchedCount, onClearWatched }: Props) {
+const GROUP_BY_LABEL: Record<GroupBy, string> = { franchise: "Franchise", earth: "Earth" };
+
+export function LegendFab({
+  grouping,
+  onToggle,
+  onGroupByChange,
+  watchedCount,
+  onClearWatched,
+}: Props) {
   return (
     <div className="fixed right-6 bottom-6 z-40">
       <DropdownMenu>
@@ -30,27 +43,39 @@ export function LegendFab({ visibleFranchises, onToggle, watchedCount, onClearWa
               variant="secondary"
               size="icon"
               className="size-10 rounded-full border border-border/60 bg-card/95 shadow-xl shadow-black/20 backdrop-blur-md"
-              aria-label="Franchises"
+              aria-label="Groups"
             />
           }
         >
           <Info className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="end" sideOffset={8} className={fabMenuClass}>
-          {(Object.keys(FRANCHISE_META) as Franchise[]).map((franchise) => {
-            const isVisible = visibleFranchises.has(franchise);
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Group by</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={grouping.by}
+              onValueChange={(value: GroupBy) => onGroupByChange(value)}
+            >
+              {(Object.keys(GROUP_BY_LABEL) as GroupBy[]).map((by) => (
+                <DropdownMenuRadioItem key={by} value={by} className="text-xs">
+                  {GROUP_BY_LABEL[by]}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          {GROUPS[grouping.by].map(({ key, label, colorClass }) => {
+            const isVisible = grouping.visible.has(key);
             return (
               <DropdownMenuCheckboxItem
-                key={franchise}
+                key={key}
                 checked={isVisible}
-                onCheckedChange={() => onToggle(franchise)}
-                disabled={isVisible && visibleFranchises.size === 1}
+                onCheckedChange={() => onToggle(key)}
+                disabled={isVisible && grouping.visible.size === 1}
                 className="text-xs"
               >
-                <span
-                  className={`size-2 shrink-0 rounded-full ${FRANCHISE_META[franchise].colorClass}`}
-                />
-                {FRANCHISE_META[franchise].label}
+                <span className={`size-2 shrink-0 rounded-full ${colorClass}`} />
+                {label}
               </DropdownMenuCheckboxItem>
             );
           })}

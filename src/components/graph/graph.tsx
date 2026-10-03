@@ -5,13 +5,15 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { FRANCHISE_META, WORKS, type Franchise } from "@/data/works";
+import { WORKS } from "@/data/works";
+import { isWorkVisible, regroup, type GroupBy, type Grouping } from "@/lib/graph/groups";
 import {
   canvasSize,
   computeEdgeGeometry,
   computeEraBands,
   computeFocusLayout,
-  computeFranchiseRows,
+  computeGroupColumns,
+  computeGroupRows,
   computeLayout,
   computePhaseBands,
   type Axis,
@@ -60,26 +62,37 @@ function BandLabel({ color, children }: { color: string; children: React.ReactNo
   );
 }
 
+function GroupLabel({ colorClass, children }: { colorClass: string; children: React.ReactNode }) {
+  return (
+    <span className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full border border-border/60 bg-white/85 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-stone-700">
+      <span className={`size-2 rounded-full ${colorClass}`} />
+      {children}
+    </span>
+  );
+}
+
 export function Graph() {
   const [initial] = useState(() => parseUrlState(window.location.search));
   const [mode, setMode] = useState<ViewMode>(initial.mode);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
   const [focusMode, setFocusMode] = useState<FocusMode>(initial.focusMode);
   const [displayMode, setDisplayMode] = useState<DisplayMode>(initial.displayMode);
-  const [visibleFranchises, setVisibleFranchises] = useState<Set<Franchise>>(
-    initial.visibleFranchises,
-  );
+  const [grouping, setGrouping] = useState<Grouping>({
+    by: initial.groupBy,
+    visible: initial.visibleGroups,
+  });
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const { watched, toggleWatched, clearWatched } = useWatched();
   const nextUp = computeNextUp(watched);
 
   // React Compiler memoizes these, which keeps `layout`/`focusLayout` stable
   // for the reframe effect's deps.
-  const layout = computeLayout(mode, visibleFranchises);
+  const layout = computeLayout(mode, grouping);
   const { width: canvasWidth, height: canvasHeight } = canvasSize(layout);
-  const franchiseRows = computeFranchiseRows(mode, visibleFranchises);
-  const phaseBands = computePhaseBands(mode, layout);
-  const eraBands = computeEraBands(mode, layout, visibleFranchises);
+  const groupRows = computeGroupRows(mode, grouping);
+  const groupColumns = computeGroupColumns(mode, layout, grouping);
+  const phaseBands = computePhaseBands(mode, layout, grouping);
+  const eraBands = computeEraBands(mode, layout, grouping);
 
   const distances = selectedId
     ? getRelatedDistances(selectedId, focusMode)
@@ -111,27 +124,32 @@ export function Graph() {
       selectedId,
       focusMode,
       displayMode,
-      visibleFranchises,
+      groupBy: grouping.by,
+      visibleGroups: grouping.visible,
     });
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
-  }, [mode, selectedId, focusMode, displayMode, visibleFranchises]);
+  }, [mode, selectedId, focusMode, displayMode, grouping]);
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id));
   };
 
-  const handleToggleFranchise = (franchise: Franchise) => {
-    setVisibleFranchises((current) => {
-      if (current.has(franchise) && current.size === 1) return current;
-      const next = new Set(current);
-      if (next.has(franchise)) next.delete(franchise);
-      else next.add(franchise);
-      return next;
+  const handleToggleGroup = (key: string) => {
+    setGrouping((current) => {
+      if (current.visible.has(key) && current.visible.size === 1) return current;
+      const visible = new Set(current.visible);
+      if (visible.has(key)) visible.delete(key);
+      else visible.add(key);
+      return { ...current, visible };
     });
   };
 
-  const visibleWorks = WORKS.filter((w) => visibleFranchises.has(w.franchise));
+  const handleGroupByChange = (by: GroupBy) => {
+    setGrouping((current) => regroup(current, by, WORKS));
+  };
+
+  const visibleWorks = WORKS.filter((w) => isWorkVisible(w, grouping));
   const visibleIds = new Set(visibleWorks.map((w) => w.id));
   const edgeVisibility = computeEdgeVisibility(visibleIds);
 
@@ -346,18 +364,22 @@ export function Graph() {
                     <BandLabel color={borderColor}>{label}</BandLabel>
                   </div>
                 ))}
-                {franchiseRows.map(({ franchise, top, height }) => (
+                {groupRows.map(({ key, label, colorClass, top, height }) => (
                   <div
-                    key={franchise}
+                    key={key}
                     className="absolute inset-x-0 border-t border-border/40 first:border-t-0"
                     style={{ top: `${top}%`, height: `${height}%` }}
                   >
-                    <span className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full border border-border/60 bg-white/85 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap">
-                      <span
-                        className={`size-2 rounded-full ${FRANCHISE_META[franchise].colorClass}`}
-                      />
-                      {FRANCHISE_META[franchise].label}
-                    </span>
+                    <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
+                  </div>
+                ))}
+                {groupColumns.map(({ key, label, colorClass, left, width }) => (
+                  <div
+                    key={key}
+                    className="absolute inset-y-0 border-l border-dashed border-border/50 first:border-l-0"
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                  >
+                    <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
                   </div>
                 ))}
                 <GraphEdges
@@ -416,8 +438,9 @@ export function Graph() {
           )}
 
           <LegendFab
-            visibleFranchises={visibleFranchises}
-            onToggle={handleToggleFranchise}
+            grouping={grouping}
+            onToggle={handleToggleGroup}
+            onGroupByChange={handleGroupByChange}
             watchedCount={watched.size}
             onClearWatched={clearWatched}
           />

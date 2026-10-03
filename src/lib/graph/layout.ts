@@ -1,5 +1,6 @@
-import { WORKS, type Franchise } from "@/data/works";
+import { WORKS } from "@/data/works";
 
+import { groupKeyOf, isWorkVisible, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
 import { GLOBAL_STEP, MAX_STEP } from "./relations";
 
@@ -19,8 +20,6 @@ export interface GraphLayout {
   totalLanes: number;
   rowCount: number;
 }
-
-export const BAND_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];
 
 // Colorblind-safe order; re-validate before reordering.
 const BAND_COLORS = [
@@ -47,8 +46,8 @@ function bandColor(index: number) {
   };
 }
 
-function visibleBands(visibleFranchises: Set<Franchise>) {
-  return BAND_ORDER.filter((f) => visibleFranchises.has(f));
+function visibleBands(grouping: Grouping) {
+  return visibleGroups(grouping).map((group) => group.key);
 }
 
 function recommendedTimeRank(): Map<string, number> {
@@ -63,18 +62,18 @@ function recommendedTimeRank(): Map<string, number> {
 
 // Timelines place works by rank rather than date so a long gap doesn't
 // crush everything else.
-export function computeLayout(mode: ViewMode, visibleFranchises: Set<Franchise>): GraphLayout {
+export function computeLayout(mode: ViewMode, grouping: Grouping): GraphLayout {
   return mode === "recommended"
-    ? computeGitGraphLayout(visibleFranchises)
-    : computeTimelineLayout(mode, visibleFranchises);
+    ? computeGitGraphLayout(grouping)
+    : computeTimelineLayout(mode, grouping);
 }
 
 function computeTimelineLayout(
   mode: Exclude<ViewMode, "recommended">,
-  visibleFranchises: Set<Franchise>,
+  grouping: Grouping,
 ): GraphLayout {
-  const bands = visibleBands(visibleFranchises);
-  const worksInScope = WORKS.filter((w) => visibleFranchises.has(w.franchise));
+  const bands = visibleBands(grouping);
+  const worksInScope = WORKS.filter((w) => isWorkVisible(w, grouping));
   const sorted = [...worksInScope].sort((a, b) => {
     return mode === "chronology"
       ? a.chronologyOrder - b.chronologyOrder
@@ -87,7 +86,7 @@ function computeTimelineLayout(
 
   const positions = new Map<string, Point>();
   for (const work of worksInScope) {
-    const rowIndex = Math.max(0, bands.indexOf(work.franchise));
+    const rowIndex = Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
     positions.set(work.id, {
       x: ((rank.get(work.id) ?? 0) / denom) * 100,
       y: rowIndex * rowHeight + rowHeight / 2,
@@ -97,43 +96,44 @@ function computeTimelineLayout(
   return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
 }
 
-function computeGitGraphLayout(visibleFranchises: Set<Franchise>): GraphLayout {
-  const bands = visibleBands(visibleFranchises);
+function computeGitGraphLayout(grouping: Grouping): GraphLayout {
+  const bands = visibleBands(grouping);
   const timeRank = recommendedTimeRank();
-  const laneByFranchise = new Map<Franchise, Map<string, number>>();
-  const laneCount = new Map<Franchise, number>();
-  for (const franchise of bands) {
-    const worksInFranchise = WORKS.filter((w) => w.franchise === franchise).sort((a, b) => {
+  const laneByBand = new Map<string, Map<string, number>>();
+  const laneCount = new Map<string, number>();
+  for (const band of bands) {
+    const worksInBand = WORKS.filter((w) => groupKeyOf(w, grouping.by) === band).sort((a, b) => {
       const stepDiff = GLOBAL_STEP.get(a.id)! - GLOBAL_STEP.get(b.id)!;
       return stepDiff !== 0 ? stepDiff : timeRank.get(a.id)! - timeRank.get(b.id)!;
     });
     const { laneMap } = centerMainLane(
-      assignLanes(worksInFranchise, GLOBAL_STEP),
-      worksInFranchise,
+      assignLanes(worksInBand, GLOBAL_STEP),
+      worksInBand,
       undefined,
       GLOBAL_STEP,
     );
-    laneCount.set(franchise, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
-    laneByFranchise.set(franchise, laneMap);
+    laneCount.set(band, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
+    laneByBand.set(band, laneMap);
   }
 
-  const bandStart = new Map<Franchise, number>();
+  const bandStart = new Map<string, number>();
   let total = 0;
-  for (const franchise of bands) {
-    bandStart.set(franchise, total);
-    total += laneCount.get(franchise)!;
+  for (const band of bands) {
+    bandStart.set(band, total);
+    total += laneCount.get(band)!;
   }
 
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
   const rowHeight = 100 / (MAX_STEP + 1);
   for (const work of WORKS) {
-    const laneMap = laneByFranchise.get(work.franchise);
+    const band = groupKeyOf(work, grouping.by);
+    const laneMap = laneByBand.get(band);
     if (!laneMap) continue;
     const laneIndex = laneMap.get(work.id) ?? 0;
     const step = GLOBAL_STEP.get(work.id) ?? 0;
     positions.set(work.id, {
-      x: (bandStart.get(work.franchise)! + laneIndex) * laneWidth + laneWidth / 2,
+      x: (bandStart.get(band)! + laneIndex) * laneWidth + laneWidth / 2,
       y: step * rowHeight + rowHeight / 2,
     });
   }
@@ -148,21 +148,39 @@ export function canvasSize(layout: GraphLayout) {
   };
 }
 
-export function computeFranchiseRows(mode: ViewMode, visibleFranchises: Set<Franchise>) {
+export function computeGroupRows(mode: ViewMode, grouping: Grouping) {
   if (mode === "recommended") return [];
-  const bands = visibleBands(visibleFranchises);
-  const rowHeight = 100 / Math.max(1, bands.length);
-  return bands.map((franchise, i) => ({ franchise, top: i * rowHeight, height: rowHeight }));
+  const groups = visibleGroups(grouping);
+  const rowHeight = 100 / Math.max(1, groups.length);
+  return groups.map((group, i) => ({ ...group, top: i * rowHeight, height: rowHeight }));
 }
 
-export function computePhaseBands(mode: ViewMode, layout: GraphLayout) {
+// Recommended mode's bands are lane spans; labeled only when there's more
+// than one to tell apart.
+export function computeGroupColumns(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+  const groups = visibleGroups(grouping);
+  if (mode !== "recommended" || groups.length < 2) return [];
+  const laneWidth = 100 / layout.totalLanes;
+  return groups.flatMap((group) => {
+    const xs = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
+      .map((w) => layout.positions.get(w.id)?.x)
+      .filter((x) => x !== undefined);
+    if (xs.length === 0) return [];
+    const left = Math.min(...xs) - laneWidth / 2;
+    return [{ ...group, left, width: Math.max(...xs) + laneWidth / 2 - left }];
+  });
+}
+
+export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (mode !== "recommended") return [];
   const rowHeight = 100 / (MAX_STEP + 1);
   const laneWidth = 100 / layout.totalLanes;
   const gapPercent = (10 / canvasSize(layout).height) * 100;
   const byPhase = new Map<number, { minStep: number; minX: number; maxX: number }>();
   for (const work of WORKS) {
-    if (work.franchise !== "mcu" || work.phase === undefined) continue;
+    if (work.phase === undefined || groupKeyOf(work, grouping.by) !== PHASE_GROUP[grouping.by]) {
+      continue;
+    }
     const pos = layout.positions.get(work.id);
     if (!pos) continue;
     const step = GLOBAL_STEP.get(work.id) ?? 0;
@@ -191,13 +209,9 @@ export function computePhaseBands(mode: ViewMode, layout: GraphLayout) {
   });
 }
 
-export function computeEraBands(
-  mode: ViewMode,
-  layout: GraphLayout,
-  visibleFranchises: Set<Franchise>,
-) {
+export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (mode === "recommended") return [];
-  const dated = WORKS.filter((w) => visibleFranchises.has(w.franchise))
+  const dated = WORKS.filter((w) => isWorkVisible(w, grouping))
     .map((work) => {
       const pos = layout.positions.get(work.id);
       const releaseYear = Number(work.releaseDate.slice(0, 4));
