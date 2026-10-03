@@ -27,7 +27,13 @@ export function DetailPanel({ selectedId, onClear }: Props) {
               className="pointer-events-auto flex items-start gap-3 rounded-lg border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
             >
               <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
-                <img src={posterUrl(work)} alt="" className="size-full object-cover" />
+                <img
+                  src={posterUrl(work)}
+                  alt=""
+                  className="size-full object-cover"
+                  // A failed poster leaves the muted box rather than a broken icon.
+                  onError={(event) => (event.currentTarget.style.visibility = "hidden")}
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">

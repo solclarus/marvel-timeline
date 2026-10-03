@@ -68,3 +68,10 @@ test("About shows the TMDB notice", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 });
+
+test("a poster TMDB can't serve falls back to its title", async ({ page }) => {
+  await page.route("https://image.tmdb.org/**", (route) => route.fulfill({ status: 404 }));
+  await page.goto("./?work=iron-man");
+  const ironMan = page.locator('[id="iron-man"] [data-poster-fallback]');
+  await expect(ironMan).toHaveText("Iron Man");
+});
