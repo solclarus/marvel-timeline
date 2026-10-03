@@ -16,6 +16,7 @@ import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
 import type { FocusMode } from "@/lib/graph/relations";
 
 import { fabMenuClass } from "./fab";
+import { EDGE_STYLE, type EdgeStyle } from "./graph-edges";
 
 interface Props {
   grouping: Grouping;
@@ -23,6 +24,31 @@ interface Props {
   onGroupByChange: (by: GroupBy) => void;
   focusMode: FocusMode;
   onFocusModeChange: (mode: FocusMode) => void;
+}
+
+// What each of the map's three line styles means.
+const EDGE_LEGEND: Array<{ style: EdgeStyle; label: string; detail?: string }> = [
+  { style: "sequel", label: "Direct sequel" },
+  { style: "tie", label: "Tie-in", detail: "spin-off, lead-in, crossover" },
+  { style: "reference", label: "Reference only", detail: "not a prerequisite" },
+];
+
+function LineSample({ style }: { style: EdgeStyle }) {
+  const { stroke, width, dash } = EDGE_STYLE[style];
+  return (
+    <svg width="24" height="8" aria-hidden className="shrink-0">
+      <line
+        x1="1"
+        y1="4"
+        x2="23"
+        y2="4"
+        stroke={stroke}
+        strokeWidth={width * 0.6}
+        strokeDasharray={dash ? "3 3" : undefined}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 const GROUP_BY_OPTIONS: Record<GroupBy, { label: string; icon: typeof Earth }> = {
@@ -103,6 +129,19 @@ export function SettingsMenu({
             </DropdownMenuCheckboxItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Lines</DropdownMenuLabel>
+          {EDGE_LEGEND.map(({ style, label, detail }) => (
+            <div key={style} className="flex items-center gap-2 px-1.5 py-1 text-xs">
+              <LineSample style={style} />
+              <span>
+                {label}
+                {detail && <span className="text-muted-foreground"> · {detail}</span>}
+              </span>
+            </div>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
