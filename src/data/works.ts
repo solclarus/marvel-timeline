@@ -3,16 +3,51 @@ export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
 // works that span too many Earths to list.
 export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "1048" | "multiverse";
 
-export const EARTH_META: Record<EarthId, { label: string; colorClass: string }> = {
-  "616": { label: "Earth-616", colorClass: "bg-rose-500" },
-  "838": { label: "Earth-838", colorClass: "bg-amber-500" },
-  "828": { label: "Earth-828", colorClass: "bg-teal-500" },
-  "10005": { label: "Earth-10005", colorClass: "bg-indigo-500" },
-  "96283": { label: "Earth-96283", colorClass: "bg-slate-500" },
-  "120703": { label: "Earth-120703", colorClass: "bg-cyan-600" },
-  "1048": { label: "Earth-1048", colorClass: "bg-violet-500" },
-  multiverse: { label: "Multiverse", colorClass: "bg-fuchsia-500" },
-};
+// `cardClass` tints the background card around an Earth's works; the class
+// names are spelled out in full so Tailwind can see them.
+export const EARTH_META: Record<EarthId, { label: string; colorClass: string; cardClass: string }> =
+  {
+    "616": {
+      label: "Earth-616",
+      colorClass: "bg-rose-500",
+      cardClass: "border-rose-500/45 bg-rose-500/8",
+    },
+    "838": {
+      label: "Earth-838",
+      colorClass: "bg-amber-500",
+      cardClass: "border-amber-500/50 bg-amber-500/10",
+    },
+    "828": {
+      label: "Earth-828",
+      colorClass: "bg-teal-500",
+      cardClass: "border-teal-500/45 bg-teal-500/8",
+    },
+    "10005": {
+      label: "Earth-10005",
+      colorClass: "bg-indigo-500",
+      cardClass: "border-indigo-500/45 bg-indigo-500/8",
+    },
+    "96283": {
+      label: "Earth-96283",
+      colorClass: "bg-slate-500",
+      cardClass: "border-slate-500/45 bg-slate-500/8",
+    },
+    "120703": {
+      label: "Earth-120703",
+      colorClass: "bg-cyan-600",
+      cardClass: "border-cyan-600/45 bg-cyan-600/8",
+    },
+    "1048": {
+      label: "Earth-1048",
+      colorClass: "bg-violet-500",
+      cardClass: "border-violet-500/45 bg-violet-500/8",
+    },
+    multiverse: {
+      label: "Multiverse",
+      colorClass: "bg-fuchsia-500",
+      cardClass: "border-fuchsia-500/45 bg-fuchsia-500/8",
+    },
+  };
 
 export type EdgeKind = "direct-sequel" | "spin-off" | "leads-into" | "crossover" | "reference";
 

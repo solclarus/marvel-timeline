@@ -112,19 +112,6 @@ export function GraphNode({
         className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""} ${nextUp ? "ring-3 ring-sky-500 ring-offset-2 ring-offset-stone-200" : ""}`}
       >
         <PosterThumb work={work} />
-        {earths.length > 1 && (
-          <span
-            aria-hidden
-            className="absolute top-1 left-1 flex gap-0.5 rounded-full bg-black/65 p-0.5"
-          >
-            {earths.map((earth) => (
-              <span
-                key={earth}
-                className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`}
-              />
-            ))}
-          </span>
-        )}
       </div>
       {watched && (
         <span
