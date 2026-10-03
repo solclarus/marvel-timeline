@@ -24,6 +24,8 @@ export interface GraphLayout {
   positions: Map<string, Point>;
   totalLanes: number;
   rowCount: number;
+  // Timelines: each decade's horizontal extent, in canvas percentages.
+  decadeSpans?: Map<number, { left: number; right: number }>;
 }
 
 // Decade bands step through the rainbow, red (oldest) to violet (newest),
@@ -75,6 +77,45 @@ export function timelineYear(work: WorkNode, mode: Exclude<ViewMode, "recommende
   return mode === "release" ? releaseYear : (work.setYear ?? releaseYear);
 }
 
+// Every decade gets at least this many columns, so a decade with one or two
+// works still makes a band wide enough to read beside its neighbors.
+const MIN_DECADE_COLUMNS = 3;
+
+// Lays consecutive slots (one per work, or per year) into columns, padding
+// any decade narrower than MIN_DECADE_COLUMNS evenly on both sides. Returns
+// each slot's first column and the total.
+function placeSlots(slots: Array<{ key: string; decade: number; width: number }>) {
+  const start = new Map<string, number>();
+  const decadeColumns = new Map<number, { from: number; to: number }>();
+  let column = 0;
+  let i = 0;
+  while (i < slots.length) {
+    const decade = slots[i].decade;
+    let j = i;
+    let width = 0;
+    while (j < slots.length && slots[j].decade === decade) width += slots[j++].width;
+    const pad = Math.max(0, MIN_DECADE_COLUMNS - width);
+    const from = column;
+    column += Math.floor(pad / 2);
+    for (; i < j; i++) {
+      start.set(slots[i].key, column);
+      column += slots[i].width;
+    }
+    column += pad - Math.floor(pad / 2);
+    decadeColumns.set(decade, { from, to: column });
+  }
+  return { start, columns: column, decadeColumns };
+}
+
+function toDecadeSpans(decadeColumns: Map<number, { from: number; to: number }>, columns: number) {
+  return new Map(
+    [...decadeColumns].map(([decade, { from, to }]) => [
+      decade,
+      { left: (from / columns) * 100, right: (to / columns) * 100 },
+    ]),
+  );
+}
+
 function computeTimelineLayout(
   mode: Exclude<ViewMode, "recommended">,
   grouping: Grouping,
@@ -85,20 +126,34 @@ function computeTimelineLayout(
   const rows = Math.max(1, bands.length);
   const rowHeight = 100 / rows;
   const rowOf = (work: WorkNode) => Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
+  const decadeOf = (year: number) => Math.floor(year / 10) * 10;
+  // Columns sit at their centers, so padding at either end stays inside.
+  const xOf = (column: number, columns: number) => ((column + 0.5) / Math.max(1, columns)) * 100;
 
   // Release dates already run in one order across every row: one column per
   // work, by date.
   if (mode === "release") {
     const sorted = [...worksInScope].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
-    const denom = Math.max(1, sorted.length - 1);
+    const { start, columns, decadeColumns } = placeSlots(
+      sorted.map((work) => ({
+        key: work.id,
+        decade: decadeOf(timelineYear(work, mode)),
+        width: 1,
+      })),
+    );
     const positions = new Map<string, Point>();
-    sorted.forEach((work, rank) => {
+    for (const work of sorted) {
       positions.set(work.id, {
-        x: (rank / denom) * 100,
+        x: xOf(start.get(work.id)!, columns),
         y: rowOf(work) * rowHeight + rowHeight / 2,
       });
-    });
-    return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
+    }
+    return {
+      positions,
+      totalLanes: Math.max(1, columns),
+      rowCount: rows,
+      decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
+    };
   }
 
   // The chronology's order is curated per franchise, so it can't be one
@@ -112,18 +167,16 @@ function computeTimelineLayout(
     byRowYear.get(key)!.push(work);
   }
   const years = [...new Set(worksInScope.map((w) => timelineYear(w, mode)))].sort((a, b) => a - b);
-  const yearStart = new Map<number, number>();
-  let columns = 0;
-  for (const year of years) {
-    yearStart.set(year, columns);
-    let widest = 0;
-    for (let row = 0; row < rows; row++) {
-      widest = Math.max(widest, byRowYear.get(`${row}|${year}`)?.length ?? 0);
-    }
-    columns += widest;
-  }
+  const { start, columns, decadeColumns } = placeSlots(
+    years.map((year) => {
+      let widest = 0;
+      for (let row = 0; row < rows; row++) {
+        widest = Math.max(widest, byRowYear.get(`${row}|${year}`)?.length ?? 0);
+      }
+      return { key: String(year), decade: decadeOf(year), width: widest };
+    }),
+  );
 
-  const denom = Math.max(1, columns - 1);
   const positions = new Map<string, Point>();
   for (const [key, works] of byRowYear) {
     const [row, year] = key.split("|").map(Number);
@@ -131,12 +184,17 @@ function computeTimelineLayout(
       .sort((a, b) => a.chronologyOrder - b.chronologyOrder)
       .forEach((work, i) => {
         positions.set(work.id, {
-          x: ((yearStart.get(year)! + i) / denom) * 100,
+          x: xOf(start.get(String(year))! + i, columns),
           y: row * rowHeight + rowHeight / 2,
         });
       });
   }
-  return { positions, totalLanes: Math.max(1, columns), rowCount: rows };
+  return {
+    positions,
+    totalLanes: Math.max(1, columns),
+    rowCount: rows,
+    decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
+  };
 }
 
 // Grouped by Earth, each band is split again by franchise, so a franchise
@@ -369,29 +427,21 @@ export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: G
   if (mode === "recommended") return [];
   const dated = datedWorks(mode, layout, grouping);
   if (dated.length === 0) return [];
-
-  const runs: Array<{ decade: number; minX: number; maxX: number }> = [];
-  for (const { pos, decade } of dated) {
-    const last = runs[runs.length - 1];
-    if (last && last.decade === decade) last.maxX = pos.x;
-    else runs.push({ decade, minX: pos.x, maxX: pos.x });
-  }
-
-  const decadeOrder = [...new Set(runs.map((r) => r.decade))].sort((a, b) => a - b);
-  const colorIndex = new Map(decadeOrder.map((d, i) => [d, i]));
-
-  return runs.map((run, i) => {
-    const left = i === 0 ? 0 : (run.minX + runs[i - 1].maxX) / 2;
-    const right = i === runs.length - 1 ? 100 : (run.maxX + runs[i + 1].minX) / 2;
-    return {
-      key: `${run.decade}-${i}`,
-      decade: run.decade,
-      left,
-      width: right - left,
-      ...decadeTint(
-        decadeOrder.length > 1 ? colorIndex.get(run.decade)! / (decadeOrder.length - 1) : 1,
-      ),
-    };
+  // Timelines run in year order, so each decade is one contiguous span; the
+  // layout records it, padding included.
+  const decades = [...new Set(dated.map((d) => d.decade))].sort((a, b) => a - b);
+  return decades.flatMap((decade, i) => {
+    const span = layout.decadeSpans?.get(decade);
+    if (!span) return [];
+    return [
+      {
+        key: String(decade),
+        decade,
+        left: span.left,
+        width: span.right - span.left,
+        ...decadeTint(decades.length > 1 ? i / (decades.length - 1) : 1),
+      },
+    ];
   });
 }
 
