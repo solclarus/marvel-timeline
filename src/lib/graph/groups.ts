@@ -42,7 +42,8 @@ const FRANCHISE_ORDER: Franchise[] = [
 // crossed into.
 const EARTH_ORDER: EarthId[] = [
   "616",
-  "multiverse", // TVA and What If variants of the Sacred Timeline
+  "multiverse", // What If's variants of the Sacred Timeline
+  "89521", // What If's zombie world, home of Marvel Zombies
   "828", // meets 616 in Avengers: Doomsday
   "10005", // Deadpool & Wolverine
   "86445", // an alternate 616 (Your Friendly Neighborhood Spider-Man)
