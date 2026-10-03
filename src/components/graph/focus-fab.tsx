@@ -1,10 +1,10 @@
 import { Focus, GitBranch, Map, Waypoints } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { DisplayMode } from "@/lib/graph/layout";
 import type { FocusMode } from "@/lib/graph/relations";
 
 import { FabBar, FabDivider } from "./fab";
-import type { DisplayMode } from "./graph";
 
 interface Props {
   focusMode: FocusMode;

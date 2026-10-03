@@ -15,6 +15,7 @@ import {
   computeLayout,
   computePhaseBands,
   type Axis,
+  type DisplayMode,
   type Point,
   type ViewMode,
 } from "@/lib/graph/layout";
@@ -24,6 +25,7 @@ import {
   WORK_BY_ID,
   type FocusMode,
 } from "@/lib/graph/relations";
+import { parseUrlState, serializeUrlState } from "@/lib/url-state";
 
 import { DetailPanel } from "./detail-panel";
 import { FocusFab } from "./focus-fab";
@@ -43,8 +45,6 @@ const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 1.5;
 const INITIAL_ZOOM = 0.6;
 
-export type DisplayMode = "inline" | "compact";
-
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
 function BandLabel({ color, children }: { color: string; children: React.ReactNode }) {
@@ -59,12 +59,13 @@ function BandLabel({ color, children }: { color: string; children: React.ReactNo
 }
 
 export function Graph() {
-  const [mode, setMode] = useState<ViewMode>("recommended");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [focusMode, setFocusMode] = useState<FocusMode>("chain");
-  const [displayMode, setDisplayMode] = useState<DisplayMode>("inline");
+  const [initial] = useState(() => parseUrlState(window.location.search));
+  const [mode, setMode] = useState<ViewMode>(initial.mode);
+  const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
+  const [focusMode, setFocusMode] = useState<FocusMode>(initial.focusMode);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(initial.displayMode);
   const [visibleFranchises, setVisibleFranchises] = useState<Set<Franchise>>(
-    () => new Set<Franchise>(["mcu"]),
+    initial.visibleFranchises,
   );
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
 
@@ -97,6 +98,20 @@ export function Graph() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // replaceState, not pushState: Back should leave the app, not step through
+  // every click.
+  useEffect(() => {
+    const search = serializeUrlState({
+      mode,
+      selectedId,
+      focusMode,
+      displayMode,
+      visibleFranchises,
+    });
+    const { pathname, hash } = window.location;
+    window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
+  }, [mode, selectedId, focusMode, displayMode, visibleFranchises]);
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id));
@@ -213,7 +228,13 @@ export function Graph() {
           wrapper.scrollTop = 0;
           wrapper.scrollLeft = 0;
         });
-        if (AVENGERS_ID) ref.zoomToElement(AVENGERS_ID, { scale: INITIAL_ZOOM }, 0);
+        // A linked work opens centered; otherwise start at the Avengers.
+        const startId = initial.selectedId ?? AVENGERS_ID;
+        if (startId && document.getElementById(startId)) {
+          ref.zoomToElement(startId, { scale: INITIAL_ZOOM }, 0);
+        } else {
+          ref.fitToView({ animationTime: 0 });
+        }
       }}
     >
       {(utils) => (
