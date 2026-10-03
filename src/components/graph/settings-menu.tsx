@@ -1,35 +1,65 @@
-import { Earth, GitBranch, Languages, Library, SlidersHorizontal, Waypoints } from "lucide-react";
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import {
+  Clapperboard,
+  Earth,
+  Film,
+  GitBranch,
+  Library,
+  ListFilter,
+  Settings2,
+  SlidersHorizontal,
+  Waypoints,
+} from "lucide-react";
+import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
-import type { FocusMode } from "@/lib/graph/relations";
+import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
-import { fabMenuClass } from "./fab";
 import { EDGE_STYLE, type EdgeStyle } from "./graph-edges";
 
 interface Props {
+  media: MediaFilter;
+  onMediaChange: (media: MediaFilter) => void;
   grouping: Grouping;
-  onToggle: (key: string) => void;
+  onVisibleChange: (visible: Set<string>) => void;
   onGroupByChange: (by: GroupBy) => void;
   focusMode: FocusMode;
   onFocusModeChange: (mode: FocusMode) => void;
 }
 
-// What each of the map's three line styles means.
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs text-muted-foreground">{children}</p>;
+}
+
+// A titled block of the panel: filters, then display options.
+function Section({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: typeof Earth;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-xl bg-white/[0.03] p-3 ring-1 ring-white/5">
+      <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-foreground/80 uppercase">
+        <Icon className="size-3.5" />
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
 type MessageKey = { [K in keyof Messages]: Messages[K] extends string ? K : never }[keyof Messages];
 
+// What each of the map's line styles means.
 const EDGE_LEGEND: Array<{ style: EdgeStyle; label: MessageKey; detail?: MessageKey }> = [
   { style: "prerequisite", label: "linePrerequisite", detail: "linePrerequisiteDetail" },
   { style: "reference", label: "lineReference", detail: "lineReferenceDetail" },
@@ -53,119 +83,235 @@ function LineSample({ style }: { style: EdgeStyle }) {
   );
 }
 
-const GROUP_BY_OPTIONS: Record<GroupBy, { label: MessageKey; icon: typeof Earth }> = {
-  franchise: { label: "franchise", icon: Library },
-  earth: { label: "earth", icon: Earth },
-};
-// How far a selection's highlight reaches.
-const FOCUS_MODE_OPTIONS: Record<FocusMode, { label: MessageKey; icon: typeof Earth }> = {
-  chain: { label: "allRelated", icon: Waypoints },
-  immediate: { label: "directOnly", icon: GitBranch },
-};
+interface Option<T extends string> {
+  value: T;
+  label: string;
+  icon?: typeof Earth;
+  lang?: string;
+}
+
+// A two-way switch: both choices side by side, the current one filled.
+function Segmented<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: Option<T>[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <SectionLabel>{label}</SectionLabel>
+      <ToggleGroup
+        aria-label={label}
+        value={[value]}
+        // Pressing the current choice again would leave none; ignore it.
+        onValueChange={(next: T[]) => next[0] && onChange(next[0])}
+        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/30 p-0.5"
+      >
+        {options.map(({ value: option, label: optionLabel, icon: Icon, lang }) => (
+          <Toggle
+            key={option}
+            value={option}
+            lang={lang}
+            className="flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-sky-500 data-pressed:bg-white/15 data-pressed:text-foreground"
+          >
+            {Icon && <Icon className="size-3.5" />}
+            {optionLabel}
+          </Toggle>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+}
+
+const LONG_PRESS_MS = 450;
+
+// The groups as chips: tap to show or hide one, long-press (or right-click)
+// to show it alone.
+function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onVisibleChange">) {
+  const { t, groupLabel } = useI18n();
+  const groups = GROUPS[grouping.by];
+  const pressTimer = useRef<number | undefined>(undefined);
+  const longPressed = useRef(false);
+
+  const showOnly = (key: string) => onVisibleChange(new Set([key]));
+  const toggle = (key: string) => {
+    const visible = new Set(grouping.visible);
+    if (visible.has(key)) visible.delete(key);
+    else visible.add(key);
+    onVisibleChange(visible);
+  };
+  const cancelPress = () => window.clearTimeout(pressTimer.current);
+
+  const allShown = grouping.visible.size === groups.length;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <SectionLabel>
+          {t.show}{" "}
+          <span className="tabular-nums">
+            {t.groupsShown(grouping.visible.size, groups.length)}
+          </span>
+        </SectionLabel>
+        <button
+          type="button"
+          disabled={allShown}
+          onClick={() => onVisibleChange(new Set(groups.map((g) => g.key)))}
+          className="rounded-full px-2 py-0.5 text-xs text-sky-400 hover:bg-white/5 disabled:pointer-events-none disabled:opacity-40"
+        >
+          {t.showAll}
+        </button>
+      </div>
+      <div className="flex max-h-60 flex-wrap gap-1 overflow-y-auto">
+        {groups.map(({ key, colorClass }) => {
+          const shown = grouping.visible.has(key);
+          const label = groupLabel(grouping.by, key);
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={shown}
+              aria-label={label}
+              title={label}
+              disabled={shown && grouping.visible.size === 1}
+              onPointerDown={() => {
+                longPressed.current = false;
+                pressTimer.current = window.setTimeout(() => {
+                  longPressed.current = true;
+                  showOnly(key);
+                }, LONG_PRESS_MS);
+              }}
+              onPointerUp={cancelPress}
+              onPointerLeave={cancelPress}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                cancelPress();
+                showOnly(key);
+              }}
+              onClick={() => {
+                if (!longPressed.current) toggle(key);
+              }}
+              className={cn(
+                "flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs tabular-nums transition-colors select-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none disabled:cursor-default",
+                shown
+                  ? "border-white/15 bg-white/10 text-foreground hover:bg-white/15"
+                  : "border-dashed border-white/15 text-muted-foreground/70 hover:border-white/30 hover:text-foreground",
+              )}
+            >
+              <span
+                className={cn(
+                  "size-2 shrink-0 rounded-full transition-opacity",
+                  colorClass,
+                  !shown && "opacity-30",
+                )}
+              />
+              {/* Earth numbers alone; the section already says they're Earths. */}
+              {grouping.by === "earth" && key !== "multiverse" ? key : label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-muted-foreground/70">{t.showOnlyHint}</p>
+    </div>
+  );
+}
 
 export function SettingsMenu({
+  media,
+  onMediaChange,
   grouping,
-  onToggle,
+  onVisibleChange,
   onGroupByChange,
   focusMode,
   onFocusModeChange,
 }: Props) {
-  const { t, locale, setLocale, groupLabel } = useI18n();
+  const { t, locale, setLocale } = useI18n();
+  // The bar no longer shows the filters, so the button flags when one is on.
+  const filtered = media === "movies" || grouping.visible.size < GROUPS[grouping.by].length;
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Popover>
+      <PopoverTrigger
         render={
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full"
-            aria-label={t.viewSettings}
+            className="relative rounded-full"
+            aria-label={filtered ? t.viewSettingsFiltered : t.viewSettings}
           />
         }
       >
         <SlidersHorizontal className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="end" sideOffset={14} className={fabMenuClass}>
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t.highlight}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={focusMode}
-            onValueChange={(value: FocusMode) => onFocusModeChange(value)}
-          >
-            {(Object.keys(FOCUS_MODE_OPTIONS) as FocusMode[]).map((mode) => {
-              const { label, icon: Icon } = FOCUS_MODE_OPTIONS[mode];
-              return (
-                <DropdownMenuRadioItem key={mode} value={mode} className="text-xs">
-                  <Icon className="size-4" />
-                  {t[label]}
-                </DropdownMenuRadioItem>
-              );
-            })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t.groupBy}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
+        {filtered && (
+          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-sky-400 ring-2 ring-card" />
+        )}
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="end"
+        sideOffset={14}
+        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 bg-card/95 p-2 backdrop-blur-md"
+      >
+        <Section title={t.filterSection} icon={ListFilter}>
+          <Segmented<MediaFilter>
+            label={t.media}
+            value={media}
+            onChange={onMediaChange}
+            options={[
+              { value: "all", label: t.mediaAllTitle, icon: Clapperboard },
+              { value: "movies", label: t.mediaMoviesTitle, icon: Film },
+            ]}
+          />
+          <Segmented<GroupBy>
+            label={t.groupBy}
             value={grouping.by}
-            onValueChange={(value: GroupBy) => onGroupByChange(value)}
-          >
-            {(Object.keys(GROUP_BY_OPTIONS) as GroupBy[]).map((by) => {
-              const { label, icon: Icon } = GROUP_BY_OPTIONS[by];
-              return (
-                <DropdownMenuRadioItem key={by} value={by} className="text-xs">
-                  <Icon className="size-4" />
-                  {t[label]}
-                </DropdownMenuRadioItem>
-              );
-            })}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        {GROUPS[grouping.by].map(({ key, colorClass }) => {
-          const isVisible = grouping.visible.has(key);
-          return (
-            <DropdownMenuCheckboxItem
-              key={key}
-              checked={isVisible}
-              onCheckedChange={() => onToggle(key)}
-              disabled={isVisible && grouping.visible.size === 1}
-              className="text-xs"
-            >
-              <span className={`size-2 shrink-0 rounded-full ${colorClass}`} />
-              {groupLabel(grouping.by, key)}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t.language}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
+            onChange={onGroupByChange}
+            options={[
+              { value: "franchise", label: t.franchise, icon: Library },
+              { value: "earth", label: t.earth, icon: Earth },
+            ]}
+          />
+          <GroupChips grouping={grouping} onVisibleChange={onVisibleChange} />
+        </Section>
+        <Section title={t.displaySection} icon={Settings2}>
+          <Segmented<FocusMode>
+            label={t.highlight}
+            value={focusMode}
+            onChange={onFocusModeChange}
+            options={[
+              { value: "chain", label: t.allRelated, icon: Waypoints },
+              { value: "immediate", label: t.directOnly, icon: GitBranch },
+            ]}
+          />
+          <Segmented<Locale>
+            label={t.language}
             value={locale}
-            onValueChange={(value: Locale) => setLocale(value)}
-          >
-            {LOCALES.map((option) => (
-              <DropdownMenuRadioItem key={option} value={option} className="text-xs" lang={option}>
-                <Languages className="size-4" />
-                {LOCALE_NAMES[option]}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t.lines}</DropdownMenuLabel>
+            onChange={setLocale}
+            options={LOCALES.map((option) => ({
+              value: option,
+              label: LOCALE_NAMES[option],
+              lang: option,
+            }))}
+          />
+        </Section>
+        <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
+          <SectionLabel>{t.lines}</SectionLabel>
           {EDGE_LEGEND.map(({ style, label, detail }) => (
-            <div key={style} className="flex items-center gap-2 px-1.5 py-1 text-xs">
-              <LineSample style={style} />
+            <div key={style} className="flex items-start gap-2 text-xs">
+              <span className="flex h-4 items-center">
+                <LineSample style={style} />
+              </span>
               <span>
                 {t[label]}
                 {detail && <span className="text-muted-foreground"> · {t[detail]}</span>}
               </span>
             </div>
           ))}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

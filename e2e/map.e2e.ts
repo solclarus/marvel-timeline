@@ -38,8 +38,10 @@ test("manual zoom sticks after the selection fit", async ({ page }) => {
 test("films only hides series and comes back for a searched series", async ({ page }) => {
   await page.goto("./");
   await expect(page.locator('[id="wandavision"]')).toHaveCount(1);
-  await page.getByRole("button", { name: /Show films only/ }).click();
+  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: "Films only" }).click();
   await expect(page).toHaveURL(/media=movies/);
+  await page.keyboard.press("Escape");
   await expect(page.locator('[id="wandavision"]')).toHaveCount(0);
   await page.keyboard.press("/");
   await page.keyboard.type("wandavision");
@@ -108,4 +110,30 @@ test("timelines draw lines only for a selection", async ({ page }) => {
   await page.goto("./?work=iron-man-2");
   // Recommended mode keeps every line.
   await expect.poll(() => lines.count()).toBeGreaterThan(100);
+});
+
+test("settings switch with buttons and filter groups with chips", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "View settings" }).click();
+  const panel = page.locator("[data-slot=popover-content]");
+  await panel.getByRole("button", { name: "Direct only" }).click();
+  await expect(page).toHaveURL(/focus=immediate/);
+  await panel.getByRole("button", { name: "Earth", exact: true }).click();
+  await expect(page).toHaveURL(/group=earth/);
+
+  // Right-click shows only that group; "All" brings the rest back.
+  await panel.getByRole("button", { name: "Earth-1610", exact: true }).click({ button: "right" });
+  await expect(page).toHaveURL(/show=1610(&|$)/);
+  await expect(panel.getByRole("button", { name: "Earth-1610", exact: true })).toBeDisabled();
+  await panel.getByRole("button", { name: "Earth-616", exact: true }).click();
+  await expect(panel.getByRole("button", { name: "Earth-616", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await panel.getByRole("button", { name: "Show all" }).click();
+  await expect(page).not.toHaveURL(/show=/);
+
+  await panel.getByRole("button", { name: "Films only" }).click();
+  await expect(page).toHaveURL(/media=movies/);
+  await expect(page.getByRole("button", { name: "View settings (filtered)" })).toBeVisible();
 });
