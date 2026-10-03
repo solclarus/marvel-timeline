@@ -69,7 +69,7 @@ export function Graph() {
     initial.visibleFranchises,
   );
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
-  const { watched, toggleWatched } = useWatched();
+  const { watched, toggleWatched, clearWatched } = useWatched();
   const nextUp = computeNextUp(watched);
 
   // React Compiler memoizes these, which keeps `layout`/`focusLayout` stable
@@ -391,7 +391,12 @@ export function Graph() {
             />
           )}
 
-          <LegendFab visibleFranchises={visibleFranchises} onToggle={handleToggleFranchise} />
+          <LegendFab
+            visibleFranchises={visibleFranchises}
+            onToggle={handleToggleFranchise}
+            watchedCount={watched.size}
+            onClearWatched={clearWatched}
+          />
           <ModeFab mode={mode} onChange={setMode} />
           <ZoomFab
             zoom={zoomPercent}

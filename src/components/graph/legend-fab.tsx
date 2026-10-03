@@ -1,10 +1,12 @@
-import { Info } from "lucide-react";
+import { Info, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FRANCHISE_META, type Franchise } from "@/data/works";
@@ -14,9 +16,11 @@ import { fabMenuClass } from "./fab";
 interface Props {
   visibleFranchises: Set<Franchise>;
   onToggle: (franchise: Franchise) => void;
+  watchedCount: number;
+  onClearWatched: () => void;
 }
 
-export function LegendFab({ visibleFranchises, onToggle }: Props) {
+export function LegendFab({ visibleFranchises, onToggle, watchedCount, onClearWatched }: Props) {
   return (
     <div className="fixed right-6 bottom-6 z-40">
       <DropdownMenu>
@@ -50,6 +54,17 @@ export function LegendFab({ visibleFranchises, onToggle }: Props) {
               </DropdownMenuCheckboxItem>
             );
           })}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={watchedCount === 0}
+            onClick={() => {
+              if (window.confirm(`Clear all ${watchedCount} watched works?`)) onClearWatched();
+            }}
+            className="text-xs"
+          >
+            <RotateCcw />
+            Clear watched ({watchedCount})
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
