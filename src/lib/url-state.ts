@@ -1,3 +1,4 @@
+import { MEDIA, mediumOf, type Medium } from "@/data/works";
 import {
   DEFAULT_VISIBLE_GROUPS,
   GROUPS,
@@ -20,7 +21,6 @@ export interface UrlState {
 }
 
 const GROUP_BYS: readonly GroupBy[] = ["franchise", "earth"];
-const MEDIA_FILTERS: readonly MediaFilter[] = ["all", "movies"];
 const VIEW_MODES: readonly ViewMode[] = ["recommended", "release", "chronology"];
 const FOCUS_MODES: readonly FocusMode[] = ["chain", "immediate"];
 
@@ -30,8 +30,16 @@ export const DEFAULT_URL_STATE: UrlState = {
   focusMode: "chain",
   groupBy: "franchise",
   visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
-  media: "all",
+  media: MEDIA,
 };
+
+// `media=movie,animation`; the older `movies` and `all` still open.
+function parseMedia(value: string | null): MediaFilter {
+  if (value === "movies") return ["movie"];
+  const listed = new Set((value ?? "").split(","));
+  const media = MEDIA.filter((medium) => listed.has(medium));
+  return media.length > 0 ? media : DEFAULT_URL_STATE.media;
+}
 
 function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
   return allowed.includes(value as T) ? (value as T) : fallback;
@@ -49,10 +57,7 @@ export function parseUrlState(search: string): UrlState {
   const visibleGroups = new Set(shown.length > 0 ? shown : DEFAULT_VISIBLE_GROUPS[groupBy]);
   // A linked work must be on the map.
   if (selected) visibleGroups.add(groupKeyOf(selected, groupBy));
-  const media =
-    selected && selected.tmdb.type !== "movie"
-      ? "all"
-      : pick(params.get("media"), MEDIA_FILTERS, DEFAULT_URL_STATE.media);
+  const media = withMedium(parseMedia(params.get("media")), selected && mediumOf(selected));
 
   return {
     mode: pick(params.get("mode"), VIEW_MODES, DEFAULT_URL_STATE.mode),
@@ -64,6 +69,12 @@ export function parseUrlState(search: string): UrlState {
   };
 }
 
+// The filter with `medium` switched on, so a work of that kind shows.
+export function withMedium(media: MediaFilter, medium: Medium | undefined): MediaFilter {
+  if (!medium || media.includes(medium)) return media;
+  return MEDIA.filter((m) => m === medium || media.includes(m));
+}
+
 // Defaults are omitted, so the plain URL stays plain.
 export function serializeUrlState(state: UrlState): string {
   const params = new URLSearchParams();
@@ -72,7 +83,7 @@ export function serializeUrlState(state: UrlState): string {
   if (state.focusMode !== DEFAULT_URL_STATE.focusMode) params.set("focus", state.focusMode);
 
   if (state.groupBy !== DEFAULT_URL_STATE.groupBy) params.set("group", state.groupBy);
-  if (state.media !== DEFAULT_URL_STATE.media) params.set("media", state.media);
+  if (state.media.length < MEDIA.length) params.set("media", state.media.join(","));
 
   const keys = GROUPS[state.groupBy].map((group) => group.key);
   const shown = keys.filter((key) => state.visibleGroups.has(key));

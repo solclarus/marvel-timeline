@@ -5,7 +5,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { WORKS } from "@/data/works";
+import { mediumOf, WORKS } from "@/data/works";
 import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
   groupKeyOf,
@@ -29,13 +29,13 @@ import {
   computeEdgeVisibility,
   getRelatedDistances,
   WORK_BY_ID,
-  WORK_GRAPHS,
+  graphForMedia,
   type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
-import { parseUrlState } from "@/lib/url-state";
+import { parseUrlState, withMedium } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
 import { attachDesktopInput, keepInView } from "./desktop-input";
@@ -76,7 +76,7 @@ export function Graph() {
     visible: initial.visibleGroups,
   });
   const [media, setMedia] = useState<MediaFilter>(initial.media);
-  const graph = WORK_GRAPHS[media];
+  const graph = graphForMedia(media);
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
 
@@ -194,10 +194,9 @@ export function Graph() {
 
   const handleMediaChange = (next: MediaFilter) => {
     setMedia(next);
-    // A selected series isn't on the films-only map.
-    if (next === "movies" && selectedId && WORK_BY_ID.get(selectedId)?.tmdb.type !== "movie") {
-      setSelectedId(null);
-    }
+    // A selection whose kind is filtered out leaves the map.
+    const selected = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
+    if (selected && !next.includes(mediumOf(selected))) setSelectedId(null);
   };
 
   // A search pick may be filtered out: show its media and group, then select
@@ -205,7 +204,7 @@ export function Graph() {
   const handleSearchSelect = (id: string) => {
     const work = WORK_BY_ID.get(id);
     if (!work) return;
-    if (work.tmdb.type !== "movie") setMedia("all");
+    setMedia((current) => withMedium(current, mediumOf(work)));
     const key = groupKeyOf(work, grouping.by);
     if (!grouping.visible.has(key)) {
       setGrouping((current) => ({ ...current, visible: new Set([...current.visible, key]) }));

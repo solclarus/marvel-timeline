@@ -1,7 +1,10 @@
 import {
   EDGES,
   HARD_EDGE_KINDS,
+  MEDIA,
+  mediumOf,
   WORKS,
+  type Medium,
   type EdgeKind,
   type WorkEdge,
   type WorkNode,
@@ -9,8 +12,9 @@ import {
 
 export type FocusMode = "chain" | "immediate";
 
-// Which works the map shows: everything, or theatrical films only.
-export type MediaFilter = "all" | "movies";
+// Which kinds of work the map shows: any non-empty mix of films, live-action
+// series and animation, in `MEDIA` order.
+export type MediaFilter = readonly Medium[];
 
 export const WORK_BY_ID = new Map<string, WorkNode>(WORKS.map((w) => [w.id, w]));
 
@@ -137,10 +141,26 @@ export function buildWorkGraph(include: (work: WorkNode) => boolean): WorkGraph 
   };
 }
 
-export const WORK_GRAPHS: Record<MediaFilter, WorkGraph> = {
+export const WORK_GRAPHS = {
   all: buildWorkGraph(() => true),
-  movies: buildWorkGraph((work) => work.tmdb.type === "movie"),
+  movies: buildWorkGraph((work) => mediumOf(work) === "movie"),
 };
+
+const graphCache = new Map<string, WorkGraph>([
+  [MEDIA.join(","), WORK_GRAPHS.all],
+  ["movie", WORK_GRAPHS.movies],
+]);
+
+// The graph for a media filter, built once per mix.
+export function graphForMedia(media: MediaFilter): WorkGraph {
+  const key = media.join(",");
+  let graph = graphCache.get(key);
+  if (!graph) {
+    graph = buildWorkGraph((work) => media.includes(mediumOf(work)));
+    graphCache.set(key, graph);
+  }
+  return graph;
+}
 
 // The full graph, for code that doesn't depend on the media filter.
 export const INCOMING = WORK_GRAPHS.all.incoming;

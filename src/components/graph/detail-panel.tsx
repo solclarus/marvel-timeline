@@ -7,6 +7,7 @@ import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
 import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 
+import { MediumBadge } from "./medium-badge";
 import { WorkDetailDialog } from "./work-detail-dialog";
 
 interface Props {
@@ -58,7 +59,8 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                   />
                 </span>
                 <span className="block min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                  <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+                    <MediumBadge work={work} />
                     <span
                       className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                     />

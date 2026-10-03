@@ -4,6 +4,8 @@ import type { WorkGraph } from "@/lib/graph/relations";
 import { watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 
+import { MediumBadge } from "./medium-badge";
+
 interface Props {
   work: WorkNode;
   graph: WorkGraph;
@@ -32,7 +34,8 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
           />
           <div className="min-w-0">
             <DialogTitle>{titleOf(work)}</DialogTitle>
-            <DialogDescription className="mt-1 flex flex-wrap items-center gap-x-1.5">
+            <DialogDescription className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              <MediumBadge work={work} />
               <span
                 className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
               />

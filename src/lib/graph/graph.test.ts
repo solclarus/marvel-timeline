@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
+import { EARTH_META, earthsOf, EDGES, mediumOf, WORKS } from "@/data/works";
 
 import { elbowPath, elbowPieces, mergedPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
@@ -18,6 +18,7 @@ import {
   GLOBAL_STEP,
   getRelatedDistances,
   INCOMING,
+  graphForMedia,
   WORK_GRAPHS,
 } from "./relations";
 import {
@@ -281,9 +282,20 @@ describe("movies-only graph", () => {
   const movies = WORK_GRAPHS.movies;
   const ids = new Set(movies.works.map((w) => w.id));
 
-  it("keeps only films", () => {
-    expect(movies.works.every((w) => w.tmdb.type === "movie")).toBe(true);
-    expect(movies.works.length).toBe(WORKS.filter((w) => w.tmdb.type === "movie").length);
+  it("keeps only live-action films", () => {
+    expect(movies.works.every((w) => mediumOf(w) === "movie")).toBe(true);
+    expect(movies.works.some((w) => w.id === "spider-man-into-the-spider-verse")).toBe(false);
+    expect(movies.works.length).toBe(WORKS.filter((w) => mediumOf(w) === "movie").length);
+  });
+
+  it("builds a graph for any mix of media", () => {
+    const animation = graphForMedia(["animation"]);
+    expect(animation.works.every((w) => w.animated)).toBe(true);
+    // Across the Spider-Verse follows Into the Spider-Verse directly.
+    expect(animation.incoming.get("spider-man-across-the-spider-verse")).toContain(
+      "spider-man-into-the-spider-verse",
+    );
+    expect(graphForMedia(["movie", "series", "animation"])).toBe(WORK_GRAPHS.all);
   });
 
   it("only draws edges between films", () => {
