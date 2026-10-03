@@ -9,7 +9,7 @@ import {
   type Grouping,
 } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
-import { WORK_GRAPHS, type WorkGraph } from "./relations";
+import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
 export type Axis = "x" | "y";
@@ -201,9 +201,9 @@ function computeTimelineLayout(
 
 // A band is split into lane runs: grouped by Earth, one per franchise (so
 // Netflix's Defenders Saga on 616 sits beside the MCU instead of weaving
-// through it); and in the band that holds the MCU phases, works outside any
-// phase (the One-Shots) get a run of their own, so phase bands never take
-// them in. Runs keep franchise order, phased before unphased.
+// through it). In the run holding the MCU phases, works outside any phase
+// (the One-Shots) are keyed apart so lanes are assigned without them; they
+// are then placed just right of the phase band at their row.
 function laneSubgroupOf(work: WorkNode, grouping: Grouping): string {
   const band = groupKeyOf(work, grouping.by);
   const key = grouping.by === "earth" ? `${band}|${work.franchise}` : band;
@@ -214,13 +214,53 @@ function laneSubgroupOf(work: WorkNode, grouping: Grouping): string {
     : key;
 }
 
+const UNPHASED = "|unphased";
+// The lane run an unphased work shares with its phased neighbors.
+const runOf = (sub: string) => (sub.endsWith(UNPHASED) ? sub.slice(0, -UNPHASED.length) : sub);
+
+// Lanes for works outside the phases: each sits just right of the phase band
+// covering its row (the band's rightmost phased lane, plus one), stepping
+// further right when a row has several. Returns the run's new lane count.
+function placeUnphased(
+  unphased: WorkNode[],
+  phasedLanes: Map<string, number>,
+  stepMap: Map<string, number>,
+  laneMap: Map<string, number>,
+): number {
+  const byPhase = new Map<number, { minStep: number; maxLane: number }>();
+  for (const [id, laneIndex] of phasedLanes) {
+    const phase = WORK_BY_ID.get(id)?.phase;
+    if (phase === undefined) continue;
+    const step = stepMap.get(id) ?? 0;
+    const entry = byPhase.get(phase);
+    byPhase.set(phase, {
+      minStep: Math.min(entry?.minStep ?? step, step),
+      maxLane: Math.max(entry?.maxLane ?? laneIndex, laneIndex),
+    });
+  }
+  const phases = [...byPhase.entries()].sort((a, b) => a[1].minStep - b[1].minStep);
+  const usedInRow = new Map<number, number>();
+  let lanes = phasedLanes.size > 0 ? Math.max(...phasedLanes.values()) + 1 : 0;
+  for (const work of unphased) {
+    const step = stepMap.get(work.id) ?? 0;
+    // The last phase starting at or above this row.
+    const band = phases.filter(([, e]) => e.minStep <= step).at(-1)?.[1] ?? phases[0]?.[1];
+    const offset = usedInRow.get(step) ?? 0;
+    usedInRow.set(step, offset + 1);
+    const laneIndex = (band?.maxLane ?? -1) + 1 + offset;
+    laneMap.set(work.id, laneIndex);
+    lanes = Math.max(lanes, laneIndex + 1);
+  }
+  return lanes;
+}
+
 function laneSubgroups(grouping: Grouping, band: string, works: WorkNode[]): string[] {
   const inBand = works.filter((w) => groupKeyOf(w, grouping.by) === band);
-  const keys = new Set(inBand.map((w) => laneSubgroupOf(w, grouping)));
+  const keys = new Set(inBand.map((w) => runOf(laneSubgroupOf(w, grouping))));
   const franchiseRank = new Map(GROUPS.franchise.map((f, i) => [f.key, i]));
   const rank = (key: string) => {
     const franchise = grouping.by === "earth" ? key.split("|")[1] : "";
-    return (franchiseRank.get(franchise as never) ?? 0) * 2 + (key.endsWith("|unphased") ? 1 : 0);
+    return franchiseRank.get(franchise as never) ?? 0;
   };
   return [...keys].sort((a, b) => rank(a) - rank(b));
 }
@@ -234,6 +274,10 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
   const subsByBand = new Map(
     bands.map((band) => [band, laneSubgroups(grouping, band, graph.works)]),
   );
+  const byStepThenTime = (a: WorkNode, b: WorkNode) => {
+    const stepDiff = stepMap.get(a.id)! - stepMap.get(b.id)!;
+    return stepDiff !== 0 ? stepDiff : timeRank.get(a.id)! - timeRank.get(b.id)!;
+  };
   for (const sub of [...subsByBand.values()].flat()) {
     const worksInSub = graph.works
       .filter((w) => laneSubgroupOf(w, grouping) === sub)
@@ -248,7 +292,12 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
       stepMap,
       graph,
     );
-    laneCount.set(sub, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
+    const unphased = graph.works
+      .filter((w) => laneSubgroupOf(w, grouping) === sub + UNPHASED)
+      .sort(byStepThenTime);
+    const phasedLanes = new Map(laneMap);
+    const lanes = placeUnphased(unphased, phasedLanes, stepMap, laneMap);
+    laneCount.set(sub, Math.max(1, lanes));
     laneBySub.set(sub, laneMap);
   }
 
@@ -269,7 +318,7 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
   const laneWidth = 100 / total;
   const rowHeight = 100 / (maxStep + 1);
   for (const work of graph.works) {
-    const sub = laneSubgroupOf(work, grouping);
+    const sub = runOf(laneSubgroupOf(work, grouping));
     const laneMap = laneBySub.get(sub);
     if (!laneMap) continue;
     const laneIndex = laneMap.get(work.id) ?? 0;

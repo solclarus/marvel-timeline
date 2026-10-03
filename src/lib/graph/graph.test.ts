@@ -347,13 +347,35 @@ describe("phase bands", () => {
       const bands = computePhaseBands("recommended", layout, grouping);
       const inside = WORKS.filter((w) => w.phase === undefined)
         .filter((w) => {
-          const { x } = layout.positions.get(w.id)!;
-          return bands.some((band) => x >= band.left && x <= band.left + band.width);
+          const { x, y } = layout.positions.get(w.id)!;
+          return bands.some(
+            (band) =>
+              x >= band.left &&
+              x <= band.left + band.width &&
+              y >= band.top &&
+              y <= band.top + band.height,
+          );
         })
         .map((w) => w.id);
       expect(inside).toEqual([]);
     });
   }
+
+  it("place the One-Shots right beside their phase band", () => {
+    const grouping: Grouping = {
+      by: "franchise",
+      visible: new Set(GROUPS.franchise.map((g) => g.key)),
+    };
+    const layout = computeLayout("recommended", grouping);
+    const bands = computePhaseBands("recommended", layout, grouping);
+    const column = 100 / layout.totalLanes;
+    for (const w of WORKS.filter((w) => w.id.startsWith("one-shot-"))) {
+      const { x, y } = layout.positions.get(w.id)!;
+      const band = bands.find((b) => y >= b.top && y <= b.top + b.height)!;
+      // Within a few lanes of the band's right edge, not across the canvas.
+      expect(x - (band.left + band.width)).toBeLessThan(3 * column);
+    }
+  });
 });
 
 describe("Earth grouping", () => {
