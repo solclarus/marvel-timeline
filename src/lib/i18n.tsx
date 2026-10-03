@@ -143,6 +143,8 @@ const MESSAGES: Record<Locale, Messages> = { en, ja };
 const FRANCHISE_JA: Record<Franchise, string> = {
   mcu: "MCU",
   defenders: "ディフェンダーズ・サーガ",
+  "marvel-tv": "マーベル・テレビジョン",
+  "fox-tv": "X-MEN ドラマ（FOX）",
   "x-men": "X-MEN（FOX）",
   legacy: "旧作マーベル",
   "spider-man-legacy": "旧スパイダーマン",

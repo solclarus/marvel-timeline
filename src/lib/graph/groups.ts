@@ -28,8 +28,10 @@ export interface GroupMeta {
 const FRANCHISE_ORDER: Franchise[] = [
   "legacy",
   "x-men",
+  "fox-tv",
   "mcu",
   "defenders",
+  "marvel-tv",
   "spider-man-legacy",
   "ssu",
   "spider-verse",
@@ -54,6 +56,15 @@ const EARTH_ORDER: EarthId[] = [
   "26320", // via Deadpool & Wolverine's Void
   "701306",
   "121698",
+  "TRN1832", // Spider-Noir: no ties
+  "400083", // single legacy films: no ties
+  "15866",
+  "121347",
+  "58627",
+  "58732",
+  "47281",
+  "17040", // Fox's X-Men TV: no ties
+  "17372",
   "92131", // X-Men '97: no ties
 ];
 
