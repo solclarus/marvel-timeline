@@ -37,6 +37,10 @@ const BAND_BORDER_COLORS = [
   "rgba(0,131,0,0.45)",
 ];
 
+// Phases stack without overlapping, so one neutral tint is enough; their
+// borders and labels tell them apart.
+const PHASE_COLOR = { color: "rgba(120,113,108,0.08)", borderColor: "rgba(120,113,108,0.4)" };
+
 function bandColor(index: number) {
   return {
     color: BAND_COLORS[index % BAND_COLORS.length],
@@ -257,7 +261,7 @@ export function computePhaseBands(
       left: entry.minX - laneWidth / 2,
       width: entry.maxX - entry.minX + laneWidth,
       singleColumn: entry.maxX - entry.minX < 1e-6,
-      ...bandColor(phase - 1),
+      ...PHASE_COLOR,
     };
   });
 }
