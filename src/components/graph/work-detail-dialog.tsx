@@ -5,6 +5,7 @@ import { watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 
 import { MediumBadge } from "./medium-badge";
+import { UpcomingBadge } from "./upcoming-badge";
 
 interface Props {
   work: WorkNode;
@@ -50,6 +51,7 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
               ))}
               <span aria-hidden>·</span>
               {work.releaseDate.slice(0, 4)}
+              <UpcomingBadge work={work} />
             </DialogDescription>
           </div>
         </div>
