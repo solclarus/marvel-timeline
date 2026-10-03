@@ -5,6 +5,7 @@ import { EDGES, WORKS, type Franchise } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { BAND_ORDER, computeFocusLayout, computeLayout, type ViewMode } from "./layout";
 import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
+import { wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
 const ALL_FRANCHISES = new Set<Franchise>(BAND_ORDER);
 const MODES: ViewMode[] = ["recommended", "release", "chronology"];
@@ -116,5 +117,41 @@ describe("elbowPath", () => {
     expect(path.match(/A /g)).toHaveLength(2);
     expect(path.startsWith("M 10 0")).toBe(true);
     expect(path.endsWith("L 30 50")).toBe(true);
+  });
+});
+
+describe("wheel zoom", () => {
+  it("zooms by the same ratio at any scale", () => {
+    const notch = wheelZoomFactor({ deltaY: -100, deltaMode: 0, ctrlKey: false });
+    expect(notch).toBeGreaterThan(1.15);
+    expect(notch).toBeLessThan(1.25);
+    const a = zoomAround({ x: 0, y: 0, scale: 0.3 }, notch, { x: 0, y: 0 }, 0.2, 1.5);
+    const b = zoomAround({ x: 0, y: 0, scale: 0.6 }, notch, { x: 0, y: 0 }, 0.2, 1.5);
+    expect(a.scale / 0.3).toBeCloseTo(b.scale / 0.6);
+  });
+
+  it("undoes a notch with the opposite notch", () => {
+    const zoomIn = wheelZoomFactor({ deltaY: -100, deltaMode: 0, ctrlKey: false });
+    const zoomOut = wheelZoomFactor({ deltaY: 100, deltaMode: 0, ctrlKey: false });
+    expect(zoomIn * zoomOut).toBeCloseTo(1);
+  });
+
+  it("caps line-mode and oversized deltas", () => {
+    const line = wheelZoomFactor({ deltaY: -3, deltaMode: 1, ctrlKey: false });
+    const huge = wheelZoomFactor({ deltaY: -5000, deltaMode: 0, ctrlKey: false });
+    expect(line).toBeLessThan(1.3);
+    expect(huge).toBeLessThan(1.3);
+  });
+
+  it("keeps the point under the cursor fixed and clamps the scale", () => {
+    const state = { x: -200, y: -100, scale: 0.6 };
+    const point = { x: 400, y: 300 };
+    const next = zoomAround(state, 1.2, point, 0.2, 1.5);
+    const before = { x: (point.x - state.x) / state.scale, y: (point.y - state.y) / state.scale };
+    const after = { x: (point.x - next.x) / next.scale, y: (point.y - next.y) / next.scale };
+    expect(after.x).toBeCloseTo(before.x);
+    expect(after.y).toBeCloseTo(before.y);
+    expect(zoomAround(state, 100, point, 0.2, 1.5).scale).toBe(1.5);
+    expect(zoomAround(state, 0.001, point, 0.2, 1.5).scale).toBe(0.2);
   });
 });
