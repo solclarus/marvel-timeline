@@ -24,25 +24,18 @@ export interface GroupMeta {
 
 const FRANCHISE_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];
 // Mirrors the franchise order, with the MCU's other Earths beside 616.
-const EARTH_ORDER: EarthId[] = [
-  "10005",
-  "616",
-  "838",
-  "828",
-  "multiverse",
-  "96283",
-  "120703",
-  "1048",
-];
+// Earth-838 is left out: no work is set there, it's only crossed into.
+const EARTH_ORDER: EarthId[] = ["10005", "616", "828", "multiverse", "96283", "120703", "1048"];
 
 export const GROUPS: Record<GroupBy, GroupMeta[]> = {
   franchise: FRANCHISE_ORDER.map((key) => ({ key, ...FRANCHISE_META[key] })),
   earth: EARTH_ORDER.map((key) => ({ key, ...EARTH_META[key] })),
 };
 
+// Everything starts visible.
 export const DEFAULT_VISIBLE_GROUPS: Record<GroupBy, string[]> = {
-  franchise: ["mcu"],
-  earth: ["616"],
+  franchise: FRANCHISE_ORDER,
+  earth: EARTH_ORDER,
 };
 
 // The band MCU phase backgrounds are drawn around.
