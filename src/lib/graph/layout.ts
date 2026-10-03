@@ -360,16 +360,17 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
   return { positions, totalLanes: total, rowCount: maxStep + 1 };
 }
 
-// Cells leave room around each 68x102 poster for the phase and group cards'
-// inner padding.
-const LANE_PX = 128;
+// Cells leave room around each poster for the cards' padding.
+const LANE_PX = 144;
 const ROW_PX = 170;
-// In recommended mode a group card reaches this far past its cells, so the
-// phase bands inside it get a margin; GROUP_GAP_PX keeps neighbors apart.
-const GROUP_CARD_OUTSET_PX = 14;
-// Wide enough for the MCU card, which reaches further to hold the saga
-// frames (SAGA_PAD_PX plus SAGA_CARD_PAD_PX past its lanes).
-const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 40;
+// The poster's size (see graph-node.tsx), which cards are padded around.
+const POSTER_PX = { width: 68, height: 102 };
+// Every card (phase, saga, franchise or Earth) keeps this much room on all
+// four sides between its edge and what it holds.
+const CARD_PAD_PX = 28;
+// Between neighboring cards' lane runs; wide enough for the MCU card, which
+// nests three paddings (phase, saga, card) around its posters.
+const GROUP_GAP_PX = 56;
 // Between franchises sharing an Earth: keeps a phase band clear of the
 // neighboring franchise's posters.
 const SUBGROUP_GAP_PX = 32;
@@ -396,16 +397,8 @@ export function computeGroupCards(
   sagaBands: ReturnType<typeof computeSagaBands> = [],
 ) {
   const { width, height } = canvasSize(layout);
-  // Half a cell on each axis. Recommended mode adds an outset around the
-  // phase bands; timeline rows touch, so their cards keep a 10px gutter.
-  const [padXPx, padYPx] =
-    mode === "recommended"
-      ? [GROUP_CARD_OUTSET_PX, GROUP_CARD_OUTSET_PX]
-      : [GROUP_CARD_OUTSET_PX, -5];
-  // Half a lane and half a row (rows exclude the timeline header).
-  const rowsHeight = height - (layout.headerPx ?? 0);
-  const padX = 50 / layout.totalLanes + (padXPx / width) * 100;
-  const padY = ((rowsHeight / layout.rowCount / 2 + padYPx) / height) * 100;
+  const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
+  const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
 
   return visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
@@ -418,17 +411,15 @@ export function computeGroupCards(
     let top = Math.min(...ys) - padY;
     let right = Math.max(...xs) + padX;
     let bottom = Math.max(...ys) + padY;
-    // The card holding the phases also wraps their saga frames, with room
-    // for its own label above the first saga's.
-    if (group.key === PHASE_GROUP[grouping.by]) {
-      const side = (SAGA_CARD_PAD_PX.side / width) * 100;
-      const vSide = (SAGA_CARD_PAD_PX.side / height) * 100;
-      const vTop = (SAGA_CARD_PAD_PX.top / height) * 100;
+    // The card holding the phases also wraps their saga frames.
+    if (mode === "recommended" && group.key === PHASE_GROUP[grouping.by]) {
+      const sideX = (CARD_PAD_PX / width) * 100;
+      const sideY = (CARD_PAD_PX / height) * 100;
       for (const saga of sagaBands) {
-        left = Math.min(left, saga.left - side);
-        right = Math.max(right, saga.left + saga.width + side);
-        top = Math.min(top, saga.top - vTop);
-        bottom = Math.max(bottom, saga.top + saga.height + vSide);
+        left = Math.min(left, saga.left - sideX);
+        right = Math.max(right, saga.left + saga.width + sideX);
+        top = Math.min(top, saga.top - sideY);
+        bottom = Math.max(bottom, saga.top + saga.height + sideY);
       }
     }
     return [
@@ -467,8 +458,10 @@ export function computePhaseBands(
 ) {
   if (mode !== "recommended") return [];
   const rowHeight = 100 / (graph.maxStep + 1);
-  const laneWidth = 100 / layout.totalLanes;
-  const gapPercent = (10 / canvasSize(layout).height) * 100;
+  const { width, height } = canvasSize(layout);
+  const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
+  const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
+  const rowCenter = (step: number) => (step + 0.5) * rowHeight;
   const byPhase = new Map<
     number,
     { minStep: number; maxStep: number; minX: number; maxX: number }
@@ -490,38 +483,31 @@ export function computePhaseBands(
       entry.maxX = Math.max(entry.maxX, pos.x);
     }
   }
-  // Each band covers just the rows and lanes its own works sit in, so a
-  // filtered phase shrinks with them rather than reaching to the next one.
+  // Each band hugs its own works' posters, so a filtered phase shrinks with
+  // them rather than reaching to the next one.
   return [...byPhase.entries()]
     .sort(([a], [b]) => a - b)
     .map(([phase, entry]) => ({
       phase,
       saga: sagaOf(phase),
-      top: entry.minStep * rowHeight + gapPercent / 2,
-      height: (entry.maxStep + 1 - entry.minStep) * rowHeight - gapPercent,
-      left: entry.minX - laneWidth / 2,
-      width: entry.maxX - entry.minX + laneWidth,
+      top: rowCenter(entry.minStep) - padY,
+      height: rowCenter(entry.maxStep) - rowCenter(entry.minStep) + 2 * padY,
+      left: entry.minX - padX,
+      width: entry.maxX - entry.minX + 2 * padX,
       singleColumn: entry.maxX - entry.minX < 1e-6,
       ...PHASE_COLOR,
     }));
 }
 
-// How far a saga's frame reaches past its phase bands. The top reaches into
-// the empty row above each saga (see `buildSteps`), so the saga's label and
-// its first phase's label sit apart.
-const SAGA_PAD_PX = { side: 18, top: 40 };
-// Between a saga frame and the card around it (the MCU, or Earth-616).
-const SAGA_CARD_PAD_PX = { side: 18, top: 40 };
-
-// One frame per saga around its phase bands.
+// One frame per saga around its phase bands, CARD_PAD_PX out; sagas are
+// kept apart by an empty row (see `buildSteps`).
 export function computeSagaBands(
   layout: GraphLayout,
   phaseBands: ReturnType<typeof computePhaseBands>,
 ) {
   const { width, height } = canvasSize(layout);
-  const padX = (SAGA_PAD_PX.side / width) * 100;
-  const padTop = (SAGA_PAD_PX.top / height) * 100;
-  const padBottom = (SAGA_PAD_PX.side / height) * 100;
+  const padX = (CARD_PAD_PX / width) * 100;
+  const padY = (CARD_PAD_PX / height) * 100;
   const bySaga = new Map<Saga, typeof phaseBands>();
   for (const band of phaseBands) {
     if (!bySaga.has(band.saga)) bySaga.set(band.saga, []);
@@ -529,9 +515,9 @@ export function computeSagaBands(
   }
   return [...bySaga.entries()].map(([saga, bands]) => {
     const left = Math.min(...bands.map((b) => b.left)) - padX;
-    const top = Math.min(...bands.map((b) => b.top)) - padTop;
+    const top = Math.min(...bands.map((b) => b.top)) - padY;
     const right = Math.max(...bands.map((b) => b.left + b.width)) + padX;
-    const bottom = Math.max(...bands.map((b) => b.top + b.height)) + padBottom;
+    const bottom = Math.max(...bands.map((b) => b.top + b.height)) + padY;
     return { saga, left, top, width: right - left, height: bottom - top };
   });
 }
