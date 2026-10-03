@@ -6,7 +6,7 @@ import {
 } from "react-zoom-pan-pinch";
 
 import { WORKS } from "@/data/works";
-import { computeActiveSet } from "@/lib/graph/focus";
+import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
   groupKeyOf,
   isWorkVisible,
@@ -214,7 +214,9 @@ export function Graph() {
 
   const visibleWorks = graph.works.filter((w) => isWorkVisible(w, grouping));
   const visibleIds = new Set(visibleWorks.map((w) => w.id));
-  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet, graph);
+  const edges = edgesToDraw(mode, graph.edges, selectedId, activeSet);
+  // Nubs follow the drawn edges, so none show where lines are hidden.
+  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet, { ...graph, edges });
 
   const axis: Axis = mode === "recommended" ? "y" : "x";
   const geometry = computeEdgeGeometry(
@@ -283,7 +285,7 @@ export function Graph() {
                 onTogglePinned={focus.togglePinned}
               />
               <GraphEdges
-                edges={graph.edges}
+                edges={edges}
                 positions={layout.positions}
                 activeSet={activeSet}
                 distances={distances}
