@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { WORKS } from "@/data/works";
 import { INCOMING, WORK_BY_ID } from "@/lib/graph/relations";
 
 const STORAGE_KEY = "marvel-timeline:watched";
@@ -40,16 +41,24 @@ export function useWatched() {
     });
   };
 
-  return { watched, toggleWatched };
+  const clearWatched = () => setWatched(new Set());
+
+  return { watched, toggleWatched, clearWatched };
 }
 
 // Unwatched works whose prerequisites are all watched. Works with no
-// prerequisites are left out: they'd light up every entry point at once.
+// prerequisites only count once something in their franchise is watched, so
+// a fresh visit doesn't light up every entry point at once.
 export function computeNextUp(watched: Set<string>): Set<string> {
+  const startedFranchises = new Set([...watched].map((id) => WORK_BY_ID.get(id)!.franchise));
   const nextUp = new Set<string>();
-  for (const [id, parents] of INCOMING) {
-    if (watched.has(id)) continue;
-    if (parents.every((parent) => watched.has(parent))) nextUp.add(id);
+  for (const work of WORKS) {
+    if (watched.has(work.id)) continue;
+    const parents = INCOMING.get(work.id);
+    const ready = parents
+      ? parents.every((parent) => watched.has(parent))
+      : startedFranchises.has(work.franchise);
+    if (ready) nextUp.add(work.id);
   }
   return nextUp;
 }
