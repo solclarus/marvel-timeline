@@ -56,15 +56,25 @@ export function assignLanes(
     );
     let assigned: number;
 
+    // A lane an active thread holds is reserved for that thread's works.
+    const heldByOtherThread = (l: number) => {
+      for (const [thread, owned] of laneByThread) {
+        if (owned === l && thread !== work.thread) return true;
+      }
+      return false;
+    };
+
     if (work.thread && laneByThread.has(work.thread)) {
-      assigned = laneByThread.get(work.thread)!;
+      const threadLane = laneByThread.get(work.thread)!;
+      // Should another work already sit there in this row, step aside.
+      assigned = lanesInRow.has(threadLane) ? claimLane() : threadLane;
     } else if (parents.length === 0) {
       assigned = claimLane();
     } else if (parents.length === 1) {
       const parent = parents[0];
       const parentThread = WORK_BY_ID.get(parent)?.thread;
       const sameThread = !work.thread || work.thread === parentThread;
-      if (sameThread && !consumedAsParent.has(parent)) {
+      if (sameThread && !consumedAsParent.has(parent) && !heldByOtherThread(lane.get(parent)!)) {
         assigned = lane.get(parent)!;
         consumedAsParent.add(parent);
       } else {
