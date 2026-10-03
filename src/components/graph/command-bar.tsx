@@ -3,7 +3,7 @@ import { Clapperboard, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
-import type { MediaFilter } from "@/lib/graph/relations";
+import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
 
 import { FabBar, FabDivider } from "./fab";
 import { ModeMenu } from "./mode-menu";
@@ -19,10 +19,12 @@ interface Props {
   grouping: Grouping;
   onToggleGroup: (key: string) => void;
   onGroupByChange: (by: GroupBy) => void;
+  focusMode: FocusMode;
+  onFocusModeChange: (mode: FocusMode) => void;
 }
 
 // Every map-wide control in one bar: search, view mode, media filter, and
-// the grouping/visibility settings. Full width on phones.
+// the highlight/grouping/visibility settings. Full width on phones.
 export function CommandBar({
   onSearchSelect,
   mode,
@@ -32,6 +34,8 @@ export function CommandBar({
   grouping,
   onToggleGroup,
   onGroupByChange,
+  focusMode,
+  onFocusModeChange,
 }: Props) {
   const moviesOnly = media === "movies";
   return (
@@ -60,6 +64,8 @@ export function CommandBar({
           grouping={grouping}
           onToggle={onToggleGroup}
           onGroupByChange={onGroupByChange}
+          focusMode={focusMode}
+          onFocusModeChange={onFocusModeChange}
         />
       </FabBar>
     </div>
