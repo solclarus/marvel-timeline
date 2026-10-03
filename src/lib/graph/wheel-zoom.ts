@@ -82,3 +82,39 @@ export function clampPan(state: TransformState, content: Size, viewport: Size): 
     scale: state.scale,
   };
 }
+
+export interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+// Fits `box` (unscaled content pixels) into the viewport less `insets` (the
+// bars and panels over it), centered there. Capped at `maxScale` so a work
+// with few relatives isn't blown up.
+export function fitBox(
+  box: Box,
+  viewport: Size,
+  insets: Box,
+  minScale: number,
+  maxScale: number,
+): TransformState {
+  const width = Math.max(1, viewport.width - insets.left - insets.right);
+  const height = Math.max(1, viewport.height - insets.top - insets.bottom);
+  const scale = Math.max(
+    minScale,
+    Math.min(
+      maxScale,
+      width / Math.max(1, box.right - box.left),
+      height / Math.max(1, box.bottom - box.top),
+    ),
+  );
+  const centerX = (box.left + box.right) / 2;
+  const centerY = (box.top + box.bottom) / 2;
+  return {
+    x: insets.left + width / 2 - centerX * scale,
+    y: insets.top + height / 2 - centerY * scale,
+    scale,
+  };
+}

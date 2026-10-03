@@ -4,7 +4,7 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
-import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
+import { computeLayout, type ViewMode } from "./layout";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -12,7 +12,14 @@ import {
   INCOMING,
   WORK_GRAPHS,
 } from "./relations";
-import { clampPan, isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
+import {
+  clampPan,
+  fitBox,
+  isZoomGesture,
+  wheelPanDelta,
+  wheelZoomFactor,
+  zoomAround,
+} from "./wheel-zoom";
 
 const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
   by,
@@ -122,20 +129,6 @@ describe("computeLayout", () => {
       "amazing-spider-man",
       "amazing-spider-man-2",
     ]);
-  });
-});
-
-describe("computeFocusLayout", () => {
-  it("rows ancestors above the selection and descendants below", () => {
-    const distances = getRelatedDistances("avengers-endgame", "immediate");
-    const { positions } = computeFocusLayout("avengers-endgame", distances);
-    const selected = positions.get("avengers-endgame")!;
-    expect(positions.size).toBe(distances.size + 1);
-    const misplaced = [...distances].filter(([id, d]) => {
-      const { y } = positions.get(id)!;
-      return d < 0 ? y >= selected.y : y <= selected.y;
-    });
-    expect(misplaced).toEqual([]);
   });
 });
 
@@ -305,5 +298,27 @@ describe("movies-only graph", () => {
     for (const mode of MODES) {
       expect(computeLayout(mode, grouping, movies).positions.size).toBe(movies.works.length);
     }
+  });
+});
+
+describe("fitBox", () => {
+  const viewport = { width: 1000, height: 800 };
+  const insets = { left: 20, top: 80, right: 20, bottom: 200 };
+
+  it("centers the box in the uncovered area", () => {
+    const box = { left: 100, top: 100, right: 300, bottom: 200 };
+    const { x, y, scale } = fitBox(box, viewport, insets, 0.2, 1.5);
+    // The box's center lands on the center of the uncovered area.
+    expect(x + 200 * scale).toBeCloseTo(20 + 960 / 2);
+    expect(y + 150 * scale).toBeCloseTo(80 + 520 / 2);
+  });
+
+  it("scales to the tighter axis, within the limits", () => {
+    const wide = fitBox({ left: 0, top: 0, right: 4800, bottom: 100 }, viewport, insets, 0.1, 1.5);
+    expect(wide.scale).toBeCloseTo(960 / 4800);
+    const tiny = fitBox({ left: 0, top: 0, right: 10, bottom: 10 }, viewport, insets, 0.2, 0.8);
+    expect(tiny.scale).toBe(0.8);
+    const huge = fitBox({ left: 0, top: 0, right: 1e6, bottom: 1e6 }, viewport, insets, 0.2, 0.8);
+    expect(huge.scale).toBe(0.2);
   });
 });

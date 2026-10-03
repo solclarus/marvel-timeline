@@ -1,10 +1,9 @@
-import { Check, Focus, GitBranch, Map, Waypoints, X } from "lucide-react";
+import { Check, GitBranch, Waypoints, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
 import { Button } from "@/components/ui/button";
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
-import type { DisplayMode } from "@/lib/graph/layout";
 import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
 
 interface Props {
@@ -14,8 +13,6 @@ interface Props {
   onToggleWatched: (id: string) => void;
   focusMode: FocusMode;
   onToggleFocusMode: () => void;
-  displayMode: DisplayMode;
-  onToggleDisplayMode: () => void;
 }
 
 export function DetailPanel({
@@ -25,8 +22,6 @@ export function DetailPanel({
   onToggleWatched,
   focusMode,
   onToggleFocusMode,
-  displayMode,
-  onToggleDisplayMode,
 }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
@@ -89,22 +84,6 @@ export function DetailPanel({
                     {focusMode === "chain" ? <Waypoints /> : <GitBranch />}
                     <span className="hidden sm:inline">
                       {focusMode === "chain" ? "All" : "Adjacent"}
-                    </span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full text-muted-foreground"
-                    onClick={onToggleDisplayMode}
-                    aria-label={
-                      displayMode === "inline"
-                        ? "Showing within the full map. Switch to a view of related works only"
-                        : "Showing related works only. Switch back to the full map"
-                    }
-                  >
-                    {displayMode === "inline" ? <Map /> : <Focus />}
-                    <span className="hidden sm:inline">
-                      {displayMode === "inline" ? "Map" : "Focus"}
                     </span>
                   </Button>
                 </div>
