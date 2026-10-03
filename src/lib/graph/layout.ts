@@ -413,7 +413,10 @@ export function computePhaseBands(
   const rowHeight = 100 / (graph.maxStep + 1);
   const laneWidth = 100 / layout.totalLanes;
   const gapPercent = (10 / canvasSize(layout).height) * 100;
-  const byPhase = new Map<number, { minStep: number; minX: number; maxX: number }>();
+  const byPhase = new Map<
+    number,
+    { minStep: number; maxStep: number; minX: number; maxX: number }
+  >();
   for (const work of WORKS) {
     if (work.phase === undefined || groupKeyOf(work, grouping.by) !== PHASE_GROUP[grouping.by]) {
       continue;
@@ -423,28 +426,27 @@ export function computePhaseBands(
     const step = graph.step.get(work.id) ?? 0;
     const entry = byPhase.get(work.phase);
     if (!entry) {
-      byPhase.set(work.phase, { minStep: step, minX: pos.x, maxX: pos.x });
+      byPhase.set(work.phase, { minStep: step, maxStep: step, minX: pos.x, maxX: pos.x });
     } else {
       entry.minStep = Math.min(entry.minStep, step);
+      entry.maxStep = Math.max(entry.maxStep, step);
       entry.minX = Math.min(entry.minX, pos.x);
       entry.maxX = Math.max(entry.maxX, pos.x);
     }
   }
-  const phases = [...byPhase.keys()].sort((a, b) => a - b);
-  return phases.map((phase, i) => {
-    const entry = byPhase.get(phase)!;
-    const next = phases[i + 1] !== undefined ? byPhase.get(phases[i + 1]) : undefined;
-    const bottomStep = next ? next.minStep : graph.maxStep + 1;
-    return {
+  // Each band covers just the rows and lanes its own works sit in, so a
+  // filtered phase shrinks with them rather than reaching to the next one.
+  return [...byPhase.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([phase, entry]) => ({
       phase,
       top: entry.minStep * rowHeight + gapPercent / 2,
-      height: (bottomStep - entry.minStep) * rowHeight - gapPercent,
+      height: (entry.maxStep + 1 - entry.minStep) * rowHeight - gapPercent,
       left: entry.minX - laneWidth / 2,
       width: entry.maxX - entry.minX + laneWidth,
       singleColumn: entry.maxX - entry.minX < 1e-6,
       ...PHASE_COLOR,
-    };
-  });
+    }));
 }
 
 // Visible works in left-to-right order with the year a timeline sorts them
