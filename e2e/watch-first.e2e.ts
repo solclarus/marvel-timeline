@@ -17,9 +17,10 @@ test("the detail panel narrows the list to what to watch first", async ({ page }
   await expect(page).toHaveURL(/work=thor&/);
   await expect(rows).toHaveCount(6);
 
-  // Clearing it (or Escape) returns to the map.
-  await page.getByRole("button", { name: "Back to the full list" }).click();
+  // The detail card's ✕ clears the selection and the narrowed list at once.
+  await page.getByRole("button", { name: "Clear selection" }).click();
   await expect(page).not.toHaveURL(/list=/);
+  await expect(page).not.toHaveURL(/work=/);
   await expect(page.locator('button[aria-label="Iron Man"]')).toBeAttached();
 });
 

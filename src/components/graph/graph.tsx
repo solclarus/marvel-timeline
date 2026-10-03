@@ -429,7 +429,11 @@ export function Graph() {
       )}
       <DetailPanel
         selectedId={selectedId}
-        onClear={() => setSelectedId(null)}
+        // One close for both: the card's ✕ also leaves a narrowed list.
+        onClear={() => {
+          setSelectedId(null);
+          if (listFocus) clearListFocus();
+        }}
         onOpen={() => selectedId && openListFocus({ kind: "before", id: selectedId })}
       />
 

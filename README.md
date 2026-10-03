@@ -7,7 +7,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 ## Using the map
 
 - **Select** a poster to highlight what it builds on and what follows; the map zooms to fit them. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
-- **Watch first**: tap the detail card to narrow the list to everything to watch before the selected work, in order, with the total running time; ✕ or Escape goes back.
+- **Watch first**: tap the detail card to narrow the list to everything to watch before the selected work, in order, with the total running time; the card's ✕ (or Escape) goes back.
 - **Routes** (bottom bar): short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga), shown the same way.
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; either can switch.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology.
