@@ -22,7 +22,8 @@ export type Franchise =
 // Pre-MCU and animated worlds use the Marvel Database's numbers, which the
 // films never state: 26320 (Blade trilogy), 701306 (Daredevil 2003 / Elektra),
 // 121698 (Fantastic Four 2005 / 2007), 86445 (Your Friendly Neighborhood
-// Spider-Man), 92131 (X-Men '97, after X-Men: The Animated Series).
+// Spider-Man), 92131 (X-Men '97, after X-Men: The Animated Series), 89521
+// (the zombie world of What If S1 and Marvel Zombies).
 export type EarthId =
   | "616"
   | "838"
@@ -39,6 +40,7 @@ export type EarthId =
   | "121698"
   | "86445"
   | "92131"
+  | "89521"
   | "multiverse";
 
 // `cardClass` colors the outline of the card around an Earth's works; the
@@ -119,6 +121,11 @@ export const EARTH_META: Record<EarthId, { label: string; colorClass: string; ca
       label: "Earth-92131",
       colorClass: "bg-yellow-500",
       cardClass: "border-yellow-500/70",
+    },
+    "89521": {
+      label: "Earth-89521",
+      colorClass: "bg-green-700",
+      cardClass: "border-green-700/70",
     },
     multiverse: {
       label: "Multiverse",
@@ -798,7 +805,7 @@ export const WORKS: WorkNode[] = [
     title: "What If...? — Season 1",
     titleJa: "ホワット・イフ…？ — シーズン1",
     franchise: "mcu",
-    earths: ["multiverse"],
+    earths: ["multiverse", "89521"],
     phase: 4,
     chronologyOrder: 28,
     recommendedOrder: null,
@@ -1536,7 +1543,7 @@ export const WORKS: WorkNode[] = [
     franchise: "mcu",
     phase: 6,
     thread: "avengers",
-    earths: ["multiverse"],
+    earths: ["616", "multiverse"],
     dependsOn: [{ id: "avengers-doomsday", kind: "direct-sequel" }],
     chronologyOrder: 79,
     recommendedOrder: 60,
@@ -1844,7 +1851,7 @@ export const WORKS: WorkNode[] = [
     title: "Marvel Zombies",
     titleJa: "マーベル・ゾンビーズ",
     franchise: "mcu",
-    earths: ["multiverse"],
+    earths: ["89521"],
     phase: 6,
     dependsOn: [{ id: "what-if-s1", kind: "spin-off" }],
     chronologyOrder: 51.8,
