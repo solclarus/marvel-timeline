@@ -14,3 +14,7 @@
 # env files
 .env*
 !.env.example
+
+# playwright
+/test-results
+/playwright-report
