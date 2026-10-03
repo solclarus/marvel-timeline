@@ -185,6 +185,20 @@ export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping:
   });
 }
 
+// The card under a point given in canvas percentages, if any.
+export function groupCardAt<T extends { left: number; top: number; width: number; height: number }>(
+  cards: T[],
+  point: Point,
+): T | undefined {
+  return cards.find(
+    (card) =>
+      point.x >= card.left &&
+      point.x <= card.left + card.width &&
+      point.y >= card.top &&
+      point.y <= card.top + card.height,
+  );
+}
+
 export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (mode !== "recommended") return [];
   const rowHeight = 100 / (MAX_STEP + 1);
