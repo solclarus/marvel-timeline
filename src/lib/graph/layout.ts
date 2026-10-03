@@ -44,9 +44,10 @@ const BAND_BORDER_COLORS = [
   "rgba(0,131,0,0.45)",
 ];
 
-// Phases stack without overlapping, so one neutral tint is enough; their
-// borders and labels tell them apart.
-const PHASE_COLOR = { color: "rgba(120,113,108,0.08)", borderColor: "rgba(120,113,108,0.4)" };
+// Phases stack without overlapping, so one tint serves them all; their
+// borders and labels tell them apart. A soft blue, clear of the MCU card's
+// rose outline and the slate/gold edges.
+const PHASE_COLOR = { color: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.4)" };
 
 function bandColor(index: number) {
   return {

@@ -7,7 +7,7 @@ import type { Axis, Point } from "@/lib/graph/layout";
 
 // Three looks for five kinds: a series' own sequels, ties to other series
 // (spin-offs, lead-ins, crossovers), and loose references.
-type EdgeStyle = "sequel" | "tie" | "reference";
+export type EdgeStyle = "sequel" | "tie" | "reference";
 
 const STYLE_OF_KIND: Record<EdgeKind, EdgeStyle> = {
   "direct-sequel": "sequel",

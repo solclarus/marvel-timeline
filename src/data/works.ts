@@ -517,7 +517,7 @@ export const WORKS: WorkNode[] = [
     phase: 3,
     thread: "avengers",
     dependsOn: [
-      { id: "avengers-age-of-ultron", kind: "leads-into" },
+      { id: "avengers-age-of-ultron", kind: "direct-sequel" },
       { id: "captain-america-civil-war", kind: "leads-into" },
       { id: "doctor-strange", kind: "leads-into" },
       { id: "guardians-of-the-galaxy-vol-2", kind: "leads-into" },
