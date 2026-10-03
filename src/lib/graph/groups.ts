@@ -35,23 +35,25 @@ const FRANCHISE_ORDER: Franchise[] = [
   "spider-verse",
   "animation",
 ];
-// Mirrors the franchise order, with the MCU's other Earths beside 616.
+// Starts from 616, the Sacred Timeline, then goes outward by how directly
+// each Earth meets it: its variants, Earths that cross into it, Earths
+// reached only through those, and finally Earths with no tie at all.
 // Earths 838, 65, and 42 are left out: no work is set there, they're only
 // crossed into.
 const EARTH_ORDER: EarthId[] = [
-  "26320",
+  "616",
+  "multiverse", // TVA and What If variants of the Sacred Timeline
+  "828", // meets 616 in Avengers: Doomsday
+  "10005", // Deadpool & Wolverine
+  "86445", // an alternate 616 (Your Friendly Neighborhood Spider-Man)
+  "96283", // No Way Home
+  "120703", // No Way Home
+  "688", // Venom sequels' 616 visits
+  "1610", // via Earth-688 in Across the Spider-Verse
+  "26320", // via Deadpool & Wolverine's Void
   "701306",
   "121698",
-  "10005",
-  "616",
-  "828",
-  "86445",
-  "multiverse",
-  "96283",
-  "120703",
-  "688",
-  "1610",
-  "92131",
+  "92131", // X-Men '97: no ties
 ];
 
 export const GROUPS: Record<GroupBy, GroupMeta[]> = {
