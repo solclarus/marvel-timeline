@@ -1,23 +1,37 @@
-import { Check, X } from "lucide-react";
+import { Check, Focus, GitBranch, Map, Waypoints, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
 import { Button } from "@/components/ui/button";
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
-import { WORK_BY_ID } from "@/lib/graph/relations";
+import type { DisplayMode } from "@/lib/graph/layout";
+import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
 
 interface Props {
   selectedId: string | null;
   onClear: () => void;
   watched: Set<string>;
   onToggleWatched: (id: string) => void;
+  focusMode: FocusMode;
+  onToggleFocusMode: () => void;
+  displayMode: DisplayMode;
+  onToggleDisplayMode: () => void;
 }
 
-export function DetailPanel({ selectedId, onClear, watched, onToggleWatched }: Props) {
+export function DetailPanel({
+  selectedId,
+  onClear,
+  watched,
+  onToggleWatched,
+  focusMode,
+  onToggleFocusMode,
+  displayMode,
+  onToggleDisplayMode,
+}: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-30 px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 px-4 sm:bottom-6 md:pr-24">
       <div className="mx-auto max-w-4xl">
         <AnimatePresence>
           {work && (
@@ -50,16 +64,50 @@ export function DetailPanel({ selectedId, onClear, watched, onToggleWatched }: P
                   {work.releaseDate.slice(0, 4)}
                 </p>
                 <p className="font-semibold">{work.title}</p>
-                <Button
-                  variant={watched.has(work.id) ? "default" : "outline"}
-                  size="sm"
-                  className="mt-2 rounded-full"
-                  onClick={() => onToggleWatched(work.id)}
-                  aria-pressed={watched.has(work.id)}
-                >
-                  <Check />
-                  {watched.has(work.id) ? "Watched" : "Mark as watched"}
-                </Button>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <Button
+                    variant={watched.has(work.id) ? "default" : "outline"}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => onToggleWatched(work.id)}
+                    aria-pressed={watched.has(work.id)}
+                  >
+                    <Check />
+                    {watched.has(work.id) ? "Watched" : "Mark as watched"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full text-muted-foreground"
+                    onClick={onToggleFocusMode}
+                    aria-label={
+                      focusMode === "chain"
+                        ? "Highlighting the full chain. Switch to direct neighbors only"
+                        : "Highlighting direct neighbors only. Switch to the full chain"
+                    }
+                  >
+                    {focusMode === "chain" ? <Waypoints /> : <GitBranch />}
+                    <span className="hidden sm:inline">
+                      {focusMode === "chain" ? "All" : "Adjacent"}
+                    </span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full text-muted-foreground"
+                    onClick={onToggleDisplayMode}
+                    aria-label={
+                      displayMode === "inline"
+                        ? "Showing within the full map. Switch to a view of related works only"
+                        : "Showing related works only. Switch back to the full map"
+                    }
+                  >
+                    {displayMode === "inline" ? <Map /> : <Focus />}
+                    <span className="hidden sm:inline">
+                      {displayMode === "inline" ? "Map" : "Focus"}
+                    </span>
+                  </Button>
+                </div>
               </div>
               <button
                 type="button"

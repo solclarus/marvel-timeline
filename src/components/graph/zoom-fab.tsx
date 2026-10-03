@@ -13,24 +13,8 @@ interface Props {
 
 export function ZoomFab({ zoom, onZoomIn, onZoomOut, onFit }: Props) {
   return (
-    <FabBar from="top" className="fixed top-6 left-6 z-40">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-full"
-        onClick={onZoomOut}
-        aria-label="Zoom out"
-      >
-        <ZoomOut className="size-4" />
-      </Button>
-      <button
-        type="button"
-        onClick={onFit}
-        className="w-11 rounded-full py-1 text-center text-xs text-muted-foreground tabular-nums hover:bg-muted hover:text-foreground"
-        aria-label="Fit to view"
-      >
-        {Math.round(zoom * 100)}%
-      </button>
+    // Desktop only: phones pinch to zoom.
+    <FabBar from="bottom" className="fixed right-6 bottom-6 z-40 hidden flex-col md:flex">
       <Button
         variant="ghost"
         size="icon"
@@ -40,7 +24,24 @@ export function ZoomFab({ zoom, onZoomIn, onZoomOut, onFit }: Props) {
       >
         <ZoomIn className="size-4" />
       </Button>
-      <FabDivider />
+      <button
+        type="button"
+        onClick={onFit}
+        className="w-10 rounded-full py-1 text-center text-[11px] text-muted-foreground tabular-nums hover:bg-muted hover:text-foreground"
+        aria-label="Fit to view"
+      >
+        {Math.round(zoom * 100)}%
+      </button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        onClick={onZoomOut}
+        aria-label="Zoom out"
+      >
+        <ZoomOut className="size-4" />
+      </Button>
+      <FabDivider vertical />
       <Button
         variant="ghost"
         size="icon"

@@ -6,7 +6,7 @@ import {
   type GroupBy,
 } from "@/lib/graph/groups";
 import type { DisplayMode, ViewMode } from "@/lib/graph/layout";
-import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
+import { WORK_BY_ID, type FocusMode, type MediaFilter } from "@/lib/graph/relations";
 
 // Everything a shared link restores. Zoom and pan are left out: they depend
 // on the viewer's screen.
@@ -17,9 +17,11 @@ export interface UrlState {
   displayMode: DisplayMode;
   groupBy: GroupBy;
   visibleGroups: Set<string>;
+  media: MediaFilter;
 }
 
 const GROUP_BYS: readonly GroupBy[] = ["franchise", "earth"];
+const MEDIA_FILTERS: readonly MediaFilter[] = ["all", "movies"];
 const VIEW_MODES: readonly ViewMode[] = ["recommended", "release", "chronology"];
 const FOCUS_MODES: readonly FocusMode[] = ["chain", "immediate"];
 const DISPLAY_MODES: readonly DisplayMode[] = ["inline", "compact"];
@@ -31,6 +33,7 @@ export const DEFAULT_URL_STATE: UrlState = {
   displayMode: "inline",
   groupBy: "franchise",
   visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
+  media: "all",
 };
 
 function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
@@ -49,6 +52,10 @@ export function parseUrlState(search: string): UrlState {
   const visibleGroups = new Set(shown.length > 0 ? shown : DEFAULT_VISIBLE_GROUPS[groupBy]);
   // A linked work must be on the map.
   if (selected) visibleGroups.add(groupKeyOf(selected, groupBy));
+  const media =
+    selected && selected.tmdb.type !== "movie"
+      ? "all"
+      : pick(params.get("media"), MEDIA_FILTERS, DEFAULT_URL_STATE.media);
 
   return {
     mode: pick(params.get("mode"), VIEW_MODES, DEFAULT_URL_STATE.mode),
@@ -57,6 +64,7 @@ export function parseUrlState(search: string): UrlState {
     displayMode: pick(params.get("view"), DISPLAY_MODES, DEFAULT_URL_STATE.displayMode),
     groupBy,
     visibleGroups,
+    media,
   };
 }
 
@@ -69,6 +77,7 @@ export function serializeUrlState(state: UrlState): string {
   if (state.displayMode !== DEFAULT_URL_STATE.displayMode) params.set("view", state.displayMode);
 
   if (state.groupBy !== DEFAULT_URL_STATE.groupBy) params.set("group", state.groupBy);
+  if (state.media !== DEFAULT_URL_STATE.media) params.set("media", state.media);
 
   const keys = GROUPS[state.groupBy].map((group) => group.key);
   const shown = keys.filter((key) => state.visibleGroups.has(key));

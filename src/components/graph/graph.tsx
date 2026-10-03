@@ -32,7 +32,9 @@ import {
   computeEdgeVisibility,
   getRelatedDistances,
   WORK_BY_ID,
+  WORK_GRAPHS,
   type FocusMode,
+  type MediaFilter,
 } from "@/lib/graph/relations";
 import {
   clampPan,
@@ -45,8 +47,8 @@ import {
 import { parseUrlState, serializeUrlState } from "@/lib/url-state";
 import { computeNextUp, useWatched } from "@/lib/watched";
 
+import { CommandBar } from "./command-bar";
 import { DetailPanel } from "./detail-panel";
-import { FocusFab } from "./focus-fab";
 import { GraphEdges } from "./graph-edges";
 import {
   GraphNode,
@@ -56,8 +58,6 @@ import {
   type NodeState,
 } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
-import { LegendFab } from "./legend-fab";
-import { ModeFab } from "./mode-fab";
 import { ZoomFab } from "./zoom-fab";
 
 const MIN_ZOOM = 0.2;
@@ -109,16 +109,18 @@ export function Graph() {
     by: initial.groupBy,
     visible: initial.visibleGroups,
   });
+  const [media, setMedia] = useState<MediaFilter>(initial.media);
+  const graph = WORK_GRAPHS[media];
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const { watched, toggleWatched, clearWatched } = useWatched();
   const nextUp = computeNextUp(watched);
 
   // React Compiler memoizes these, which keeps `layout`/`focusLayout` stable
   // for the reframe effect's deps.
-  const layout = computeLayout(mode, grouping);
+  const layout = computeLayout(mode, grouping, graph);
   const { width: canvasWidth, height: canvasHeight } = canvasSize(layout);
   const groupCards = computeGroupCards(mode, layout, grouping);
-  const phaseBands = computePhaseBands(mode, layout, grouping);
+  const phaseBands = computePhaseBands(mode, layout, grouping, graph);
   const eraBands = computeEraBands(mode, layout, grouping);
 
   // Hovering a card or phase band (anywhere inside it, posters included)
@@ -157,21 +159,25 @@ export function Graph() {
   };
 
   const distances = selectedId
-    ? getRelatedDistances(selectedId, focusMode)
+    ? getRelatedDistances(selectedId, focusMode, graph)
     : new Map<string, number>();
   const activeSet = selectedId
     ? new Set([selectedId, ...distances.keys()])
     : focusedPhase
       ? new Set(
-          WORKS.filter(
-            (w) =>
-              w.phase === focusedPhase.phase &&
-              groupKeyOf(w, grouping.by) === PHASE_GROUP[grouping.by],
-          ).map((w) => w.id),
+          graph.works
+            .filter(
+              (w) =>
+                w.phase === focusedPhase.phase &&
+                groupKeyOf(w, grouping.by) === PHASE_GROUP[grouping.by],
+            )
+            .map((w) => w.id),
         )
       : focusedCard
         ? new Set(
-            WORKS.filter((w) => groupKeyOf(w, grouping.by) === focusedCard.key).map((w) => w.id),
+            graph.works
+              .filter((w) => groupKeyOf(w, grouping.by) === focusedCard.key)
+              .map((w) => w.id),
           )
         : null;
 
@@ -202,10 +208,11 @@ export function Graph() {
       displayMode,
       groupBy: grouping.by,
       visibleGroups: grouping.visible,
+      media,
     });
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
-  }, [mode, selectedId, focusMode, displayMode, grouping]);
+  }, [mode, selectedId, focusMode, displayMode, grouping, media]);
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id));
@@ -225,9 +232,32 @@ export function Graph() {
     setGrouping((current) => regroup(current, by, WORKS));
   };
 
-  const visibleWorks = WORKS.filter((w) => isWorkVisible(w, grouping));
+  const handleMediaChange = (next: MediaFilter) => {
+    setMedia(next);
+    // A selected series isn't on the films-only map.
+    if (next === "movies" && selectedId && WORK_BY_ID.get(selectedId)?.tmdb.type !== "movie") {
+      setSelectedId(null);
+    }
+  };
+
+  // A search pick may be filtered out: show its media and group, select it,
+  // then center on it once it's rendered (the effect below).
+  const centerOnRef = useRef<string | null>(null);
+  const handleSearchSelect = (id: string) => {
+    const work = WORK_BY_ID.get(id);
+    if (!work) return;
+    if (work.tmdb.type !== "movie") setMedia("all");
+    const key = groupKeyOf(work, grouping.by);
+    if (!grouping.visible.has(key)) {
+      setGrouping((current) => ({ ...current, visible: new Set([...current.visible, key]) }));
+    }
+    setSelectedId(id);
+    centerOnRef.current = id;
+  };
+
+  const visibleWorks = graph.works.filter((w) => isWorkVisible(w, grouping));
   const visibleIds = new Set(visibleWorks.map((w) => w.id));
-  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet);
+  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet, graph);
 
   const axis: Axis = mode === "recommended" ? "y" : "x";
   const geometry = computeEdgeGeometry(
@@ -238,9 +268,11 @@ export function Graph() {
   );
 
   const focusLayout =
-    displayMode === "compact" && selectedId ? computeFocusLayout(selectedId, distances) : null;
+    displayMode === "compact" && selectedId
+      ? computeFocusLayout(selectedId, distances, graph)
+      : null;
   const focusIds = focusLayout ? new Set(focusLayout.positions.keys()) : null;
-  const focusEdgeVisibility = focusIds ? computeEdgeVisibility(focusIds) : null;
+  const focusEdgeVisibility = focusIds ? computeEdgeVisibility(focusIds, null, graph) : null;
   const focusGeometry = focusLayout
     ? computeEdgeGeometry(
         focusLayout.height,
@@ -251,6 +283,21 @@ export function Graph() {
     : null;
 
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
+
+  useEffect(() => {
+    const id = centerOnRef.current;
+    // The compact view reframes on its own.
+    if (!id || displayMode === "compact") return;
+    centerOnRef.current = null;
+    // Two frames, as in the reframe effect below.
+    let raf = requestAnimationFrame(() => {
+      raf = requestAnimationFrame(() => {
+        const scale = Math.max(transformRef.current?.instance.state.scale ?? 0, INITIAL_ZOOM);
+        transformRef.current?.zoomToElement(id, { scale }, 400);
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [selectedId, layout, displayMode]);
   // Reframes when the display mode (or the compact view's selection) changes.
   // Comparing to the last key makes StrictMode's double-invoke a no-op.
   const lastFocusKeyRef = useRef<string | null>(null);
@@ -388,6 +435,7 @@ export function Graph() {
                 onClick={() => setSelectedId(null)}
               >
                 <GraphEdges
+                  edges={graph.edges}
                   positions={focusLayout.positions}
                   activeSet={focusIds}
                   distances={distances}
@@ -473,6 +521,7 @@ export function Graph() {
                   </div>
                 ))}
                 <GraphEdges
+                  edges={graph.edges}
                   positions={layout.positions}
                   activeSet={activeSet}
                   distances={distances}
@@ -525,29 +574,28 @@ export function Graph() {
             onClear={() => setSelectedId(null)}
             watched={watched}
             onToggleWatched={toggleWatched}
+            focusMode={focusMode}
+            onToggleFocusMode={() =>
+              setFocusMode((current) => (current === "chain" ? "immediate" : "chain"))
+            }
+            displayMode={displayMode}
+            onToggleDisplayMode={() =>
+              setDisplayMode((current) => (current === "inline" ? "compact" : "inline"))
+            }
           />
 
-          {selectedId && (
-            <FocusFab
-              focusMode={focusMode}
-              onToggleFocusMode={() =>
-                setFocusMode((current) => (current === "chain" ? "immediate" : "chain"))
-              }
-              displayMode={displayMode}
-              onToggleDisplayMode={() =>
-                setDisplayMode((current) => (current === "inline" ? "compact" : "inline"))
-              }
-            />
-          )}
-
-          <LegendFab
+          <CommandBar
+            onSearchSelect={handleSearchSelect}
+            mode={mode}
+            onModeChange={setMode}
+            media={media}
+            onMediaChange={handleMediaChange}
             grouping={grouping}
-            onToggle={handleToggleGroup}
+            onToggleGroup={handleToggleGroup}
             onGroupByChange={handleGroupByChange}
             watchedCount={watched.size}
             onClearWatched={clearWatched}
           />
-          <ModeFab mode={mode} onChange={setMode} />
           <ZoomFab
             zoom={zoomPercent}
             onZoomIn={() => utils.zoomIn(0.25)}

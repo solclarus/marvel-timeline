@@ -5,7 +5,13 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
-import { computeEdgeVisibility, GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
+import {
+  computeEdgeVisibility,
+  GLOBAL_STEP,
+  getRelatedDistances,
+  INCOMING,
+  WORK_GRAPHS,
+} from "./relations";
 import { clampPan, isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
 const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
@@ -259,5 +265,45 @@ describe("computeEdgeVisibility", () => {
     const { hasIncoming, hasOutgoing } = computeEdgeVisibility(all, active);
     expect([...hasOutgoing]).toEqual(["iron-man"]);
     expect([...hasIncoming]).toEqual(["iron-man-2"]);
+  });
+});
+
+describe("movies-only graph", () => {
+  const movies = WORK_GRAPHS.movies;
+  const ids = new Set(movies.works.map((w) => w.id));
+
+  it("keeps only films", () => {
+    expect(movies.works.every((w) => w.tmdb.type === "movie")).toBe(true);
+    expect(movies.works.length).toBe(WORKS.filter((w) => w.tmdb.type === "movie").length);
+  });
+
+  it("only draws edges between films", () => {
+    const stray = movies.edges.filter((e) => !ids.has(e.from) || !ids.has(e.to));
+    expect(stray).toEqual([]);
+  });
+
+  it("bridges chains through hidden series", () => {
+    // Multiverse of Madness builds on WandaVision, which follows Endgame.
+    const parents = movies.incoming.get("doctor-strange-multiverse-of-madness") ?? [];
+    expect(parents).toContain("avengers-endgame");
+    expect(parents).not.toContain("wandavision");
+  });
+
+  it("still places every film below its prerequisites", () => {
+    for (const [child, parents] of movies.incoming) {
+      for (const parent of parents) {
+        expect(movies.step.get(child)!).toBeGreaterThan(movies.step.get(parent)!);
+      }
+    }
+  });
+
+  it("lays out every film in each mode", () => {
+    const grouping: Grouping = {
+      by: "franchise",
+      visible: new Set(GROUPS.franchise.map((g) => g.key)),
+    };
+    for (const mode of MODES) {
+      expect(computeLayout(mode, grouping, movies).positions.size).toBe(movies.works.length);
+    }
   });
 });
