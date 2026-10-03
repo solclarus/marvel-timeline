@@ -32,11 +32,7 @@ export function AboutDialog() {
   const { t, locale } = useI18n();
   return (
     <Dialog>
-      <DialogTrigger
-        render={
-          <Button variant="ghost" size="icon" className="rounded-full" aria-label={t.about} />
-        }
-      >
+      <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={t.about} />}>
         <Info className="size-4" />
       </DialogTrigger>
       <DialogContent closeLabel={t.close}>
@@ -46,7 +42,7 @@ export function AboutDialog() {
         <div className="mt-5 space-y-5">
           <Section title={t.aboutData}>
             <p>{t.aboutDataBody}</p>
-            <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-3">
+            <div className="flex items-center gap-3 rounded-item border bg-muted/40 p-3">
               <a
                 href="https://www.themoviedb.org/"
                 target="_blank"

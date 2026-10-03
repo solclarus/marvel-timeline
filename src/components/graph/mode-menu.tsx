@@ -32,7 +32,7 @@ export function ModeMenu({ mode, onChange }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="secondary" size="sm" className="rounded-full" />}
+        render={<Button variant="secondary" size="sm" />}
         aria-label={t.viewLabel(label(current.label))}
       >
         <current.icon className="size-4" />

@@ -27,7 +27,7 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
           <img
             src={posterUrl(work)}
             alt=""
-            className="h-36 w-24 shrink-0 rounded-md bg-muted object-cover"
+            className="h-36 w-24 shrink-0 rounded-thumb bg-muted object-cover"
             onError={(event) => (event.currentTarget.style.visibility = "hidden")}
           />
           <div className="min-w-0">
@@ -69,7 +69,7 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
                   <button
                     type="button"
                     onClick={() => onSelect(step.id)}
-                    className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                    className="flex w-full items-center gap-3 rounded-item px-2 py-1.5 text-left hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
                   >
                     <span className="w-6 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                       {i + 1}
@@ -78,7 +78,7 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
                       src={posterUrl(step)}
                       alt=""
                       loading="lazy"
-                      className="h-12 w-8 shrink-0 rounded-sm bg-muted object-cover"
+                      className="h-12 w-8 shrink-0 rounded-thumb bg-muted object-cover"
                       onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                     />
                     <span className="min-w-0 flex-1">

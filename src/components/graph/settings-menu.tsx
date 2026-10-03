@@ -47,7 +47,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl bg-white/[0.03] p-3 ring-1 ring-white/5">
+    <section className="flex flex-col gap-3 rounded-item bg-white/[0.03] p-3 ring-1 ring-white/5">
       <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-foreground/80 uppercase">
         <Icon className="size-3.5" />
         {title}
@@ -239,7 +239,7 @@ export function SettingsMenu({
           <Button
             variant="ghost"
             size="icon"
-            className="relative rounded-full"
+            className="relative"
             aria-label={filtered ? t.viewSettingsFiltered : t.viewSettings}
           />
         }
@@ -253,7 +253,7 @@ export function SettingsMenu({
         side="top"
         align="end"
         sideOffset={14}
-        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 bg-card/95 p-2 backdrop-blur-md"
+        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-1.5 bg-card/95 backdrop-blur-md"
       >
         <Section title={t.filterSection} icon={ListFilter}>
           <Segmented<MediaFilter>
