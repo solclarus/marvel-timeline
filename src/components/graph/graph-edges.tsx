@@ -18,9 +18,9 @@ const STYLE_OF_KIND: Record<EdgeKind, EdgeStyle> = {
 };
 
 export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
-  sequel: { stroke: "#334155", width: 4.5 },
-  tie: { stroke: "#ca8a04", width: 3 },
-  reference: { stroke: "#a8a29e", width: 2.5, dash: "5 5" },
+  sequel: { stroke: "#94a3b8", width: 4.5 },
+  tie: { stroke: "#d4a017", width: 3 },
+  reference: { stroke: "#78716c", width: 2.5, dash: "5 5" },
 };
 
 const HOVER_DELAY_MS = 250;

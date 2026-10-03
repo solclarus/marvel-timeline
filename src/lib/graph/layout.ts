@@ -34,16 +34,17 @@ export interface GraphLayout {
 function decadeTint(step: number) {
   const hue = Math.round(step * 270);
   return {
-    // Strong enough that cooler hues don't fade into the gray page.
-    color: `hsla(${hue}, 90%, 58%, 0.2)`,
-    borderColor: `hsla(${hue}, 75%, 42%, 0.55)`,
+    // Tuned for the dark canvas: enough color to tell decades apart without
+    // lifting the backdrop over the posters.
+    color: `hsla(${hue}, 80%, 55%, 0.14)`,
+    borderColor: `hsla(${hue}, 75%, 62%, 0.45)`,
   };
 }
 
 // Phases stack without overlapping, so one tint serves them all; their
 // borders and labels tell them apart. A soft blue, clear of the MCU card's
 // rose outline and the slate/gold edges.
-const PHASE_COLOR = { color: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.4)" };
+const PHASE_COLOR = { color: "rgba(96,165,250,0.09)", borderColor: "rgba(96,165,250,0.45)" };
 
 function visibleBands(grouping: Grouping) {
   return visibleGroups(grouping).map((group) => group.key);

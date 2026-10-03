@@ -44,7 +44,7 @@ export function MapBackdrop({
       {groupCards.map((card) => (
         <div
           key={card.key}
-          className={`absolute rounded-2xl border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/70" : "bg-white/35"} ${card.cardClass}`}
+          className={`absolute rounded-2xl border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/[0.03]"} ${card.cardClass}`}
           style={box(card)}
         >
           <BorderLabel
@@ -86,10 +86,10 @@ export function MapBackdrop({
         <div
           key={mark.key}
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 w-px bg-stone-500/15"
+          className="pointer-events-none absolute inset-y-0 w-px bg-white/10"
           style={{ left: `${mark.x}%` }}
         >
-          <span className="absolute top-1 left-1 text-[10px] font-medium text-stone-500/70 tabular-nums">
+          <span className="absolute top-1 left-1 text-[10px] font-medium text-white/40 tabular-nums">
             {mark.year}
           </span>
         </div>
