@@ -1,4 +1,4 @@
-import { Check, GitBranch, Waypoints, X } from "lucide-react";
+import { GitBranch, Waypoints, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
@@ -9,20 +9,11 @@ import { WORK_BY_ID, type FocusMode } from "@/lib/graph/relations";
 interface Props {
   selectedId: string | null;
   onClear: () => void;
-  watched: Set<string>;
-  onToggleWatched: (id: string) => void;
   focusMode: FocusMode;
   onToggleFocusMode: () => void;
 }
 
-export function DetailPanel({
-  selectedId,
-  onClear,
-  watched,
-  onToggleWatched,
-  focusMode,
-  onToggleFocusMode,
-}: Props) {
+export function DetailPanel({ selectedId, onClear, focusMode, onToggleFocusMode }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
@@ -61,19 +52,9 @@ export function DetailPanel({
                 <p className="font-semibold">{work.title}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <Button
-                    variant={watched.has(work.id) ? "default" : "outline"}
+                    variant="outline"
                     size="sm"
                     className="rounded-full"
-                    onClick={() => onToggleWatched(work.id)}
-                    aria-pressed={watched.has(work.id)}
-                  >
-                    <Check />
-                    {watched.has(work.id) ? "Watched" : "Mark as watched"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full text-muted-foreground"
                     onClick={onToggleFocusMode}
                     aria-label={
                       focusMode === "chain"
@@ -82,9 +63,7 @@ export function DetailPanel({
                     }
                   >
                     {focusMode === "chain" ? <Waypoints /> : <GitBranch />}
-                    <span className="hidden sm:inline">
-                      {focusMode === "chain" ? "All" : "Adjacent"}
-                    </span>
+                    {focusMode === "chain" ? "All related" : "Direct only"}
                   </Button>
                 </div>
               </div>

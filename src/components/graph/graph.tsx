@@ -43,7 +43,6 @@ import {
   type TransformState,
 } from "@/lib/graph/wheel-zoom";
 import { parseUrlState, serializeUrlState } from "@/lib/url-state";
-import { computeNextUp, useWatched } from "@/lib/watched";
 
 import { CommandBar } from "./command-bar";
 import { DetailPanel } from "./detail-panel";
@@ -134,8 +133,6 @@ export function Graph() {
   const [media, setMedia] = useState<MediaFilter>(initial.media);
   const graph = WORK_GRAPHS[media];
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
-  const { watched, toggleWatched, clearWatched } = useWatched();
-  const nextUp = computeNextUp(watched);
 
   // React Compiler memoizes these, which keeps `layout` stable for the fit
   // effect's deps.
@@ -511,8 +508,6 @@ export function Graph() {
                     axis={axis}
                     hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
                     hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
-                    watched={watched.has(work.id)}
-                    nextUp={nextUp.has(work.id)}
                   />
                 );
               })}
@@ -538,8 +533,6 @@ export function Graph() {
           <DetailPanel
             selectedId={selectedId}
             onClear={() => setSelectedId(null)}
-            watched={watched}
-            onToggleWatched={toggleWatched}
             focusMode={focusMode}
             onToggleFocusMode={() =>
               setFocusMode((current) => (current === "chain" ? "immediate" : "chain"))
@@ -555,8 +548,6 @@ export function Graph() {
             grouping={grouping}
             onToggleGroup={handleToggleGroup}
             onGroupByChange={handleGroupByChange}
-            watchedCount={watched.size}
-            onClearWatched={clearWatched}
           />
           <ZoomFab
             zoom={zoomPercent}
