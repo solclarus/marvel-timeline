@@ -12,6 +12,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Settings** (top bar): highlight all related works or direct ones only; group the map by franchise or by Earth; show or hide groups.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
+- **Language**: English or Japanese (Settings → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.
 
 The view is kept in the URL (`work`, `mode`, `focus`, `group`, `show`, `media`), so any state can be shared as a link.
 
@@ -27,7 +28,7 @@ pnpm dev
 Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand.
 
 - `dependsOn` lists what a work builds on; `reference` edges are drawn but don't count as prerequisites.
-- `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
+- `titleJa` is the Japanese title (TMDB's ja-JP listing, lightly cleaned up). `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
 - Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works that have drifted from TMDB.
 
 ## Scripts

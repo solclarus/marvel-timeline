@@ -153,6 +153,8 @@ export interface Dependency {
 export interface WorkNode {
   id: string;
   title: string;
+  // Japanese title, from TMDB's ja-JP listing where it has one.
+  titleJa: string;
   franchise: Franchise;
   // MCU only.
   phase?: number;
@@ -237,6 +239,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "iron-man",
     title: "Iron Man",
+    titleJa: "アイアンマン",
     franchise: "mcu",
     phase: 1,
     thread: "iron-man",
@@ -250,6 +253,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "incredible-hulk",
     title: "The Incredible Hulk",
+    titleJa: "インクレディブル・ハルク",
     franchise: "mcu",
     phase: 1,
     thread: "hulk",
@@ -263,6 +267,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "iron-man-2",
     title: "Iron Man 2",
+    titleJa: "アイアンマン2",
     franchise: "mcu",
     phase: 1,
     thread: "iron-man",
@@ -277,6 +282,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "thor",
     title: "Thor",
+    titleJa: "マイティ・ソー",
     franchise: "mcu",
     phase: 1,
     thread: "thor",
@@ -290,6 +296,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "captain-america-first-avenger",
     title: "Captain America: The First Avenger",
+    titleJa: "キャプテン・アメリカ／ザ・ファースト・アベンジャー",
     franchise: "mcu",
     phase: 1,
     thread: "captain-america",
@@ -303,6 +310,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers",
     title: "The Avengers",
+    titleJa: "アベンジャーズ",
     franchise: "mcu",
     phase: 1,
     thread: "avengers",
@@ -324,6 +332,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "iron-man-3",
     title: "Iron Man 3",
+    titleJa: "アイアンマン3",
     franchise: "mcu",
     phase: 2,
     thread: "iron-man",
@@ -341,6 +350,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "thor-dark-world",
     title: "Thor: The Dark World",
+    titleJa: "マイティ・ソー／ダーク・ワールド",
     franchise: "mcu",
     phase: 2,
     thread: "thor",
@@ -358,6 +368,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "captain-america-winter-soldier",
     title: "Captain America: The Winter Soldier",
+    titleJa: "キャプテン・アメリカ／ウィンター・ソルジャー",
     franchise: "mcu",
     phase: 2,
     thread: "captain-america",
@@ -375,6 +386,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "guardians-of-the-galaxy",
     title: "Guardians of the Galaxy",
+    titleJa: "ガーディアンズ・オブ・ギャラクシー",
     franchise: "mcu",
     phase: 2,
     thread: "guardians",
@@ -388,6 +400,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers-age-of-ultron",
     title: "Avengers: Age of Ultron",
+    titleJa: "アベンジャーズ／エイジ・オブ・ウルトロン",
     franchise: "mcu",
     phase: 2,
     thread: "avengers",
@@ -407,6 +420,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "ant-man",
     title: "Ant-Man",
+    titleJa: "アントマン",
     franchise: "mcu",
     phase: 2,
     thread: "ant-man",
@@ -422,6 +436,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "captain-america-civil-war",
     title: "Captain America: Civil War",
+    titleJa: "シビル・ウォー／キャプテン・アメリカ",
     franchise: "mcu",
     phase: 3,
     thread: "captain-america",
@@ -440,6 +455,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "doctor-strange",
     title: "Doctor Strange",
+    titleJa: "ドクター・ストレンジ",
     franchise: "mcu",
     phase: 3,
     thread: "doctor-strange",
@@ -453,6 +469,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "guardians-of-the-galaxy-vol-2",
     title: "Guardians of the Galaxy Vol. 2",
+    titleJa: "ガーディアンズ・オブ・ギャラクシー：リミックス",
     franchise: "mcu",
     phase: 3,
     thread: "guardians",
@@ -467,6 +484,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-homecoming",
     title: "Spider-Man: Homecoming",
+    titleJa: "スパイダーマン：ホームカミング",
     franchise: "mcu",
     phase: 3,
     thread: "spider-man",
@@ -481,6 +499,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "thor-ragnarok",
     title: "Thor: Ragnarok",
+    titleJa: "マイティ・ソー バトルロイヤル",
     franchise: "mcu",
     phase: 3,
     thread: "thor",
@@ -499,6 +518,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "black-panther",
     title: "Black Panther",
+    titleJa: "ブラックパンサー",
     franchise: "mcu",
     phase: 3,
     thread: "black-panther",
@@ -513,6 +533,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers-infinity-war",
     title: "Avengers: Infinity War",
+    titleJa: "アベンジャーズ／インフィニティ・ウォー",
     franchise: "mcu",
     phase: 3,
     thread: "avengers",
@@ -535,6 +556,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "ant-man-and-the-wasp",
     title: "Ant-Man and the Wasp",
+    titleJa: "アントマン&ワスプ",
     franchise: "mcu",
     phase: 3,
     thread: "ant-man",
@@ -552,6 +574,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "captain-marvel",
     title: "Captain Marvel",
+    titleJa: "キャプテン・マーベル",
     franchise: "mcu",
     phase: 3,
     thread: "captain-marvel",
@@ -565,6 +588,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers-endgame",
     title: "Avengers: Endgame",
+    titleJa: "アベンジャーズ／エンドゲーム",
     franchise: "mcu",
     phase: 3,
     thread: "avengers",
@@ -583,6 +607,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-far-from-home",
     title: "Spider-Man: Far From Home",
+    titleJa: "スパイダーマン：ファー・フロム・ホーム",
     franchise: "mcu",
     phase: 3,
     thread: "spider-man",
@@ -602,6 +627,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "black-widow",
     title: "Black Widow",
+    titleJa: "ブラック・ウィドウ",
     franchise: "mcu",
     phase: 4,
     thread: "black-widow",
@@ -616,6 +642,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "shang-chi",
     title: "Shang-Chi and the Legend of the Ten Rings",
+    titleJa: "シャン・チー／テン・リングスの伝説",
     franchise: "mcu",
     phase: 4,
     thread: "shang-chi",
@@ -630,6 +657,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "eternals",
     title: "Eternals",
+    titleJa: "エターナルズ",
     franchise: "mcu",
     phase: 4,
     thread: "eternals",
@@ -644,6 +672,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-no-way-home",
     title: "Spider-Man: No Way Home",
+    titleJa: "スパイダーマン：ノー・ウェイ・ホーム",
     franchise: "mcu",
     earths: ["616", "96283", "120703"],
     phase: 4,
@@ -666,6 +695,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "doctor-strange-multiverse-of-madness",
     title: "Doctor Strange in the Multiverse of Madness",
+    titleJa: "ドクター・ストレンジ／マルチバース・オブ・マッドネス",
     franchise: "mcu",
     earths: ["616", "838"],
     phase: 4,
@@ -686,6 +716,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "thor-love-and-thunder",
     title: "Thor: Love and Thunder",
+    titleJa: "ソー：ラブ＆サンダー",
     franchise: "mcu",
     phase: 4,
     thread: "thor",
@@ -703,6 +734,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "black-panther-wakanda-forever",
     title: "Black Panther: Wakanda Forever",
+    titleJa: "ブラックパンサー／ワカンダ・フォーエバー",
     franchise: "mcu",
     phase: 4,
     thread: "black-panther",
@@ -721,6 +753,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "wandavision",
     title: "WandaVision",
+    titleJa: "ワンダヴィジョン",
     franchise: "mcu",
     phase: 4,
     dependsOn: [{ id: "avengers-endgame", kind: "leads-into" }],
@@ -734,6 +767,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "falcon-and-winter-soldier",
     title: "The Falcon and the Winter Soldier",
+    titleJa: "ファルコン&ウィンター・ソルジャー",
     franchise: "mcu",
     phase: 4,
     dependsOn: [{ id: "avengers-endgame", kind: "leads-into" }],
@@ -747,6 +781,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "loki-s1",
     title: "Loki — Season 1",
+    titleJa: "ロキ — シーズン1",
     franchise: "mcu",
     earths: ["616", "multiverse"],
     phase: 4,
@@ -761,6 +796,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "what-if-s1",
     title: "What If...? — Season 1",
+    titleJa: "ホワット・イフ…？ — シーズン1",
     franchise: "mcu",
     earths: ["multiverse"],
     phase: 4,
@@ -773,6 +809,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "hawkeye",
     title: "Hawkeye",
+    titleJa: "ホークアイ",
     franchise: "mcu",
     phase: 4,
     dependsOn: [{ id: "avengers-endgame", kind: "leads-into" }],
@@ -786,6 +823,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "moon-knight",
     title: "Moon Knight",
+    titleJa: "ムーンナイト",
     franchise: "mcu",
     phase: 4,
     chronologyOrder: 32,
@@ -798,6 +836,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "ms-marvel",
     title: "Ms. Marvel",
+    titleJa: "ミズ・マーベル",
     franchise: "mcu",
     phase: 4,
     chronologyOrder: 33,
@@ -810,6 +849,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "she-hulk",
     title: "She-Hulk: Attorney at Law",
+    titleJa: "シー・ハルク：ザ・アトーニー",
     franchise: "mcu",
     phase: 4,
     dependsOn: [{ id: "avengers-endgame", kind: "leads-into" }],
@@ -825,6 +865,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "ant-man-quantumania",
     title: "Ant-Man and the Wasp: Quantumania",
+    titleJa: "アントマン＆ワスプ：クアントマニア",
     franchise: "mcu",
     phase: 5,
     thread: "ant-man",
@@ -842,6 +883,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "guardians-of-the-galaxy-vol-3",
     title: "Guardians of the Galaxy Vol. 3",
+    titleJa: "ガーディアンズ・オブ・ギャラクシー：VOLUME 3",
     franchise: "mcu",
     phase: 5,
     thread: "guardians",
@@ -859,6 +901,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "the-marvels",
     title: "The Marvels",
+    titleJa: "マーベルズ",
     franchise: "mcu",
     phase: 5,
     thread: "captain-marvel",
@@ -876,6 +919,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "deadpool-and-wolverine",
     title: "Deadpool & Wolverine",
+    titleJa: "デッドプール＆ウルヴァリン",
     franchise: "mcu",
     earths: ["10005", "616"],
     phase: 5,
@@ -899,6 +943,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "captain-america-brave-new-world",
     title: "Captain America: Brave New World",
+    titleJa: "キャプテン・アメリカ：ブレイブ・ニュー・ワールド",
     franchise: "mcu",
     phase: 5,
     thread: "captain-america",
@@ -918,6 +963,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "thunderbolts",
     title: "Thunderbolts*",
+    titleJa: "サンダーボルツ*",
     franchise: "mcu",
     phase: 5,
     thread: "thunderbolts",
@@ -939,6 +985,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "secret-invasion",
     title: "Secret Invasion",
+    titleJa: "シークレット・インべージョン",
     franchise: "mcu",
     phase: 5,
     chronologyOrder: 39,
@@ -951,6 +998,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "loki-s2",
     title: "Loki — Season 2",
+    titleJa: "ロキ — シーズン2",
     franchise: "mcu",
     earths: ["616", "multiverse"],
     phase: 5,
@@ -965,6 +1013,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "what-if-s2",
     title: "What If...? — Season 2",
+    titleJa: "ホワット・イフ…？ — シーズン2",
     franchise: "mcu",
     earths: ["multiverse"],
     phase: 5,
@@ -978,6 +1027,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "echo",
     title: "Echo",
+    titleJa: "エコー",
     franchise: "mcu",
     phase: 5,
     chronologyOrder: 44,
@@ -990,6 +1040,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "what-if-s3",
     title: "What If...? — Season 3",
+    titleJa: "ホワット・イフ…？ — シーズン3",
     franchise: "mcu",
     earths: ["multiverse"],
     phase: 5,
@@ -1003,6 +1054,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "agatha-all-along",
     title: "Agatha All Along",
+    titleJa: "アガサ・オール・アロング",
     franchise: "mcu",
     phase: 5,
     dependsOn: [{ id: "wandavision", kind: "spin-off" }],
@@ -1016,6 +1068,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-born-again-s1",
     title: "Daredevil: Born Again — Season 1",
+    titleJa: "デアデビル：ボーン・アゲイン — シーズン1",
     franchise: "mcu",
     phase: 5,
     dependsOn: [
@@ -1032,6 +1085,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "ironheart",
     title: "Ironheart",
+    titleJa: "アイアンハート",
     franchise: "mcu",
     phase: 5,
     dependsOn: [{ id: "black-panther-wakanda-forever", kind: "spin-off" }],
@@ -1046,6 +1100,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "i-am-groot-s1",
     title: "I Am Groot — Season 1",
+    titleJa: "アイ・アム・グルート — シーズン1",
     franchise: "mcu",
     phase: 4,
     // No `thread`: tagging it "guardians" would claim that lane against the
@@ -1060,6 +1115,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "werewolf-by-night",
     title: "Werewolf by Night",
+    titleJa: "ウェアウルフ・バイ・ナイト",
     franchise: "mcu",
     phase: 4,
     chronologyOrder: 37.1,
@@ -1072,6 +1128,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "guardians-of-the-galaxy-holiday-special",
     title: "The Guardians of the Galaxy Holiday Special",
+    titleJa: "ガーディアンズ・オブ・ギャラクシー：ホリデー・スペシャル",
     franchise: "mcu",
     phase: 4,
     // No `thread`: same reason as i-am-groot-s1 above.
@@ -1086,6 +1143,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "i-am-groot-s2",
     title: "I Am Groot — Season 2",
+    titleJa: "アイ・アム・グルート — シーズン2",
     franchise: "mcu",
     phase: 4,
     dependsOn: [{ id: "i-am-groot-s1", kind: "direct-sequel" }],
@@ -1100,6 +1158,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-first-class",
     title: "X-Men: First Class",
+    titleJa: "X-MEN：ファースト・ジェネレーション",
     franchise: "x-men",
     chronologyOrder: 52,
     setYear: 1962,
@@ -1111,6 +1170,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-apocalypse",
     title: "X-Men: Apocalypse",
+    titleJa: "X-MEN：アポカリプス",
     franchise: "x-men",
     dependsOn: [{ id: "x-men-days-of-future-past", kind: "direct-sequel" }],
     chronologyOrder: 53,
@@ -1123,6 +1183,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "new-mutants",
     title: "The New Mutants",
+    titleJa: "ニュー・ミュータント",
     franchise: "x-men",
     dependsOn: [{ id: "x-men-apocalypse", kind: "spin-off" }],
     chronologyOrder: 54,
@@ -1134,6 +1195,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "dark-phoenix",
     title: "Dark Phoenix",
+    titleJa: "X-MEN：ダーク・フェニックス",
     franchise: "x-men",
     dependsOn: [{ id: "x-men-apocalypse", kind: "direct-sequel" }],
     chronologyOrder: 55,
@@ -1146,6 +1208,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-origins-wolverine",
     title: "X-Men Origins: Wolverine",
+    titleJa: "ウルヴァリン：X-MEN ZERO",
     franchise: "x-men",
     chronologyOrder: 56,
     setYear: 1979,
@@ -1157,6 +1220,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-days-of-future-past",
     title: "X-Men: Days of Future Past",
+    titleJa: "X-MEN：フューチャー＆パスト",
     franchise: "x-men",
     dependsOn: [
       { id: "x-men-first-class", kind: "direct-sequel" },
@@ -1172,6 +1236,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men",
     title: "X-Men",
+    titleJa: "X-MEN",
     franchise: "x-men",
     chronologyOrder: 58,
     setYear: 2000,
@@ -1183,6 +1248,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x2",
     title: "X2",
+    titleJa: "X-MEN2",
     franchise: "x-men",
     dependsOn: [{ id: "x-men", kind: "direct-sequel" }],
     chronologyOrder: 59,
@@ -1195,6 +1261,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-last-stand",
     title: "X-Men: The Last Stand",
+    titleJa: "X-MEN：ファイナル ディシジョン",
     franchise: "x-men",
     dependsOn: [{ id: "x2", kind: "direct-sequel" }],
     chronologyOrder: 60,
@@ -1207,6 +1274,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "the-wolverine",
     title: "The Wolverine",
+    titleJa: "ウルヴァリン：SAMURAI",
     franchise: "x-men",
     dependsOn: [{ id: "x-men-origins-wolverine", kind: "direct-sequel" }],
     chronologyOrder: 61,
@@ -1222,6 +1290,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "logan",
     title: "Logan",
+    titleJa: "LOGAN／ローガン",
     franchise: "x-men",
     dependsOn: [
       { id: "the-wolverine", kind: "direct-sequel" },
@@ -1237,6 +1306,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "deadpool",
     title: "Deadpool",
+    titleJa: "デッドプール",
     franchise: "x-men",
     chronologyOrder: 63,
     recommendedOrder: 49,
@@ -1247,6 +1317,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "deadpool-2",
     title: "Deadpool 2",
+    titleJa: "デッドプール2",
     franchise: "x-men",
     dependsOn: [{ id: "deadpool", kind: "direct-sequel" }],
     chronologyOrder: 64,
@@ -1260,6 +1331,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-2002",
     title: "Spider-Man",
+    titleJa: "スパイダーマン",
     franchise: "spider-man-legacy",
     chronologyOrder: 65,
     recommendedOrder: 34,
@@ -1270,6 +1342,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-2",
     title: "Spider-Man 2",
+    titleJa: "スパイダーマン2",
     franchise: "spider-man-legacy",
     dependsOn: [{ id: "spider-man-2002", kind: "direct-sequel" }],
     chronologyOrder: 66,
@@ -1281,6 +1354,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-3",
     title: "Spider-Man 3",
+    titleJa: "スパイダーマン3",
     franchise: "spider-man-legacy",
     dependsOn: [{ id: "spider-man-2", kind: "direct-sequel" }],
     chronologyOrder: 67,
@@ -1292,6 +1366,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "amazing-spider-man",
     title: "The Amazing Spider-Man",
+    titleJa: "アメイジング・スパイダーマン",
     franchise: "spider-man-legacy",
     earths: ["120703"],
     chronologyOrder: 68,
@@ -1303,6 +1378,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "amazing-spider-man-2",
     title: "The Amazing Spider-Man 2",
+    titleJa: "アメイジング・スパイダーマン2",
     franchise: "spider-man-legacy",
     earths: ["120703"],
     dependsOn: [{ id: "amazing-spider-man", kind: "direct-sequel" }],
@@ -1319,6 +1395,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "madame-web",
     title: "Madame Web",
+    titleJa: "マダム・ウェブ",
     franchise: "ssu",
     dependsOn: [{ id: "venom", kind: "reference" }],
     chronologyOrder: 70,
@@ -1330,6 +1407,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "venom",
     title: "Venom",
+    titleJa: "ヴェノム",
     franchise: "ssu",
     chronologyOrder: 71,
     recommendedOrder: null,
@@ -1340,6 +1418,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "morbius",
     title: "Morbius",
+    titleJa: "モービウス",
     franchise: "ssu",
     earths: ["688", "616"],
     dependsOn: [{ id: "venom", kind: "reference" }],
@@ -1352,6 +1431,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "venom-let-there-be-carnage",
     title: "Venom: Let There Be Carnage",
+    titleJa: "ヴェノム：レット・ゼア・ビー・カーネイジ",
     franchise: "ssu",
     earths: ["688", "616"],
     dependsOn: [{ id: "venom", kind: "direct-sequel" }],
@@ -1364,6 +1444,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "kraven-the-hunter",
     title: "Kraven the Hunter",
+    titleJa: "クレイヴン・ザ・ハンター",
     franchise: "ssu",
     dependsOn: [{ id: "venom", kind: "reference" }],
     chronologyOrder: 74,
@@ -1375,6 +1456,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "venom-the-last-dance",
     title: "Venom: The Last Dance",
+    titleJa: "ヴェノム：ザ・ラストダンス",
     franchise: "ssu",
     earths: ["688", "616"],
     dependsOn: [{ id: "venom-let-there-be-carnage", kind: "direct-sequel" }],
@@ -1389,6 +1471,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "fantastic-four-first-steps",
     title: "The Fantastic 4: First Steps",
+    titleJa: "ファンタスティック４：ファースト・ステップ",
     franchise: "mcu",
     phase: 6,
     thread: "fantastic-four",
@@ -1403,6 +1486,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-brand-new-day",
     title: "Spider-Man: Brand New Day",
+    titleJa: "スパイダーマン：ブランド・ニュー・デイ",
     franchise: "mcu",
     phase: 6,
     thread: "spider-man",
@@ -1420,6 +1504,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers-doomsday",
     title: "Avengers: Doomsday",
+    titleJa: "アベンジャーズ／ドゥームズデイ",
     franchise: "mcu",
     phase: 6,
     thread: "avengers",
@@ -1447,6 +1532,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "avengers-secret-wars",
     title: "Avengers: Secret Wars",
+    titleJa: "アベンジャーズ／シークレット・ウォーズ",
     franchise: "mcu",
     phase: 6,
     thread: "avengers",
@@ -1463,6 +1549,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "wonder-man",
     title: "Wonder Man",
+    titleJa: "ワンダーマン",
     franchise: "mcu",
     phase: 6,
     chronologyOrder: 76.2,
@@ -1474,6 +1561,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-born-again-s2",
     title: "Daredevil: Born Again — Season 2",
+    titleJa: "デアデビル：ボーン・アゲイン — シーズン2",
     franchise: "mcu",
     phase: 6,
     dependsOn: [{ id: "daredevil-born-again-s1", kind: "direct-sequel" }],
@@ -1486,6 +1574,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "punisher-one-last-kill",
     title: "The Punisher: One Last Kill",
+    titleJa: "パニッシャー：ワン・ラスト・キル",
     franchise: "mcu",
     phase: 6,
     dependsOn: [
@@ -1501,6 +1590,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "visionquest",
     title: "VisionQuest",
+    titleJa: "ヴィジョンクエスト",
     franchise: "mcu",
     phase: 6,
     dependsOn: [{ id: "wandavision", kind: "spin-off" }],
@@ -1513,6 +1603,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-born-again-s3",
     title: "Daredevil: Born Again — Season 3",
+    titleJa: "デアデビル：ボーン・アゲイン — シーズン3",
     franchise: "mcu",
     phase: 6,
     dependsOn: [{ id: "daredevil-born-again-s2", kind: "direct-sequel" }],
@@ -1529,6 +1620,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-s1",
     title: "Daredevil — Season 1",
+    titleJa: "デアデビル — シーズン1",
     franchise: "defenders",
     thread: "daredevil",
     chronologyOrder: 11.8,
@@ -1541,6 +1633,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "jessica-jones-s1",
     title: "Jessica Jones — Season 1",
+    titleJa: "ジェシカ・ジョーンズ — シーズン1",
     franchise: "defenders",
     thread: "jessica-jones",
     chronologyOrder: 11.9,
@@ -1553,6 +1646,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-s2",
     title: "Daredevil — Season 2",
+    titleJa: "デアデビル — シーズン2",
     franchise: "defenders",
     thread: "daredevil",
     dependsOn: [{ id: "daredevil-s1", kind: "direct-sequel" }],
@@ -1566,6 +1660,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "luke-cage-s1",
     title: "Luke Cage — Season 1",
+    titleJa: "ルーク・ケイジ — シーズン1",
     franchise: "defenders",
     thread: "luke-cage",
     dependsOn: [{ id: "jessica-jones-s1", kind: "spin-off" }],
@@ -1579,6 +1674,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "iron-fist-s1",
     title: "Iron Fist — Season 1",
+    titleJa: "アイアン・フィスト — シーズン1",
     franchise: "defenders",
     thread: "iron-fist",
     chronologyOrder: 13.3,
@@ -1591,6 +1687,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "the-defenders",
     title: "The Defenders",
+    titleJa: "ザ・ディフェンダーズ",
     franchise: "defenders",
     thread: "daredevil",
     dependsOn: [
@@ -1609,6 +1706,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "the-punisher-s1",
     title: "The Punisher — Season 1",
+    titleJa: "パニッシャー — シーズン1",
     franchise: "defenders",
     thread: "punisher",
     dependsOn: [{ id: "daredevil-s2", kind: "spin-off" }],
@@ -1622,6 +1720,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "jessica-jones-s2",
     title: "Jessica Jones — Season 2",
+    titleJa: "ジェシカ・ジョーンズ — シーズン2",
     franchise: "defenders",
     thread: "jessica-jones",
     dependsOn: [
@@ -1638,6 +1737,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "luke-cage-s2",
     title: "Luke Cage — Season 2",
+    titleJa: "ルーク・ケイジ — シーズン2",
     franchise: "defenders",
     thread: "luke-cage",
     dependsOn: [
@@ -1654,6 +1754,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "iron-fist-s2",
     title: "Iron Fist — Season 2",
+    titleJa: "アイアン・フィスト — シーズン2",
     franchise: "defenders",
     thread: "iron-fist",
     dependsOn: [
@@ -1670,6 +1771,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-s3",
     title: "Daredevil — Season 3",
+    titleJa: "デアデビル — シーズン3",
     franchise: "defenders",
     thread: "daredevil",
     dependsOn: [{ id: "the-defenders", kind: "direct-sequel" }],
@@ -1683,6 +1785,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "the-punisher-s2",
     title: "The Punisher — Season 2",
+    titleJa: "パニッシャー — シーズン2",
     franchise: "defenders",
     thread: "punisher",
     dependsOn: [{ id: "the-punisher-s1", kind: "direct-sequel" }],
@@ -1696,6 +1799,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "jessica-jones-s3",
     title: "Jessica Jones — Season 3",
+    titleJa: "ジェシカ・ジョーンズ — シーズン3",
     franchise: "defenders",
     thread: "jessica-jones",
     dependsOn: [{ id: "jessica-jones-s2", kind: "direct-sequel" }],
@@ -1711,6 +1815,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "your-friendly-neighborhood-spider-man-s1",
     title: "Your Friendly Neighborhood Spider-Man — Season 1",
+    titleJa: "スパイダーマン：フレンドリー・ネイバーフッド — シーズン1",
     franchise: "mcu",
     earths: ["86445"],
     phase: 5,
@@ -1724,6 +1829,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "eyes-of-wakanda",
     title: "Eyes of Wakanda",
+    titleJa: "アイズ・オブ・ワカンダ",
     franchise: "mcu",
     phase: 6,
     dependsOn: [{ id: "black-panther-wakanda-forever", kind: "reference" }],
@@ -1736,6 +1842,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "marvel-zombies",
     title: "Marvel Zombies",
+    titleJa: "マーベル・ゾンビーズ",
     franchise: "mcu",
     earths: ["multiverse"],
     phase: 6,
@@ -1750,6 +1857,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "blade",
     title: "Blade",
+    titleJa: "ブレイド",
     franchise: "legacy",
     thread: "blade",
     chronologyOrder: 80,
@@ -1761,6 +1869,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "blade-ii",
     title: "Blade II",
+    titleJa: "ブレイド2",
     franchise: "legacy",
     thread: "blade",
     dependsOn: [{ id: "blade", kind: "direct-sequel" }],
@@ -1773,6 +1882,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "blade-trinity",
     title: "Blade: Trinity",
+    titleJa: "ブレイド3",
     franchise: "legacy",
     thread: "blade",
     dependsOn: [{ id: "blade-ii", kind: "direct-sequel" }],
@@ -1785,6 +1895,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "daredevil-2003",
     title: "Daredevil",
+    titleJa: "デアデビル",
     franchise: "legacy",
     earths: ["701306"],
     thread: "elektra",
@@ -1797,6 +1908,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "elektra",
     title: "Elektra",
+    titleJa: "エレクトラ",
     franchise: "legacy",
     earths: ["701306"],
     thread: "elektra",
@@ -1810,6 +1922,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "fantastic-four-2005",
     title: "Fantastic Four",
+    titleJa: "ファンタスティック・フォー ［超能力ユニット］",
     franchise: "legacy",
     earths: ["121698"],
     thread: "fantastic-four",
@@ -1822,6 +1935,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "fantastic-four-rise-of-the-silver-surfer",
     title: "Fantastic Four: Rise of the Silver Surfer",
+    titleJa: "ファンタスティック・フォー：銀河の危機",
     franchise: "legacy",
     earths: ["121698"],
     thread: "fantastic-four",
@@ -1836,6 +1950,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-into-the-spider-verse",
     title: "Spider-Man: Into the Spider-Verse",
+    titleJa: "スパイダーマン：スパイダーバース",
     franchise: "spider-verse",
     earths: ["1610", "65"],
     chronologyOrder: 87,
@@ -1847,6 +1962,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-across-the-spider-verse",
     title: "Spider-Man: Across the Spider-Verse",
+    titleJa: "スパイダーマン：アクロス・ザ・スパイダーバース",
     franchise: "spider-verse",
     earths: ["1610", "65", "42", "688"],
     dependsOn: [
@@ -1863,6 +1979,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "spider-man-beyond-the-spider-verse",
     title: "Spider-Man: Beyond the Spider-Verse",
+    titleJa: "スパイダーマン：ビヨンド・ザ・スパイダーバース",
     franchise: "spider-verse",
     earths: ["1610", "42"],
     dependsOn: [{ id: "spider-man-across-the-spider-verse", kind: "direct-sequel" }],
@@ -1877,6 +1994,7 @@ export const WORKS: WorkNode[] = [
   {
     id: "x-men-97-s1",
     title: "X-Men '97 — Season 1",
+    titleJa: "X-MEN '97 — シーズン1",
     franchise: "animation",
     chronologyOrder: 90,
     recommendedOrder: null,

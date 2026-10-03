@@ -32,6 +32,7 @@ import {
   type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
+import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
 import { parseUrlState } from "@/lib/url-state";
 
@@ -64,6 +65,7 @@ const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
 export function Graph() {
+  const { t, groupLabel } = useI18n();
   const [initial] = useState(() => parseUrlState(window.location.search));
   const [mode, setMode] = useState<ViewMode>(initial.mode);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
@@ -272,6 +274,7 @@ export function Graph() {
               onPointerLeave={focus.onPointerLeave}
             >
               <MapBackdrop
+                groupBy={grouping.by}
                 groupCards={groupCards}
                 phaseBands={phaseBands}
                 eraBands={eraBands}
@@ -316,7 +319,9 @@ export function Graph() {
             <GroupHoverChip
               key={focus.hoverChipAt.id}
               label={
-                focus.focusedPhase ? `Phase ${focus.focusedPhase.phase}` : focus.focusedCard!.label
+                focus.focusedPhase
+                  ? t.phase(focus.focusedPhase.phase)
+                  : groupLabel(grouping.by, focus.focusedCard!.key)
               }
               dot={
                 focus.focusedPhase

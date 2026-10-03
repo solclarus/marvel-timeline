@@ -6,8 +6,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { EARTH_META, earthsOf, type WorkNode } from "@/data/works";
+import { earthsOf, type WorkNode } from "@/data/works";
 import type { Axis } from "@/lib/graph/layout";
+import { useI18n } from "@/lib/i18n";
 
 import { PosterThumb } from "./poster-thumb";
 
@@ -69,12 +70,14 @@ export function GraphNode({
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
+  const { titleOf, earthLabel } = useI18n();
+  const title = titleOf(work);
   const earths = earthsOf(work);
 
   return (
     <TooltipTrigger
       handle={posterTooltip}
-      payload={work.title}
+      payload={title}
       render={
         <m.button
           type="button"
@@ -104,7 +107,7 @@ export function GraphNode({
           }}
           whileHover={{ scale: style.scale * 1.15 }}
           whileTap={{ scale: style.scale * 0.95 }}
-          aria-label={`${work.title}${earths.length > 1 ? ` (${earths.map((e) => EARTH_META[e].label).join(" / ")})` : ""}`}
+          aria-label={`${title}${earths.length > 1 ? ` (${earths.map(earthLabel).join(" / ")})` : ""}`}
         />
       }
     >

@@ -1,6 +1,7 @@
 import { Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
 import { FabBar, FabDivider } from "./fab";
 
@@ -17,6 +18,7 @@ interface Props {
 const EPSILON = 0.001;
 
 export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: Props) {
+  const { t } = useI18n();
   return (
     // Desktop only: phones pinch to zoom. Top-right, out of the way of the
     // command bar.
@@ -27,7 +29,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
         className="rounded-full"
         onClick={onZoomIn}
         disabled={zoom >= maxZoom - EPSILON}
-        aria-label="Zoom in"
+        aria-label={t.zoomIn}
       >
         <ZoomIn className="size-4" />
       </Button>
@@ -35,7 +37,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
         type="button"
         onClick={onFit}
         className="w-10 rounded-full py-1 text-center text-[11px] text-muted-foreground tabular-nums hover:bg-muted hover:text-foreground"
-        aria-label="Fit to view"
+        aria-label={t.fitToView}
       >
         {Math.round(zoom * 100)}%
       </button>
@@ -45,7 +47,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
         className="rounded-full"
         onClick={onZoomOut}
         disabled={zoom <= minZoom + EPSILON}
-        aria-label="Zoom out"
+        aria-label={t.zoomOut}
       >
         <ZoomOut className="size-4" />
       </Button>
@@ -55,7 +57,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
         size="icon"
         className="rounded-full"
         onClick={onFit}
-        aria-label="Fit to view"
+        aria-label={t.fitToView}
       >
         <Maximize2 className="size-4" />
       </Button>

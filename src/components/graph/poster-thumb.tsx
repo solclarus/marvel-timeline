@@ -2,10 +2,12 @@ import { useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { posterUrl, type WorkNode } from "@/data/works";
+import { useI18n } from "@/lib/i18n";
 
 // A skeleton while loading; if TMDB can't serve the image, the title in its
 // place so the poster stays identifiable.
 export function PosterThumb({ work }: { work: WorkNode }) {
+  const { titleOf } = useI18n();
   const [status, setStatus] = useState<"loading" | "loaded" | "failed">("loading");
 
   if (status === "failed") {
@@ -14,7 +16,7 @@ export function PosterThumb({ work }: { work: WorkNode }) {
         data-poster-fallback
         className="absolute inset-0 flex items-center justify-center bg-stone-700 p-1 text-center text-[9px] leading-tight font-semibold text-stone-100"
       >
-        <span className="line-clamp-5">{work.title}</span>
+        <span className="line-clamp-5">{titleOf(work)}</span>
       </div>
     );
   }

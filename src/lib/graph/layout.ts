@@ -330,7 +330,7 @@ export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: G
     const right = i === runs.length - 1 ? 100 : (run.maxX + runs[i + 1].minX) / 2;
     return {
       key: `${run.decade}-${i}`,
-      label: `${run.decade}s`,
+      decade: run.decade,
       left,
       width: right - left,
       ...bandColor(colorIndex.get(run.decade) ?? 0),
