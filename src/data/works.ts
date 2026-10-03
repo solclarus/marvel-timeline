@@ -1,4 +1,12 @@
-export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
+export type Franchise =
+  | "mcu"
+  | "defenders"
+  | "x-men"
+  | "legacy"
+  | "spider-man-legacy"
+  | "ssu"
+  | "spider-verse"
+  | "animation";
 // Earth designations as the films and series use them. "multiverse" is for
 // works that span too many Earths to list. Where each number is stated:
 // - 616: Doctor Strange in the Multiverse of Madness, Deadpool & Wolverine
@@ -9,7 +17,29 @@ export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
 // - 96283: Official Handbook of the Marvel Universe
 // - 120703: Spider-Man: No Way Home script; dated from TASM's 2012-07-03 release
 // - 688: Spider-Man: Across the Spider-Verse (the Spot's visit to the Venom world)
-export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "688" | "multiverse";
+// - 1610, 65, 42: Spider-Man: Across the Spider-Verse (Miles', Gwen's, and the
+//   spider's home Earths)
+// Pre-MCU and animated worlds use the Marvel Database's numbers, which the
+// films never state: 26320 (Blade trilogy), 701306 (Daredevil 2003 / Elektra),
+// 121698 (Fantastic Four 2005 / 2007), 86445 (Your Friendly Neighborhood
+// Spider-Man), 92131 (X-Men '97, after X-Men: The Animated Series).
+export type EarthId =
+  | "616"
+  | "838"
+  | "828"
+  | "10005"
+  | "96283"
+  | "120703"
+  | "688"
+  | "1610"
+  | "65"
+  | "42"
+  | "26320"
+  | "701306"
+  | "121698"
+  | "86445"
+  | "92131"
+  | "multiverse";
 
 // `cardClass` colors the outline of the card around an Earth's works; the
 // class names are spelled out in full so Tailwind can see them.
@@ -49,6 +79,46 @@ export const EARTH_META: Record<EarthId, { label: string; colorClass: string; ca
       label: "Earth-688",
       colorClass: "bg-violet-500",
       cardClass: "border-violet-500/70",
+    },
+    "1610": {
+      label: "Earth-1610",
+      colorClass: "bg-emerald-600",
+      cardClass: "border-emerald-600/70",
+    },
+    "65": {
+      label: "Earth-65",
+      colorClass: "bg-pink-400",
+      cardClass: "border-pink-400/70",
+    },
+    "42": {
+      label: "Earth-42",
+      colorClass: "bg-zinc-500",
+      cardClass: "border-zinc-500/70",
+    },
+    "26320": {
+      label: "Earth-26320",
+      colorClass: "bg-stone-600",
+      cardClass: "border-stone-600/70",
+    },
+    "701306": {
+      label: "Earth-701306",
+      colorClass: "bg-red-700",
+      cardClass: "border-red-700/70",
+    },
+    "121698": {
+      label: "Earth-121698",
+      colorClass: "bg-orange-500",
+      cardClass: "border-orange-500/70",
+    },
+    "86445": {
+      label: "Earth-86445",
+      colorClass: "bg-lime-600",
+      cardClass: "border-lime-600/70",
+    },
+    "92131": {
+      label: "Earth-92131",
+      colorClass: "bg-yellow-500",
+      cardClass: "border-yellow-500/70",
     },
     multiverse: {
       label: "Multiverse",
@@ -117,6 +187,30 @@ export const FRANCHISE_META: Record<
     colorClass: "bg-rose-500",
     cardClass: "border-rose-500/70",
     earth: "616",
+  },
+  defenders: {
+    label: "Defenders Saga",
+    colorClass: "bg-red-800",
+    cardClass: "border-red-800/70",
+    earth: "616",
+  },
+  legacy: {
+    label: "Legacy Marvel",
+    colorClass: "bg-stone-500",
+    cardClass: "border-stone-500/70",
+    earth: "26320",
+  },
+  "spider-verse": {
+    label: "Spider-Verse",
+    colorClass: "bg-emerald-600",
+    cardClass: "border-emerald-600/70",
+    earth: "1610",
+  },
+  animation: {
+    label: "Marvel Animation",
+    colorClass: "bg-sky-500",
+    cardClass: "border-sky-500/70",
+    earth: "92131",
   },
   "x-men": {
     label: "X-Men (Fox)",
@@ -790,6 +884,10 @@ export const WORKS: WorkNode[] = [
       { id: "deadpool-2", kind: "direct-sequel" },
       { id: "logan", kind: "crossover" },
       { id: "loki-s2", kind: "leads-into" },
+      // Blade, Elektra, and Johnny Storm return in the Void.
+      { id: "blade-trinity", kind: "reference" },
+      { id: "elektra", kind: "reference" },
+      { id: "fantastic-four-rise-of-the-silver-surfer", kind: "reference" },
     ],
     chronologyOrder: 49,
     setYear: 2024,
@@ -920,7 +1018,10 @@ export const WORKS: WorkNode[] = [
     title: "Daredevil: Born Again — Season 1",
     franchise: "mcu",
     phase: 5,
-    dependsOn: [{ id: "echo", kind: "leads-into" }],
+    dependsOn: [
+      { id: "echo", kind: "leads-into" },
+      { id: "daredevil-s3", kind: "direct-sequel" },
+    ],
     chronologyOrder: 51,
     setYear: 2025,
     recommendedOrder: 55,
@@ -1387,7 +1488,10 @@ export const WORKS: WorkNode[] = [
     title: "The Punisher: One Last Kill",
     franchise: "mcu",
     phase: 6,
-    dependsOn: [{ id: "daredevil-born-again-s2", kind: "spin-off" }],
+    dependsOn: [
+      { id: "daredevil-born-again-s2", kind: "spin-off" },
+      { id: "the-punisher-s2", kind: "leads-into" },
+    ],
     chronologyOrder: 76.4,
     recommendedOrder: 57.4,
     tmdb: { type: "movie", id: 1439930 },
@@ -1418,6 +1522,365 @@ export const WORKS: WorkNode[] = [
     // Only "March 2027" is announced; update the day once it's set.
     releaseDate: "2027-03-01",
     poster: "/xDUoAsU8lQHOOoRkFiBuarmACDN.jpg",
+  },
+  // --- Defenders Saga (Netflix) ---
+  {
+    id: "daredevil-s1",
+    title: "Daredevil — Season 1",
+    franchise: "defenders",
+    thread: "daredevil",
+    chronologyOrder: 12.1,
+    setYear: 2015,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 61889, season: 1 },
+    releaseDate: "2015-04-10",
+    poster: "/zFmJQzl6bFrdpHhDkxXmboyykqD.jpg",
+  },
+  {
+    id: "jessica-jones-s1",
+    title: "Jessica Jones — Season 1",
+    franchise: "defenders",
+    thread: "jessica-jones",
+    chronologyOrder: 12.2,
+    setYear: 2015,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 38472, season: 1 },
+    releaseDate: "2015-11-20",
+    poster: "/9wwfowgVJDouHQdUsIcNhgbIUlG.jpg",
+  },
+  {
+    id: "daredevil-s2",
+    title: "Daredevil — Season 2",
+    franchise: "defenders",
+    thread: "daredevil",
+    dependsOn: [{ id: "daredevil-s1", kind: "direct-sequel" }],
+    chronologyOrder: 17.1,
+    setYear: 2016,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 61889, season: 2 },
+    releaseDate: "2016-03-18",
+    poster: "/opHoslNCxkgoCaGhfO66fvCSH83.jpg",
+  },
+  {
+    id: "luke-cage-s1",
+    title: "Luke Cage — Season 1",
+    franchise: "defenders",
+    thread: "luke-cage",
+    dependsOn: [{ id: "jessica-jones-s1", kind: "spin-off" }],
+    chronologyOrder: 17.2,
+    setYear: 2016,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 62126, season: 1 },
+    releaseDate: "2016-09-30",
+    poster: "/hBbPrnlkpxod0Zq14wsPlaLOemG.jpg",
+  },
+  {
+    id: "iron-fist-s1",
+    title: "Iron Fist — Season 1",
+    franchise: "defenders",
+    thread: "iron-fist",
+    chronologyOrder: 17.3,
+    setYear: 2016,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 62127, season: 1 },
+    releaseDate: "2017-03-17",
+    poster: "/usGfoL4RfX15f1sQcX3Sgw4YRf4.jpg",
+  },
+  {
+    id: "the-defenders",
+    title: "The Defenders",
+    franchise: "defenders",
+    thread: "daredevil",
+    dependsOn: [
+      { id: "daredevil-s2", kind: "crossover" },
+      { id: "jessica-jones-s1", kind: "crossover" },
+      { id: "luke-cage-s1", kind: "crossover" },
+      { id: "iron-fist-s1", kind: "crossover" },
+    ],
+    chronologyOrder: 17.4,
+    setYear: 2017,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 62285, season: 1 },
+    releaseDate: "2017-08-18",
+    poster: "/4COAMPA6LPkPBd1xdm9paN4LCD8.jpg",
+  },
+  {
+    id: "the-punisher-s1",
+    title: "The Punisher — Season 1",
+    franchise: "defenders",
+    thread: "punisher",
+    dependsOn: [{ id: "daredevil-s2", kind: "spin-off" }],
+    chronologyOrder: 17.5,
+    setYear: 2017,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 67178, season: 1 },
+    releaseDate: "2017-11-17",
+    poster: "/dOkJ6TJKQjsz2XwXyp2VYpkeE5g.jpg",
+  },
+  {
+    id: "jessica-jones-s2",
+    title: "Jessica Jones — Season 2",
+    franchise: "defenders",
+    thread: "jessica-jones",
+    dependsOn: [
+      { id: "jessica-jones-s1", kind: "direct-sequel" },
+      { id: "the-defenders", kind: "leads-into" },
+    ],
+    chronologyOrder: 17.6,
+    setYear: 2017,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 38472, season: 2 },
+    releaseDate: "2018-03-08",
+    poster: "/tKirVNmDmwYjqehjPpyjr1n3U2F.jpg",
+  },
+  {
+    id: "luke-cage-s2",
+    title: "Luke Cage — Season 2",
+    franchise: "defenders",
+    thread: "luke-cage",
+    dependsOn: [
+      { id: "luke-cage-s1", kind: "direct-sequel" },
+      { id: "the-defenders", kind: "leads-into" },
+    ],
+    chronologyOrder: 17.7,
+    setYear: 2017,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 62126, season: 2 },
+    releaseDate: "2018-06-22",
+    poster: "/xe9VGtjJ1vsSKtAnoXEnVdUqyxb.jpg",
+  },
+  {
+    id: "iron-fist-s2",
+    title: "Iron Fist — Season 2",
+    franchise: "defenders",
+    thread: "iron-fist",
+    dependsOn: [
+      { id: "iron-fist-s1", kind: "direct-sequel" },
+      { id: "the-defenders", kind: "leads-into" },
+    ],
+    chronologyOrder: 17.8,
+    setYear: 2018,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 62127, season: 2 },
+    releaseDate: "2018-09-07",
+    poster: "/vXYvfCWvz5W0rErCpNIq09urhzW.jpg",
+  },
+  {
+    id: "daredevil-s3",
+    title: "Daredevil — Season 3",
+    franchise: "defenders",
+    thread: "daredevil",
+    dependsOn: [{ id: "the-defenders", kind: "direct-sequel" }],
+    chronologyOrder: 17.9,
+    setYear: 2018,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 61889, season: 3 },
+    releaseDate: "2018-10-19",
+    poster: "/zH6sgePlr1XX0jSZypbfQmr70Lf.jpg",
+  },
+  {
+    id: "the-punisher-s2",
+    title: "The Punisher — Season 2",
+    franchise: "defenders",
+    thread: "punisher",
+    dependsOn: [{ id: "the-punisher-s1", kind: "direct-sequel" }],
+    chronologyOrder: 17.95,
+    setYear: 2018,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 67178, season: 2 },
+    releaseDate: "2019-01-18",
+    poster: "/agNYq5XZnGfmYetUMyyM2RdPY70.jpg",
+  },
+  {
+    id: "jessica-jones-s3",
+    title: "Jessica Jones — Season 3",
+    franchise: "defenders",
+    thread: "jessica-jones",
+    dependsOn: [{ id: "jessica-jones-s2", kind: "direct-sequel" }],
+    chronologyOrder: 17.97,
+    setYear: 2018,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 38472, season: 3 },
+    releaseDate: "2019-06-14",
+    poster: "/dOPx3bj3x6eXYXQJUUIHXvWRSSB.jpg",
+  },
+  // --- MCU animation ---
+  // An alternate MCU where Norman Osborn mentors Peter; no prerequisites.
+  {
+    id: "your-friendly-neighborhood-spider-man-s1",
+    title: "Your Friendly Neighborhood Spider-Man — Season 1",
+    franchise: "mcu",
+    earths: ["86445"],
+    phase: 5,
+    chronologyOrder: 51.7,
+    recommendedOrder: 56.7,
+    tmdb: { type: "tv", id: 138503, season: 1 },
+    releaseDate: "2025-01-27",
+    poster: "/bifTEU63VFt2ugUte9LqNBb1Dno.jpg",
+  },
+  // Wakandan agents across history, set before the rest of the MCU.
+  {
+    id: "eyes-of-wakanda",
+    title: "Eyes of Wakanda",
+    franchise: "mcu",
+    phase: 6,
+    dependsOn: [{ id: "black-panther-wakanda-forever", kind: "reference" }],
+    chronologyOrder: 0.5,
+    recommendedOrder: 57.1,
+    tmdb: { type: "tv", id: 241388, season: 1 },
+    releaseDate: "2025-08-01",
+    poster: "/64RsvJMVUfhs5CDV7xXRjiLK4w6.jpg",
+  },
+  {
+    id: "marvel-zombies",
+    title: "Marvel Zombies",
+    franchise: "mcu",
+    earths: ["multiverse"],
+    phase: 6,
+    dependsOn: [{ id: "what-if-s1", kind: "spin-off" }],
+    chronologyOrder: 51.8,
+    recommendedOrder: 57.15,
+    tmdb: { type: "tv", id: 138505, season: 1 },
+    releaseDate: "2025-09-24",
+    poster: "/wofiHMsXxmp0lTafcBrgciSxBVx.jpg",
+  },
+  // --- Legacy Marvel (pre-MCU films that Deadpool & Wolverine brings back) ---
+  {
+    id: "blade",
+    title: "Blade",
+    franchise: "legacy",
+    thread: "blade",
+    chronologyOrder: 80,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 36647 },
+    releaseDate: "1998-08-21",
+    poster: "/oWT70TvbsmQaqyphCZpsnQR7R32.jpg",
+  },
+  {
+    id: "blade-ii",
+    title: "Blade II",
+    franchise: "legacy",
+    thread: "blade",
+    dependsOn: [{ id: "blade", kind: "direct-sequel" }],
+    chronologyOrder: 81,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 36586 },
+    releaseDate: "2002-03-22",
+    poster: "/wAn6VYamKbnOtfyTZ6arVtkMzDv.jpg",
+  },
+  {
+    id: "blade-trinity",
+    title: "Blade: Trinity",
+    franchise: "legacy",
+    thread: "blade",
+    dependsOn: [{ id: "blade-ii", kind: "direct-sequel" }],
+    chronologyOrder: 82,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 36648 },
+    releaseDate: "2004-12-08",
+    poster: "/6f7iXvPOnf83MaLB1JmPzUor1rr.jpg",
+  },
+  {
+    id: "daredevil-2003",
+    title: "Daredevil",
+    franchise: "legacy",
+    earths: ["701306"],
+    thread: "elektra",
+    chronologyOrder: 83,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 9480 },
+    releaseDate: "2003-02-14",
+    poster: "/oCDBwSkntYamuw8VJIxMRCtDBmi.jpg",
+  },
+  {
+    id: "elektra",
+    title: "Elektra",
+    franchise: "legacy",
+    earths: ["701306"],
+    thread: "elektra",
+    dependsOn: [{ id: "daredevil-2003", kind: "spin-off" }],
+    chronologyOrder: 84,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 9947 },
+    releaseDate: "2005-01-13",
+    poster: "/Z4dAOxjAHTUZO6DJ2WVAsxzwe3.jpg",
+  },
+  {
+    id: "fantastic-four-2005",
+    title: "Fantastic Four",
+    franchise: "legacy",
+    earths: ["121698"],
+    thread: "fantastic-four",
+    chronologyOrder: 85,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 9738 },
+    releaseDate: "2005-06-29",
+    poster: "/4YMcYEFS8sFuW3soP1HVmgR3cSm.jpg",
+  },
+  {
+    id: "fantastic-four-rise-of-the-silver-surfer",
+    title: "Fantastic Four: Rise of the Silver Surfer",
+    franchise: "legacy",
+    earths: ["121698"],
+    thread: "fantastic-four",
+    dependsOn: [{ id: "fantastic-four-2005", kind: "direct-sequel" }],
+    chronologyOrder: 86,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 1979 },
+    releaseDate: "2007-06-13",
+    poster: "/9wRfzTcMyyzkQxVDqBHv8RwuZOv.jpg",
+  },
+  // --- Spider-Verse (Sony Pictures Animation) ---
+  {
+    id: "spider-man-into-the-spider-verse",
+    title: "Spider-Man: Into the Spider-Verse",
+    franchise: "spider-verse",
+    earths: ["1610", "65"],
+    chronologyOrder: 87,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 324857 },
+    releaseDate: "2018-12-06",
+    poster: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg",
+  },
+  {
+    id: "spider-man-across-the-spider-verse",
+    title: "Spider-Man: Across the Spider-Verse",
+    franchise: "spider-verse",
+    earths: ["1610", "65", "42", "688"],
+    dependsOn: [
+      { id: "spider-man-into-the-spider-verse", kind: "direct-sequel" },
+      { id: "venom", kind: "reference" },
+      { id: "spider-man-no-way-home", kind: "reference" },
+    ],
+    chronologyOrder: 88,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 569094 },
+    releaseDate: "2023-05-31",
+    poster: "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
+  },
+  {
+    id: "spider-man-beyond-the-spider-verse",
+    title: "Spider-Man: Beyond the Spider-Verse",
+    franchise: "spider-verse",
+    earths: ["1610", "42"],
+    dependsOn: [{ id: "spider-man-across-the-spider-verse", kind: "direct-sequel" }],
+    chronologyOrder: 89,
+    recommendedOrder: null,
+    tmdb: { type: "movie", id: 911916 },
+    releaseDate: "2027-06-17",
+    poster: "/9KAe39xqyZnv9J4W3DRGdQqX82h.jpg",
+  },
+  // --- Marvel Animation (outside the MCU) ---
+  // Continues X-Men: The Animated Series (1992), which isn't on the map.
+  {
+    id: "x-men-97-s1",
+    title: "X-Men '97 — Season 1",
+    franchise: "animation",
+    chronologyOrder: 90,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 138502, season: 1 },
+    releaseDate: "2024-03-20",
+    poster: "/383PV0WolYYQvTriH0NfvMUA28R.jpg",
   },
 ];
 

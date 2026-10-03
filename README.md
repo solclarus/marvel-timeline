@@ -1,6 +1,6 @@
 # Marvel Timeline
 
-An interactive map of Marvel viewing order across the MCU, Fox X-Men, legacy Spider-Man, and the SSU. Pick a work to see what it builds on.
+An interactive map of Marvel viewing order across the MCU, Netflix's Defenders Saga, Fox X-Men, the pre-MCU films Deadpool & Wolverine brings back, legacy Spider-Man, the SSU, the Spider-Verse films, and X-Men '97. Pick a work to see what it builds on.
 
 Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-timeline/.
 

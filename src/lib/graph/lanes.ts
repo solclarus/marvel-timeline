@@ -16,9 +16,14 @@ export function assignLanes(
   const idsInScope = new Set(orderedWorks.map((w) => w.id));
   let laneCount = 0;
 
+  // Lanes already given to a work in the current row: never handed out
+  // again in it, even if a convergence just freed them.
+  let lanesInRow = new Set<number>();
+
   function claimLane(): number {
     freeLanes.sort((a, b) => a - b);
-    return freeLanes.shift() ?? laneCount++;
+    const index = freeLanes.findIndex((l) => !lanesInRow.has(l));
+    return index === -1 ? laneCount++ : freeLanes.splice(index, 1)[0];
   }
 
   const lastIndexForThread = new Map<string, number>();
@@ -43,6 +48,7 @@ export function assignLanes(
       freeLanes.push(...pendingFrees);
       pendingFrees = [];
       lastSeenStep = step;
+      lanesInRow = new Set();
     }
 
     const parents = (graph.incoming.get(work.id) ?? []).filter(
@@ -84,6 +90,7 @@ export function assignLanes(
     }
 
     lane.set(work.id, assigned);
+    lanesInRow.add(assigned);
     if (work.thread) {
       laneByThread.set(work.thread, assigned);
       if (lastIndexForThread.get(work.thread) === index) {
