@@ -24,6 +24,9 @@ export interface GraphLayout {
   positions: Map<string, Point>;
   totalLanes: number;
   rowCount: number;
+  // Timelines: a strip above the rows, in pixels, for the decade labels and
+  // year numbers, so they never sit on the first row's group labels.
+  headerPx?: number;
   // Timelines: each decade's horizontal extent, in canvas percentages.
   decadeSpans?: Map<number, { left: number; right: number }>;
 }
@@ -128,7 +131,10 @@ function computeTimelineLayout(
   const inScope = new Set(worksInScope.map((w) => groupKeyOf(w, grouping.by)));
   const bands = visibleBands(grouping).filter((band) => inScope.has(band));
   const rows = Math.max(1, bands.length);
-  const rowHeight = 100 / rows;
+  const height = canvasHeight(rows, TIMELINE_HEADER_PX);
+  const headerPercent = (TIMELINE_HEADER_PX / height) * 100;
+  const rowHeight = (100 - headerPercent) / rows;
+  const rowY = (row: number) => headerPercent + row * rowHeight + rowHeight / 2;
   const rowOf = (work: WorkNode) => Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
   const decadeOf = (year: number) => Math.floor(year / 10) * 10;
   // Columns sit at their centers, so padding at either end stays inside.
@@ -149,13 +155,14 @@ function computeTimelineLayout(
     for (const work of sorted) {
       positions.set(work.id, {
         x: xOf(start.get(work.id)!, columns),
-        y: rowOf(work) * rowHeight + rowHeight / 2,
+        y: rowY(rowOf(work)),
       });
     }
     return {
       positions,
       totalLanes: Math.max(1, columns),
       rowCount: rows,
+      headerPx: TIMELINE_HEADER_PX,
       decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
     };
   }
@@ -189,7 +196,7 @@ function computeTimelineLayout(
       .forEach((work, i) => {
         positions.set(work.id, {
           x: xOf(start.get(String(year))! + i, columns),
-          y: row * rowHeight + rowHeight / 2,
+          y: rowY(row),
         });
       });
   }
@@ -197,6 +204,7 @@ function computeTimelineLayout(
     positions,
     totalLanes: Math.max(1, columns),
     rowCount: rows,
+    headerPx: TIMELINE_HEADER_PX,
     decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
   };
 }
@@ -346,10 +354,16 @@ const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 10;
 // neighboring franchise's posters.
 const SUBGROUP_GAP_PX = 32;
 
+const TIMELINE_HEADER_PX = 48;
+
+function canvasHeight(rowCount: number, headerPx = 0) {
+  return Math.max(500, rowCount * ROW_PX + headerPx);
+}
+
 export function canvasSize(layout: GraphLayout) {
   return {
     width: Math.max(500, layout.totalLanes * LANE_PX),
-    height: Math.max(500, layout.rowCount * ROW_PX),
+    height: canvasHeight(layout.rowCount, layout.headerPx),
   };
 }
 
@@ -357,16 +371,16 @@ export function canvasSize(layout: GraphLayout) {
 // phase bands do.
 export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   const { width, height } = canvasSize(layout);
-  const crossCount = mode === "recommended" ? layout.totalLanes : layout.rowCount;
-  const flowCount = mode === "recommended" ? layout.rowCount : layout.totalLanes;
   // Half a cell on each axis. Recommended mode adds an outset around the
   // phase bands; timeline rows touch, so their cards keep a 10px gutter.
   const [padXPx, padYPx] =
     mode === "recommended"
       ? [GROUP_CARD_OUTSET_PX, GROUP_CARD_OUTSET_PX]
       : [GROUP_CARD_OUTSET_PX, -5];
-  const padX = 50 / (mode === "recommended" ? crossCount : flowCount) + (padXPx / width) * 100;
-  const padY = 50 / (mode === "recommended" ? flowCount : crossCount) + (padYPx / height) * 100;
+  // Half a lane and half a row (rows exclude the timeline header).
+  const rowsHeight = height - (layout.headerPx ?? 0);
+  const padX = 50 / layout.totalLanes + (padXPx / width) * 100;
+  const padY = ((rowsHeight / layout.rowCount / 2 + padYPx) / height) * 100;
 
   return visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)

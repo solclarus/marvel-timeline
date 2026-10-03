@@ -79,7 +79,10 @@ export function MapBackdrop({
           className="absolute inset-y-0 border-r border-dashed last:border-r-0"
           style={{ ...box(band), backgroundColor: band.color, borderColor: band.borderColor }}
         >
-          <BorderLabel dot={{ color: band.borderColor }}>{t.decade(band.decade)}</BorderLabel>
+          {/* In the header strip above the rows, clear of the group labels. */}
+          <div className="absolute inset-x-0 top-5">
+            <BorderLabel dot={{ color: band.borderColor }}>{t.decade(band.decade)}</BorderLabel>
+          </div>
         </div>
       ))}
       {yearMarks.map((mark) => (
