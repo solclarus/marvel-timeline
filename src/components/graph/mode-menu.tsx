@@ -35,7 +35,7 @@ export function ModeMenu({ mode, onChange }: Props) {
         <current.icon className="size-4" />
         <span className="hidden sm:inline">{current.label}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="center" sideOffset={14} className={fabMenuClass}>
+      <DropdownMenuContent side="top" align="center" sideOffset={14} className={fabMenuClass}>
         <DropdownMenuRadioGroup value={mode} onValueChange={(value: ViewMode) => onChange(value)}>
           {MODES.map((m) => (
             <DropdownMenuRadioItem key={m.value} value={m.value} closeOnClick className="text-xs">

@@ -14,19 +14,19 @@ export function DetailPanel({ selectedId, onClear }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 px-4 sm:bottom-6 md:pr-24">
+    <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
       <div className="mx-auto max-w-4xl">
         <AnimatePresence>
           {work && (
             <m.div
               key={work.id}
-              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ duration: 0.2 }}
               className="pointer-events-auto flex items-start gap-3 rounded-lg border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
             >
-              <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-sm bg-muted">
+              <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
                 <img src={posterUrl(work)} alt="" className="size-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">

@@ -51,7 +51,7 @@ export function SettingsMenu({
       >
         <SlidersHorizontal className="size-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end" sideOffset={14} className={fabMenuClass}>
+      <DropdownMenuContent side="top" align="end" sideOffset={14} className={fabMenuClass}>
         <DropdownMenuGroup>
           <DropdownMenuLabel>Highlight</DropdownMenuLabel>
           <DropdownMenuRadioGroup

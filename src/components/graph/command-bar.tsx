@@ -24,7 +24,8 @@ interface Props {
 }
 
 // Every map-wide control in one bar: search, view mode, media filter, and
-// the highlight/grouping/visibility settings. Full width on phones.
+// the highlight/grouping/visibility settings. At the bottom, within thumb
+// reach; full width on phones.
 export function CommandBar({
   onSearchSelect,
   mode,
@@ -39,8 +40,8 @@ export function CommandBar({
 }: Props) {
   const moviesOnly = media === "movies";
   return (
-    <div className="fixed inset-x-4 top-4 z-40 flex justify-center sm:top-6">
-      <FabBar from="top" className="w-full sm:w-auto">
+    <div className="fixed inset-x-4 bottom-4 z-40 flex justify-center sm:bottom-6">
+      <FabBar from="bottom" className="w-full sm:w-auto">
         <SearchBox onSelect={onSearchSelect} />
         <FabDivider />
         <ModeMenu mode={mode} onChange={onModeChange} />
