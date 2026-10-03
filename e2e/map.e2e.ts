@@ -35,19 +35,21 @@ test("manual zoom sticks after the selection fit", async ({ page }) => {
   await expect(zoomLabel(page)).not.toHaveText(fitted!);
 });
 
-test("films only hides series and comes back for a searched series", async ({ page }) => {
+test("media filter hides series and brings back a searched one", async ({ page }) => {
   await page.goto("./");
   await expect(page.locator('[id="wandavision"]')).toHaveCount(1);
   await page.getByRole("button", { name: "View settings" }).click();
-  await page.getByRole("button", { name: "Films only" }).click();
-  await expect(page).toHaveURL(/media=movies/);
+  const panel = page.locator("[data-slot=popover-content]");
+  await panel.getByRole("button", { name: "Series", exact: true }).click();
+  await panel.getByRole("button", { name: "Animation", exact: true }).click();
+  await expect(page).toHaveURL(/media=movie(&|$)/);
   await page.keyboard.press("Escape");
   await expect(page.locator('[id="wandavision"]')).toHaveCount(0);
   await page.keyboard.press("/");
   await page.keyboard.type("wandavision");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/work=wandavision/);
-  await expect(page).not.toHaveURL(/media=movies/);
+  await expect(page).toHaveURL(/media=movie%2Cseries/);
 });
 
 test("hovering a franchise card focuses it", async ({ page }) => {
@@ -133,7 +135,7 @@ test("settings switch with buttons and filter groups with chips", async ({ page 
   await panel.getByRole("button", { name: "Show all" }).click();
   await expect(page).not.toHaveURL(/show=/);
 
-  await panel.getByRole("button", { name: "Films only" }).click();
-  await expect(page).toHaveURL(/media=movies/);
+  await panel.getByRole("button", { name: "Animation", exact: true }).click();
+  await expect(page).toHaveURL(/media=movie%2Cseries(&|$)/);
   await expect(page.getByRole("button", { name: "View settings (filtered)" })).toBeVisible();
 });

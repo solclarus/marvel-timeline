@@ -1,9 +1,7 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
 import {
-  Clapperboard,
   Earth,
-  Film,
   GitBranch,
   Library,
   ListFilter,
@@ -15,12 +13,14 @@ import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MEDIA, type Medium } from "@/data/works";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
 import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import { EDGE_STYLE, type EdgeStyle } from "./graph-edges";
+import { MEDIUM_META } from "./medium-badge";
 
 interface Props {
   media: MediaFilter;
@@ -113,16 +113,51 @@ function Segmented<T extends string>({
         className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/30 p-0.5"
       >
         {options.map(({ value: option, label: optionLabel, icon: Icon, lang }) => (
-          <Toggle
-            key={option}
-            value={option}
-            lang={lang}
-            className="flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-sky-500 data-pressed:bg-white/15 data-pressed:text-foreground"
-          >
+          <Toggle key={option} value={option} lang={lang} className={PILL_CLASS}>
             {Icon && <Icon className="size-3.5" />}
             {optionLabel}
           </Toggle>
         ))}
+      </ToggleGroup>
+    </div>
+  );
+}
+
+const PILL_CLASS =
+  "flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-sky-500 data-pressed:bg-white/15 data-pressed:text-foreground";
+
+// Films, series and animation, each on or off; one always stays on.
+function MediaToggles({
+  media,
+  onChange,
+}: Pick<Props, "media"> & { onChange: Props["onMediaChange"] }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <SectionLabel>{t.media}</SectionLabel>
+      <ToggleGroup
+        multiple
+        aria-label={t.media}
+        value={[...media]}
+        onValueChange={(next: Medium[]) => {
+          if (next.length > 0) onChange(MEDIA.filter((medium) => next.includes(medium)));
+        }}
+        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/30 p-0.5"
+      >
+        {MEDIA.map((medium) => {
+          const { label, icon: Icon } = MEDIUM_META[medium];
+          return (
+            <Toggle
+              key={medium}
+              value={medium}
+              disabled={media.length === 1 && media[0] === medium}
+              className={`${PILL_CLASS} disabled:cursor-default`}
+            >
+              <Icon className="size-3.5" />
+              {t[label]}
+            </Toggle>
+          );
+        })}
       </ToggleGroup>
     </div>
   );
@@ -231,7 +266,8 @@ export function SettingsMenu({
 }: Props) {
   const { t, locale, setLocale } = useI18n();
   // The bar no longer shows the filters, so the button flags when one is on.
-  const filtered = media === "movies" || grouping.visible.size < GROUPS[grouping.by].length;
+  const filtered =
+    media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
   return (
     <Popover>
       <PopoverTrigger
@@ -256,15 +292,7 @@ export function SettingsMenu({
         className="flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-1.5 bg-card/95 backdrop-blur-md"
       >
         <Section title={t.filterSection} icon={ListFilter}>
-          <Segmented<MediaFilter>
-            label={t.media}
-            value={media}
-            onChange={onMediaChange}
-            options={[
-              { value: "all", label: t.mediaAllTitle, icon: Clapperboard },
-              { value: "movies", label: t.mediaMoviesTitle, icon: Film },
-            ]}
-          />
+          <MediaToggles media={media} onChange={onMediaChange} />
           <Segmented<GroupBy>
             label={t.groupBy}
             value={grouping.by}

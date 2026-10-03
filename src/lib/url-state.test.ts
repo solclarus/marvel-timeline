@@ -16,11 +16,11 @@ describe("url state", () => {
       focusMode: "immediate",
       groupBy: "franchise",
       visibleGroups: new Set(["mcu", "x-men"]),
-      media: "movies",
+      media: ["movie", "animation"],
     };
     const search = serializeUrlState(state);
     expect(search).toBe(
-      "?work=logan&mode=chronology&focus=immediate&media=movies&show=x-men%2Cmcu",
+      "?work=logan&mode=chronology&focus=immediate&media=movie%2Canimation&show=x-men%2Cmcu",
     );
     expect(parseUrlState(search)).toEqual(state);
   });
@@ -53,8 +53,14 @@ describe("url state", () => {
     expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(GROUPS.earth.length);
   });
 
-  it("shows all media when the linked work is a series", () => {
-    expect(parseUrlState("?work=wandavision&media=movies").media).toBe("all");
-    expect(parseUrlState("?work=logan&media=movies").media).toBe("movies");
+  it("adds the linked work's kind to the media filter", () => {
+    expect(parseUrlState("?work=wandavision&media=movie").media).toEqual(["movie", "series"]);
+    expect(parseUrlState("?work=what-if-s1&media=movie").media).toEqual(["movie", "animation"]);
+    expect(parseUrlState("?work=logan&media=movie").media).toEqual(["movie"]);
+  });
+
+  it("still opens older media links", () => {
+    expect(parseUrlState("?media=movies").media).toEqual(["movie"]);
+    expect(parseUrlState("?media=all").media).toEqual(DEFAULT_URL_STATE.media);
   });
 });

@@ -9,7 +9,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Select** a poster to highlight what it builds on and what follows; the map zooms to fit them. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology.
 - **Settings** (bottom bar), in two parts:
-  - **Filter**: films and series, or films only (hides series and bridges their chains, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
+  - **Filter**: films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
   - **Display**: highlight all related works or direct ones only; language.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
@@ -29,6 +29,7 @@ pnpm dev
 Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand.
 
 - `dependsOn` lists what a work builds on; `reference` edges are drawn but don't count as prerequisites.
+- `animated: true` marks animated films and series, which the media filter treats as animation rather than films or series.
 - `titleJa` is the Japanese title (TMDB's ja-JP listing, lightly cleaned up). `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
 - Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works that have drifted from TMDB.
 

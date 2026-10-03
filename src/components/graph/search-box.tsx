@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { FRANCHISE_META, posterUrl, WORKS, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 
+import { MediumBadge } from "./medium-badge";
+
 const MAX_RESULTS = 8;
 
 // Case- and width-insensitive (NFKC folds full-width forms), with
@@ -121,16 +123,14 @@ export function SearchBox({ onSelect }: Props) {
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{titleOf(work)}</span>
-                    <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <MediumBadge work={work} className="text-[9px]" />
                       <span
-                        className={`size-1.5 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
+                        className={`size-1.5 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                       />
-                      {franchiseLabel(work.franchise)} · {work.releaseDate.slice(0, 4)}
-                      {work.tmdb.type === "tv" && (
-                        <span className="rounded-full border px-1.5 text-[9px] font-semibold">
-                          {t.tvBadge}
-                        </span>
-                      )}
+                      <span className="truncate">
+                        {franchiseLabel(work.franchise)} · {work.releaseDate.slice(0, 4)}
+                      </span>
                     </span>
                   </span>
                 </Autocomplete.Item>

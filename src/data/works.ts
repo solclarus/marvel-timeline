@@ -223,6 +223,8 @@ export interface WorkNode {
   // Japanese title, from TMDB's ja-JP listing where it has one.
   titleJa: string;
   franchise: Franchise;
+  // Animated, whether a film or a series; see `mediumOf`.
+  animated?: true;
   // MCU only.
   phase?: number;
   // MCU only: keeps a character line in one lane through ensemble films.
@@ -238,6 +240,16 @@ export interface WorkNode {
   releaseDate: string;
   // TMDB poster path, e.g. "/abc.jpg" — see `posterUrl`.
   poster: string;
+}
+
+// What kind of work it is, for the media filter: animation wins over the
+// film/series split, so an animated film counts as animation.
+export type Medium = "movie" | "series" | "animation";
+export const MEDIA: readonly Medium[] = ["movie", "series", "animation"];
+
+export function mediumOf(work: WorkNode): Medium {
+  if (work.animated) return "animation";
+  return work.tmdb.type === "movie" ? "movie" : "series";
 }
 
 export interface WorkEdge {
@@ -877,6 +889,7 @@ export const WORKS: WorkNode[] = [
     title: "What If...? — Season 1",
     titleJa: "ホワット・イフ…？ — シーズン1",
     franchise: "mcu",
+    animated: true,
     earths: ["multiverse", "89521"],
     phase: 4,
     chronologyOrder: 28,
@@ -1094,6 +1107,7 @@ export const WORKS: WorkNode[] = [
     title: "What If...? — Season 2",
     titleJa: "ホワット・イフ…？ — シーズン2",
     franchise: "mcu",
+    animated: true,
     earths: ["multiverse"],
     phase: 5,
     dependsOn: [{ id: "what-if-s1", kind: "direct-sequel" }],
@@ -1121,6 +1135,7 @@ export const WORKS: WorkNode[] = [
     title: "What If...? — Season 3",
     titleJa: "ホワット・イフ…？ — シーズン3",
     franchise: "mcu",
+    animated: true,
     earths: ["multiverse"],
     phase: 5,
     dependsOn: [{ id: "what-if-s2", kind: "direct-sequel" }],
@@ -1181,6 +1196,7 @@ export const WORKS: WorkNode[] = [
     title: "I Am Groot — Season 1",
     titleJa: "アイ・アム・グルート — シーズン1",
     franchise: "mcu",
+    animated: true,
     phase: 4,
     // No `thread`: tagging it "guardians" would claim that lane against the
     // Holiday Special on the same row.
@@ -1224,6 +1240,7 @@ export const WORKS: WorkNode[] = [
     title: "I Am Groot — Season 2",
     titleJa: "アイ・アム・グルート — シーズン2",
     franchise: "mcu",
+    animated: true,
     phase: 5,
     dependsOn: [{ id: "i-am-groot-s1", kind: "direct-sequel" }],
     chronologyOrder: 37.7,
@@ -1896,6 +1913,7 @@ export const WORKS: WorkNode[] = [
     title: "Your Friendly Neighborhood Spider-Man — Season 1",
     titleJa: "スパイダーマン：フレンドリー・ネイバーフッド — シーズン1",
     franchise: "mcu",
+    animated: true,
     earths: ["86445"],
     phase: 5,
     chronologyOrder: 51.7,
@@ -1910,6 +1928,7 @@ export const WORKS: WorkNode[] = [
     title: "Eyes of Wakanda",
     titleJa: "アイズ・オブ・ワカンダ",
     franchise: "mcu",
+    animated: true,
     phase: 6,
     dependsOn: [{ id: "black-panther-wakanda-forever", kind: "reference" }],
     chronologyOrder: 0.5,
@@ -1923,6 +1942,7 @@ export const WORKS: WorkNode[] = [
     title: "Marvel Zombies",
     titleJa: "マーベル・ゾンビーズ",
     franchise: "mcu",
+    animated: true,
     earths: ["89521"],
     phase: 6,
     dependsOn: [{ id: "what-if-s1", kind: "spin-off" }],
@@ -2031,6 +2051,7 @@ export const WORKS: WorkNode[] = [
     title: "Spider-Man: Into the Spider-Verse",
     titleJa: "スパイダーマン：スパイダーバース",
     franchise: "spider-verse",
+    animated: true,
     earths: ["1610", "65"],
     chronologyOrder: 87,
     recommendedOrder: null,
@@ -2043,6 +2064,7 @@ export const WORKS: WorkNode[] = [
     title: "Spider-Man: Across the Spider-Verse",
     titleJa: "スパイダーマン：アクロス・ザ・スパイダーバース",
     franchise: "spider-verse",
+    animated: true,
     earths: ["1610", "65", "42", "688"],
     dependsOn: [
       { id: "spider-man-into-the-spider-verse", kind: "direct-sequel" },
@@ -2060,6 +2082,7 @@ export const WORKS: WorkNode[] = [
     title: "Spider-Man: Beyond the Spider-Verse",
     titleJa: "スパイダーマン：ビヨンド・ザ・スパイダーバース",
     franchise: "spider-verse",
+    animated: true,
     earths: ["1610", "42"],
     dependsOn: [{ id: "spider-man-across-the-spider-verse", kind: "direct-sequel" }],
     chronologyOrder: 89,
@@ -2075,6 +2098,7 @@ export const WORKS: WorkNode[] = [
     title: "X-Men '97 — Season 1",
     titleJa: "X-MEN '97 — シーズン1",
     franchise: "animation",
+    animated: true,
     phase: 5,
     chronologyOrder: 90,
     recommendedOrder: null,
@@ -2088,6 +2112,7 @@ export const WORKS: WorkNode[] = [
     title: "X-Men '97 — Season 2",
     titleJa: "X-MEN '97 — シーズン2",
     franchise: "animation",
+    animated: true,
     phase: 6,
     dependsOn: [{ id: "x-men-97-s1", kind: "direct-sequel" }],
     chronologyOrder: 90.5,
@@ -2102,6 +2127,7 @@ export const WORKS: WorkNode[] = [
     title: "Your Friendly Neighborhood Spider-Man — Season 2",
     titleJa: "スパイダーマン：フレンドリー・ネイバーフッド — シーズン2",
     franchise: "mcu",
+    animated: true,
     earths: ["86445"],
     phase: 6,
     dependsOn: [{ id: "your-friendly-neighborhood-spider-man-s1", kind: "direct-sequel" }],
