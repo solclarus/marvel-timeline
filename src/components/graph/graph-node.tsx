@@ -18,7 +18,7 @@ export const NODE_STATE_STYLE: Record<
   NodeState,
   { opacity: number; scale: number; grayscale: boolean }
 > = {
-  selected: { opacity: 1, scale: 1.5, grayscale: false },
+  selected: { opacity: 1, scale: 1.25, grayscale: false },
   ancestor: { opacity: 1, scale: 1, grayscale: false },
   neutral: { opacity: 1, scale: 1, grayscale: false },
   dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
