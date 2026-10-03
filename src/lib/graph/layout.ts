@@ -4,6 +4,8 @@ import { assignLanes, centerMainLane } from "./lanes";
 import { GLOBAL_STEP, MAX_STEP } from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
+// "compact" redraws only the selection and its relatives.
+export type DisplayMode = "inline" | "compact";
 export type Axis = "x" | "y";
 
 // Percentages (0–100) of the canvas.
