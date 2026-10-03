@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { EDGES, WORKS, type Franchise } from "@/data/works";
+import { EARTH_META, earthsOf, EDGES, WORKS, type Franchise } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
 import { BAND_ORDER, computeFocusLayout, computeLayout, type ViewMode } from "./layout";
@@ -19,6 +19,18 @@ describe("works data", () => {
     const invalid = WORKS.filter(
       (w) => !/^\d{4}-\d{2}-\d{2}$/.test(w.releaseDate) || !/^\/\w+\.jpg$/.test(w.poster),
     ).map((w) => w.id);
+    expect(invalid).toEqual([]);
+  });
+
+  it("lists each work's Earths without duplicates", () => {
+    const invalid = WORKS.filter((w) => {
+      const earths = earthsOf(w);
+      return (
+        earths.length === 0 ||
+        new Set(earths).size !== earths.length ||
+        earths.some((earth) => !(earth in EARTH_META))
+      );
+    }).map((w) => w.id);
     expect(invalid).toEqual([]);
   });
 

@@ -1,4 +1,19 @@
 export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
+// Earth designations as the films and series use them. "multiverse" is for
+// works that span too many Earths to list.
+export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "1048" | "multiverse";
+
+export const EARTH_META: Record<EarthId, { label: string }> = {
+  "616": { label: "Earth-616" },
+  "838": { label: "Earth-838" },
+  "828": { label: "Earth-828" },
+  "10005": { label: "Earth-10005" },
+  "96283": { label: "Earth-96283" },
+  "120703": { label: "Earth-120703" },
+  "1048": { label: "Earth-1048" },
+  multiverse: { label: "Multiverse" },
+};
+
 export type EdgeKind = "direct-sequel" | "spin-off" | "leads-into" | "crossover" | "reference";
 
 // "reference" is excluded — a loose cameo tie isn't a prerequisite.
@@ -30,8 +45,9 @@ export interface WorkNode {
   phase?: number;
   // MCU only: keeps a character line in one lane through ensemble films.
   thread?: string;
-  // Overrides FRANCHISE_META[franchise].earth.
-  earth?: string;
+  // Overrides FRANCHISE_META[franchise].earth. The first is the work's home
+  // Earth; any others are Earths it crosses into. See `earthsOf`.
+  earths?: EarthId[];
   dependsOn?: Dependency[];
   chronologyOrder: number;
   setYear?: number;
@@ -50,16 +66,16 @@ export interface WorkEdge {
 
 export const FRANCHISE_META: Record<
   Franchise,
-  { label: string; colorClass: string; earth: string }
+  { label: string; colorClass: string; earth: EarthId }
 > = {
-  mcu: { label: "MCU", colorClass: "bg-rose-500", earth: "Earth-616" },
-  "x-men": { label: "X-Men (Fox)", colorClass: "bg-indigo-500", earth: "Earth-10005" },
+  mcu: { label: "MCU", colorClass: "bg-rose-500", earth: "616" },
+  "x-men": { label: "X-Men (Fox)", colorClass: "bg-indigo-500", earth: "10005" },
   "spider-man-legacy": {
     label: "Legacy Spider-Man",
     colorClass: "bg-slate-500",
-    earth: "Earth-96283",
+    earth: "96283",
   },
-  ssu: { label: "SSU", colorClass: "bg-violet-500", earth: "Earth-1048" },
+  ssu: { label: "SSU", colorClass: "bg-violet-500", earth: "1048" },
 };
 
 export const WORKS: WorkNode[] = [
@@ -475,6 +491,7 @@ export const WORKS: WorkNode[] = [
     id: "spider-man-no-way-home",
     title: "Spider-Man: No Way Home",
     franchise: "mcu",
+    earths: ["616", "96283", "120703"],
     phase: 4,
     thread: "spider-man",
     dependsOn: [
@@ -496,6 +513,7 @@ export const WORKS: WorkNode[] = [
     id: "doctor-strange-multiverse-of-madness",
     title: "Doctor Strange in the Multiverse of Madness",
     franchise: "mcu",
+    earths: ["616", "838"],
     phase: 4,
     thread: "doctor-strange",
     dependsOn: [
@@ -576,6 +594,7 @@ export const WORKS: WorkNode[] = [
     id: "loki-s1",
     title: "Loki — Season 1",
     franchise: "mcu",
+    earths: ["616", "multiverse"],
     phase: 4,
     dependsOn: [{ id: "avengers-endgame", kind: "leads-into" }],
     chronologyOrder: 27,
@@ -589,6 +608,7 @@ export const WORKS: WorkNode[] = [
     id: "what-if-s1",
     title: "What If...? — Season 1",
     franchise: "mcu",
+    earths: ["multiverse"],
     phase: 4,
     chronologyOrder: 28,
     recommendedOrder: null,
@@ -703,6 +723,7 @@ export const WORKS: WorkNode[] = [
     id: "deadpool-and-wolverine",
     title: "Deadpool & Wolverine",
     franchise: "mcu",
+    earths: ["10005", "616"],
     phase: 5,
     thread: "deadpool-wolverine",
     dependsOn: [
@@ -773,6 +794,7 @@ export const WORKS: WorkNode[] = [
     id: "loki-s2",
     title: "Loki — Season 2",
     franchise: "mcu",
+    earths: ["616", "multiverse"],
     phase: 5,
     dependsOn: [{ id: "loki-s1", kind: "direct-sequel" }],
     chronologyOrder: 41,
@@ -786,6 +808,7 @@ export const WORKS: WorkNode[] = [
     id: "what-if-s2",
     title: "What If...? — Season 2",
     franchise: "mcu",
+    earths: ["multiverse"],
     phase: 5,
     dependsOn: [{ id: "what-if-s1", kind: "direct-sequel" }],
     chronologyOrder: 43,
@@ -810,6 +833,7 @@ export const WORKS: WorkNode[] = [
     id: "what-if-s3",
     title: "What If...? — Season 3",
     franchise: "mcu",
+    earths: ["multiverse"],
     phase: 5,
     dependsOn: [{ id: "what-if-s2", kind: "direct-sequel" }],
     chronologyOrder: 47,
@@ -1105,6 +1129,7 @@ export const WORKS: WorkNode[] = [
     id: "amazing-spider-man",
     title: "The Amazing Spider-Man",
     franchise: "spider-man-legacy",
+    earths: ["120703"],
     chronologyOrder: 68,
     recommendedOrder: 37,
     tmdb: { type: "movie", id: 1930 },
@@ -1115,6 +1140,7 @@ export const WORKS: WorkNode[] = [
     id: "amazing-spider-man-2",
     title: "The Amazing Spider-Man 2",
     franchise: "spider-man-legacy",
+    earths: ["120703"],
     dependsOn: [{ id: "amazing-spider-man", kind: "direct-sequel" }],
     chronologyOrder: 69,
     recommendedOrder: 38,
@@ -1149,6 +1175,7 @@ export const WORKS: WorkNode[] = [
     id: "morbius",
     title: "Morbius",
     franchise: "ssu",
+    earths: ["1048", "616"],
     dependsOn: [{ id: "venom", kind: "reference" }],
     chronologyOrder: 72,
     recommendedOrder: null,
@@ -1160,6 +1187,7 @@ export const WORKS: WorkNode[] = [
     id: "venom-let-there-be-carnage",
     title: "Venom: Let There Be Carnage",
     franchise: "ssu",
+    earths: ["1048", "616"],
     dependsOn: [{ id: "venom", kind: "direct-sequel" }],
     chronologyOrder: 73,
     recommendedOrder: null,
@@ -1182,6 +1210,7 @@ export const WORKS: WorkNode[] = [
     id: "venom-the-last-dance",
     title: "Venom: The Last Dance",
     franchise: "ssu",
+    earths: ["1048", "616"],
     dependsOn: [{ id: "venom-let-there-be-carnage", kind: "direct-sequel" }],
     chronologyOrder: 75,
     recommendedOrder: null,
@@ -1197,7 +1226,7 @@ export const WORKS: WorkNode[] = [
     franchise: "mcu",
     phase: 6,
     thread: "fantastic-four",
-    earth: "Earth-828",
+    earths: ["828"],
     chronologyOrder: 76,
     setYear: 1964,
     recommendedOrder: 57,
@@ -1228,7 +1257,7 @@ export const WORKS: WorkNode[] = [
     franchise: "mcu",
     phase: 6,
     thread: "avengers",
-    earth: "Earth-616 / 828 / 10005",
+    earths: ["616", "828", "10005"],
     // Bridge: converges Earth-616, the Fantastic Four's Earth-828, and the
     // original Fox X-Men's Earth-10005 into one event.
     dependsOn: [
@@ -1255,7 +1284,7 @@ export const WORKS: WorkNode[] = [
     franchise: "mcu",
     phase: 6,
     thread: "avengers",
-    earth: "Multiverse",
+    earths: ["multiverse"],
     dependsOn: [{ id: "avengers-doomsday", kind: "direct-sequel" }],
     chronologyOrder: 79,
     recommendedOrder: 60,
@@ -1332,4 +1361,8 @@ export const EDGES: WorkEdge[] = WORKS.flatMap((work) =>
 
 export function posterUrl(work: WorkNode) {
   return `https://image.tmdb.org/t/p/w185${work.poster}`;
+}
+
+export function earthsOf(work: WorkNode): EarthId[] {
+  return work.earths ?? [FRANCHISE_META[work.franchise].earth];
 }
