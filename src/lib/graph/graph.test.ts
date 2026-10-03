@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
+import { computeActiveSet } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeLayout, computePhaseBands, type ViewMode } from "./layout";
 import {
@@ -335,5 +336,58 @@ describe("Earth grouping", () => {
       })
       .map((w) => w.id);
     expect(inside).toEqual([]);
+  });
+});
+
+describe("computeActiveSet", () => {
+  const graph = WORK_GRAPHS.all;
+  const grouping: Grouping = {
+    by: "franchise",
+    visible: new Set(GROUPS.franchise.map((g) => g.key)),
+  };
+  const base = { distances: new Map<string, number>(), grouping, graph };
+
+  it("is null when nothing is selected or focused", () => {
+    expect(
+      computeActiveSet({
+        ...base,
+        selectedId: null,
+        focusedPhase: undefined,
+        focusedGroup: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it("prefers a selection and its relatives over a focused group", () => {
+    const set = computeActiveSet({
+      ...base,
+      selectedId: "iron-man",
+      distances: new Map([["iron-man-2", 1]]),
+      focusedPhase: 3,
+      focusedGroup: "x-men",
+    });
+    expect([...set!].sort()).toEqual(["iron-man", "iron-man-2"]);
+  });
+
+  it("takes a phase's works from the phase group only", () => {
+    const set = computeActiveSet({
+      ...base,
+      selectedId: null,
+      focusedPhase: 1,
+      focusedGroup: undefined,
+    });
+    expect(set!.has("iron-man")).toBe(true);
+    expect([...set!].every((id) => WORKS.find((w) => w.id === id)!.franchise === "mcu")).toBe(true);
+  });
+
+  it("takes a group's works", () => {
+    const set = computeActiveSet({
+      ...base,
+      selectedId: null,
+      focusedPhase: undefined,
+      focusedGroup: "ssu",
+    });
+    expect(set!.has("venom")).toBe(true);
+    expect(set!.has("iron-man")).toBe(false);
   });
 });
