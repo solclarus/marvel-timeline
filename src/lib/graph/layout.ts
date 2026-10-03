@@ -82,6 +82,14 @@ export function timelineYear(work: WorkNode, mode: Exclude<ViewMode, "recommende
   return mode === "release" ? releaseYear : (work.setYear ?? releaseYear);
 }
 
+// A string that sorts works the way a timeline places them: release date,
+// or in-story year then chronology order.
+function timelineSortKey(work: WorkNode, mode: Exclude<ViewMode, "recommended">): string {
+  if (mode === "release") return work.releaseDate;
+  const order = String(Math.round(work.chronologyOrder * 1000)).padStart(9, "0");
+  return `${timelineYear(work, mode)}|${order}`;
+}
+
 // Every decade gets at least this many columns, so a decade with one or two
 // works still makes a band wide enough to read beside its neighbors.
 const MIN_DECADE_COLUMNS = 3;
@@ -127,9 +135,19 @@ function computeTimelineLayout(
   graph: WorkGraph,
 ): GraphLayout {
   const worksInScope = graph.works.filter((w) => isWorkVisible(w, grouping));
-  // A group the media filter has emptied gets no row.
-  const inScope = new Set(worksInScope.map((w) => groupKeyOf(w, grouping.by)));
-  const bands = visibleBands(grouping).filter((band) => inScope.has(band));
+  // Rows run from the group with the earliest work in view down to the
+  // latest, so the timeline reads top-left to bottom-right; a group the
+  // filters have emptied gets no row. Ties keep the usual group order.
+  const earliest = new Map<string, string>();
+  for (const work of worksInScope) {
+    const key = groupKeyOf(work, grouping.by);
+    const sortKey = timelineSortKey(work, mode);
+    const current = earliest.get(key);
+    if (current === undefined || sortKey < current) earliest.set(key, sortKey);
+  }
+  const bands = visibleBands(grouping)
+    .filter((band) => earliest.has(band))
+    .sort((a, b) => earliest.get(a)!.localeCompare(earliest.get(b)!));
   const rows = Math.max(1, bands.length);
   const height = canvasHeight(rows, TIMELINE_HEADER_PX);
   const headerPercent = (TIMELINE_HEADER_PX / height) * 100;
