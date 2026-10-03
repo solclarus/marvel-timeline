@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "test": "vitest run",
-    "check:tmdb": "node scripts/check-tmdb.ts",
+    "check:tmdb": "node --env-file-if-exists=.env.local scripts/check-tmdb.ts",
+    "fetch:runtimes": "node --env-file-if-exists=.env.local scripts/fetch-runtimes.ts && oxfmt src/data/runtimes.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {

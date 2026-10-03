@@ -5,6 +5,7 @@ import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
 import { AboutDialog } from "./about-dialog";
 import { FabBar, FabDivider } from "./fab";
 import { ModeMenu } from "./mode-menu";
+import { RoutesDialog } from "./routes-dialog";
 import { SearchBox } from "./search-box";
 import { SettingsMenu } from "./settings-menu";
 
@@ -42,6 +43,7 @@ export function CommandBar({
         <SearchBox onSelect={onSearchSelect} />
         <FabDivider />
         <ModeMenu mode={mode} onChange={onModeChange} />
+        <RoutesDialog onSelect={onSearchSelect} />
         <SettingsMenu
           media={media}
           onMediaChange={onMediaChange}
