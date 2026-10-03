@@ -413,6 +413,23 @@ describe("phase bands", () => {
   });
 });
 
+describe("timeline rows", () => {
+  it("skip groups the media filter has emptied", () => {
+    const grouping: Grouping = {
+      by: "franchise",
+      visible: new Set(GROUPS.franchise.map((g) => g.key)),
+    };
+    const graph = graphForMedia(["animation"]);
+    const groupsWithWorks = new Set(graph.works.map((w) => groupKeyOf(w, "franchise")));
+    for (const mode of ["release", "chronology"] as const) {
+      const layout = computeLayout(mode, grouping, graph);
+      expect(layout.rowCount).toBe(groupsWithWorks.size);
+      const rows = new Set([...layout.positions.values()].map((p) => p.y.toFixed(3)));
+      expect(rows.size).toBe(groupsWithWorks.size);
+    }
+  });
+});
+
 describe("Earth grouping", () => {
   it("keeps another franchise on Earth-616 outside the MCU phase bands", () => {
     const grouping: Grouping = { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) };

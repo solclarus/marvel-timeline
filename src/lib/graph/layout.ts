@@ -123,8 +123,10 @@ function computeTimelineLayout(
   grouping: Grouping,
   graph: WorkGraph,
 ): GraphLayout {
-  const bands = visibleBands(grouping);
   const worksInScope = graph.works.filter((w) => isWorkVisible(w, grouping));
+  // A group the media filter has emptied gets no row.
+  const inScope = new Set(worksInScope.map((w) => groupKeyOf(w, grouping.by)));
+  const bands = visibleBands(grouping).filter((band) => inScope.has(band));
   const rows = Math.max(1, bands.length);
   const rowHeight = 100 / rows;
   const rowOf = (work: WorkNode) => Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
