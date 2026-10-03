@@ -36,7 +36,7 @@ import {
 } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
-import { parseUrlState, withMedium } from "@/lib/url-state";
+import { parseUrlState, withMedium, type Display } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
 import { attachDesktopInput, keepInView } from "./desktop-input";
@@ -50,6 +50,7 @@ import {
   type NodeState,
 } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
+import { ListView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
 import { useHoverFocus } from "./use-hover-focus";
 import { useSelectionFit } from "./use-selection-fit";
@@ -66,6 +67,9 @@ const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
+// Phones start on the list; the map is hard to read that small.
+const DEVICE_DISPLAY: Display = window.matchMedia("(max-width: 640px)").matches ? "list" : "map";
+
 export function Graph() {
   const { t, groupLabel } = useI18n();
   const [initial] = useState(() => parseUrlState(window.location.search));
@@ -77,6 +81,7 @@ export function Graph() {
     visible: initial.visibleGroups,
   });
   const [media, setMedia] = useState<MediaFilter>(initial.media);
+  const [display, setDisplay] = useState<Display>(initial.display ?? DEVICE_DISPLAY);
   const graph = graphForMedia(media);
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
@@ -136,6 +141,7 @@ export function Graph() {
     groupBy: grouping.by,
     visibleGroups: grouping.visible,
     media,
+    display: display === DEVICE_DISPLAY ? null : display,
   });
 
   useSelectionFit({
@@ -146,6 +152,7 @@ export function Graph() {
           focusMode,
           media,
           mode,
+          display,
           grouping.by,
           [...grouping.visible].sort().join(","),
         ].join("|")
@@ -227,7 +234,7 @@ export function Graph() {
     axis === "y" ? NODE_HEIGHT : NODE_WIDTH,
   );
 
-  return (
+  const map = (
     <TransformWrapper
       minScale={MIN_ZOOM}
       maxScale={MAX_ZOOM}
@@ -339,25 +346,6 @@ export function Graph() {
             />
           )}
 
-          <DetailPanel
-            selectedId={selectedId}
-            onClear={() => setSelectedId(null)}
-            onSelect={handleSearchSelect}
-            graph={graph}
-          />
-
-          <CommandBar
-            onSearchSelect={handleSearchSelect}
-            mode={mode}
-            onModeChange={setMode}
-            media={media}
-            onMediaChange={handleMediaChange}
-            grouping={grouping}
-            onVisibleGroupsChange={handleVisibleGroupsChange}
-            onGroupByChange={handleGroupByChange}
-            focusMode={focusMode}
-            onFocusModeChange={setFocusMode}
-          />
           <ZoomFab
             zoom={zoomPercent}
             minZoom={MIN_ZOOM}
@@ -369,5 +357,44 @@ export function Graph() {
         </div>
       )}
     </TransformWrapper>
+  );
+
+  return (
+    <>
+      {display === "map" ? (
+        map
+      ) : (
+        <ListView
+          mode={mode}
+          grouping={grouping}
+          graph={graph}
+          selectedId={selectedId}
+          activeSet={selectedId ? activeSet : null}
+          distances={distances}
+          onSelect={handleSelect}
+        />
+      )}
+      <DetailPanel
+        selectedId={selectedId}
+        onClear={() => setSelectedId(null)}
+        onSelect={handleSearchSelect}
+        graph={graph}
+      />
+
+      <CommandBar
+        display={display}
+        onDisplayChange={setDisplay}
+        onSearchSelect={handleSearchSelect}
+        mode={mode}
+        onModeChange={setMode}
+        media={media}
+        onMediaChange={handleMediaChange}
+        grouping={grouping}
+        onVisibleGroupsChange={handleVisibleGroupsChange}
+        onGroupByChange={handleGroupByChange}
+        focusMode={focusMode}
+        onFocusModeChange={setFocusMode}
+      />
+    </>
   );
 }

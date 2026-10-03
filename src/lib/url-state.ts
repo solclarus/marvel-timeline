@@ -18,7 +18,12 @@ export interface UrlState {
   groupBy: GroupBy;
   visibleGroups: Set<string>;
   media: MediaFilter;
+  // Map or list; null leaves it to the device (a list on phones).
+  display: Display | null;
 }
+
+export type Display = "map" | "list";
+const DISPLAYS: readonly Display[] = ["map", "list"];
 
 const GROUP_BYS: readonly GroupBy[] = ["franchise", "earth"];
 const VIEW_MODES: readonly ViewMode[] = ["recommended", "release", "chronology"];
@@ -31,6 +36,7 @@ export const DEFAULT_URL_STATE: UrlState = {
   groupBy: "franchise",
   visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
   media: MEDIA,
+  display: null,
 };
 
 // `media=movie,animation`; the older `movies` and `all` still open.
@@ -66,6 +72,9 @@ export function parseUrlState(search: string): UrlState {
     groupBy,
     visibleGroups,
     media,
+    display: (DISPLAYS as readonly string[]).includes(params.get("view") ?? "")
+      ? (params.get("view") as Display)
+      : null,
   };
 }
 
@@ -79,6 +88,7 @@ export function withMedium(media: MediaFilter, medium: Medium | undefined): Medi
 export function serializeUrlState(state: UrlState): string {
   const params = new URLSearchParams();
   if (state.selectedId) params.set("work", state.selectedId);
+  if (state.display) params.set("view", state.display);
   if (state.mode !== DEFAULT_URL_STATE.mode) params.set("mode", state.mode);
   if (state.focusMode !== DEFAULT_URL_STATE.focusMode) params.set("focus", state.focusMode);
 

@@ -53,7 +53,7 @@ function visibleBands(grouping: Grouping) {
   return visibleGroups(grouping).map((group) => group.key);
 }
 
-function recommendedTimeRank(): Map<string, number> {
+export function recommendedTimeRank(): Map<string, number> {
   const included = WORKS.filter((w) => w.recommendedOrder !== null).sort(
     (a, b) => (a.recommendedOrder ?? 0) - (b.recommendedOrder ?? 0),
   );
@@ -84,7 +84,7 @@ export function timelineYear(work: WorkNode, mode: Exclude<ViewMode, "recommende
 
 // A string that sorts works the way a timeline places them: release date,
 // or in-story year then chronology order.
-function timelineSortKey(work: WorkNode, mode: Exclude<ViewMode, "recommended">): string {
+export function timelineSortKey(work: WorkNode, mode: Exclude<ViewMode, "recommended">): string {
   if (mode === "release") return work.releaseDate;
   const order = String(Math.round(work.chronologyOrder * 1000)).padStart(9, "0");
   return `${timelineYear(work, mode)}|${order}`;

@@ -50,6 +50,11 @@ const en = {
   showAll: "Show all",
   groupsShown: (shown: number, total: number) => `${shown}/${total}`,
   showOnlyHint: "Long-press or right-click to show only that one",
+  // List view
+  showList: "Show as a list",
+  showMap: "Show as a map",
+  listBefore: "Before",
+  listAfter: "After",
   // Map
   phase: (n: number) => `Phase ${n}`,
   saga: (saga: Saga) =>
@@ -134,6 +139,10 @@ const ja: Messages = {
   showAll: "すべて表示",
   groupsShown: (shown, total) => `${shown} / ${total}`,
   showOnlyHint: "長押し・右クリックでそれだけ表示",
+  showList: "リストで表示",
+  showMap: "マップで表示",
+  listBefore: "先に観る",
+  listAfter: "この後",
   phase: (n) => `フェーズ${n}`,
   saga: (saga) =>
     ({
