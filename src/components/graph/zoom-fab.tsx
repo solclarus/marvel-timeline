@@ -26,7 +26,6 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
         onClick={onZoomIn}
         disabled={zoom >= maxZoom - EPSILON}
         aria-label={t.zoomIn}
@@ -44,7 +43,6 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
       <Button
         variant="ghost"
         size="icon"
-        className="rounded-full"
         onClick={onZoomOut}
         disabled={zoom <= minZoom + EPSILON}
         aria-label={t.zoomOut}
@@ -52,13 +50,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
         <ZoomOut className="size-4" />
       </Button>
       <FabDivider vertical />
-      <Button
-        variant="ghost"
-        size="icon"
-        className="rounded-full"
-        onClick={onFit}
-        aria-label={t.fitToView}
-      >
+      <Button variant="ghost" size="icon" onClick={onFit} aria-label={t.fitToView}>
         <Maximize2 className="size-4" />
       </Button>
     </FabBar>

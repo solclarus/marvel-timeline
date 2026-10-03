@@ -89,7 +89,7 @@ export function GraphNode({
           onFocus={(e) => {
             if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
           }}
-          className="absolute rounded-[4px] outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
+          className="absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
           aria-pressed={state === "selected"}
           style={{ width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
           initial={false}
@@ -113,7 +113,7 @@ export function GraphNode({
     >
       {hasIncoming && <span aria-hidden className={nubClass.incoming} />}
       <div
-        className={`relative size-full overflow-hidden rounded-[3px] border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
+        className={`relative size-full overflow-hidden rounded-thumb border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
       >
         <PosterThumb work={work} />
       </div>

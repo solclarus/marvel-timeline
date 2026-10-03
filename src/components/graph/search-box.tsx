@@ -101,7 +101,7 @@ export function SearchBox({ onSelect }: Props) {
       </div>
       <Autocomplete.Portal>
         <Autocomplete.Positioner side="top" sideOffset={18} align="start" className="z-50">
-          <Autocomplete.Popup className="max-h-[60vh] w-(--anchor-width) min-w-64 overflow-y-auto rounded-lg border bg-card/95 p-1 text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md">
+          <Autocomplete.Popup className="max-h-[60vh] w-(--anchor-width) min-w-64 overflow-y-auto rounded-surface border bg-card/95 p-1.5 text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md">
             <Autocomplete.Empty className="px-3 py-2 text-xs text-muted-foreground empty:hidden">
               {query.trim() !== "" && t.noMatches}
             </Autocomplete.Empty>
@@ -110,13 +110,13 @@ export function SearchBox({ onSelect }: Props) {
                 <Autocomplete.Item
                   key={work.id}
                   value={work}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-item px-2 py-1.5 data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                 >
                   <img
                     src={posterUrl(work)}
                     alt=""
                     loading="lazy"
-                    className="h-9 w-6 shrink-0 rounded-sm bg-muted object-cover"
+                    className="h-9 w-6 shrink-0 rounded-thumb bg-muted object-cover"
                     onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                   />
                   <span className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export function SearchBox({ onSelect }: Props) {
                       />
                       {franchiseLabel(work.franchise)} · {work.releaseDate.slice(0, 4)}
                       {work.tmdb.type === "tv" && (
-                        <span className="rounded-sm border px-1 text-[9px] font-semibold">
+                        <span className="rounded-full border px-1.5 text-[9px] font-semibold">
                           {t.tvBadge}
                         </span>
                       )}

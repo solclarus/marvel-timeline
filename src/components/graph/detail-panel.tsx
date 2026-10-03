@@ -36,7 +36,7 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ duration: 0.2 }}
-              className="pointer-events-auto flex items-start gap-3 rounded-lg border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
+              className="pointer-events-auto flex items-start gap-3 rounded-surface border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
             >
               <m.button
                 type="button"
@@ -46,9 +46,9 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                 transition={{ duration: 0.15 }}
                 onClick={() => setDetailOpen(true)}
                 aria-label={t.showDetails(titleOf(work))}
-                className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-md p-1 text-left hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
+                className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-item p-1 text-left hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
               >
-                <span className="relative block h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
+                <span className="relative block h-16 w-11 shrink-0 overflow-hidden rounded-thumb bg-muted sm:h-24 sm:w-16">
                   <img
                     src={posterUrl(work)}
                     alt=""

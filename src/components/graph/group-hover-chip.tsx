@@ -32,7 +32,7 @@ export function GroupHoverChip({ label, dot, count, initial }: Props) {
   if (pointer.overPoster) return null;
   return (
     <div
-      className="pointer-events-none fixed z-50 flex items-center gap-1.5 rounded-md border bg-card/95 px-3 py-1.5 text-xs whitespace-nowrap text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md"
+      className="pointer-events-none fixed z-50 flex items-center gap-1.5 rounded-full border bg-card/95 px-3 py-1.5 text-xs whitespace-nowrap text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md"
       style={{ left: pointer.x + 14, top: pointer.y + 14 }}
     >
       <span

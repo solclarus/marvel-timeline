@@ -44,7 +44,7 @@ export function MapBackdrop({
       {groupCards.map((card) => (
         <div
           key={card.key}
-          className={`absolute rounded-2xl border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/[0.03]"} ${card.cardClass}`}
+          className={`absolute rounded-surface border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/[0.03]"} ${card.cardClass}`}
           style={box(card)}
         >
           <BorderLabel
@@ -60,7 +60,7 @@ export function MapBackdrop({
       {phaseBands.map((band) => (
         <div
           key={band.phase}
-          className="absolute rounded-2xl border-2"
+          className="absolute rounded-surface border-2"
           style={{ ...box(band), backgroundColor: band.color, borderColor: band.borderColor }}
         >
           <BorderLabel
