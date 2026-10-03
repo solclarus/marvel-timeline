@@ -54,11 +54,12 @@ test("media filter hides series and brings back a searched one", async ({ page }
 
 test("hovering a franchise card focuses it", async ({ page }) => {
   // Select X-Men to bring its card into view, then clear the selection.
-  await page.goto("./?work=x-men");
+  await page.goto("./?work=x-men&focus=immediate");
   await page.waitForTimeout(600);
   await page.keyboard.press("Escape");
   const xMen = await page.locator('[id="x-men"]').boundingBox();
-  await page.mouse.move(xMen!.x + xMen!.width / 2, xMen!.y + xMen!.height + 30);
+  // Just below the poster, in the card's padding, at whatever zoom the fit chose.
+  await page.mouse.move(xMen!.x + xMen!.width / 2, xMen!.y + xMen!.height * 1.15);
   await expect.poll(() => opacityOf(page, "iron-man")).toBeLessThan(0.5);
   expect(await opacityOf(page, "x-men")).toBe(1);
 });

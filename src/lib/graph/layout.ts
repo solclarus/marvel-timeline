@@ -360,9 +360,11 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
   return { positions, totalLanes: total, rowCount: maxStep + 1 };
 }
 
-// Cells leave room around each poster for the cards' padding.
+// Cells leave room around each poster for the cards' padding. A row is a
+// poster plus two paddings plus one more, so cards in neighboring rows
+// (stacked phases, timeline rows) sit CARD_PAD_PX apart.
 const LANE_PX = 144;
-const ROW_PX = 170;
+const ROW_PX = 186;
 // The poster's size (see graph-node.tsx), which cards are padded around.
 const POSTER_PX = { width: 68, height: 102 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
