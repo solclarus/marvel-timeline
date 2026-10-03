@@ -83,22 +83,25 @@ function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformS
 // (groups) or an inline color (phase and era bands).
 // With `onToggle`, the label pins focus on its card or band: the touch
 // stand-in for hovering it.
+// `centered` puts it top-center, for a card or band one work wide.
 function BorderLabel({
   dot,
   children,
+  centered = false,
   pinned = false,
   onToggle,
 }: {
   dot: { className?: string; color?: string };
   children: React.ReactNode;
+  centered?: boolean;
   pinned?: boolean;
   onToggle?: () => void;
 }) {
-  const className = `absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap shadow-md shadow-black/20 ${pinned ? "bg-card-foreground text-card" : "bg-card/95 text-card-foreground"}`;
+  const className = `absolute top-0 z-10 flex -translate-y-1/2 items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap shadow-md shadow-black/20 ${centered ? "left-1/2 -translate-x-1/2" : "left-4"} ${pinned ? "bg-card-foreground text-card" : "bg-card/95 text-card-foreground"}`;
   const content = (
     <>
       <span
-        className={`size-2 rounded-full ${dot.className ?? ""}`}
+        className={`size-2.5 rounded-full ${dot.className ?? ""}`}
         style={{ backgroundColor: dot.color }}
       />
       {children}
@@ -441,48 +444,54 @@ export function Graph() {
               onPointerMove={handleCanvasPointerMove}
               onPointerLeave={() => setPending(null)}
             >
-              {groupCards.map(({ key, label, colorClass, cardClass, top, height, left, width }) => (
-                <div
-                  key={key}
-                  className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedCard?.key ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
-                  style={{
-                    top: `${top}%`,
-                    height: `${height}%`,
-                    left: `${left}%`,
-                    width: `${width}%`,
-                  }}
-                >
-                  <BorderLabel
-                    dot={{ className: colorClass }}
-                    pinned={pinnedId === `group:${key}`}
-                    onToggle={() => togglePinned(`group:${key}`)}
+              {groupCards.map(
+                ({ key, label, colorClass, cardClass, top, height, left, width, singleColumn }) => (
+                  <div
+                    key={key}
+                    className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedCard?.key ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
+                    style={{
+                      top: `${top}%`,
+                      height: `${height}%`,
+                      left: `${left}%`,
+                      width: `${width}%`,
+                    }}
                   >
-                    {label}
-                  </BorderLabel>
-                </div>
-              ))}
-              {phaseBands.map(({ phase, top, height, left, width, color, borderColor }) => (
-                <div
-                  key={phase}
-                  className="absolute rounded-2xl border-2"
-                  style={{
-                    top: `${top}%`,
-                    height: `${height}%`,
-                    left: `${left}%`,
-                    width: `${width}%`,
-                    backgroundColor: color,
-                    borderColor,
-                  }}
-                >
-                  <BorderLabel
-                    dot={{ color: borderColor }}
-                    pinned={pinnedId === `phase:${phase}`}
-                    onToggle={() => togglePinned(`phase:${phase}`)}
+                    <BorderLabel
+                      dot={{ className: colorClass }}
+                      centered={singleColumn}
+                      pinned={pinnedId === `group:${key}`}
+                      onToggle={() => togglePinned(`group:${key}`)}
+                    >
+                      {label}
+                    </BorderLabel>
+                  </div>
+                ),
+              )}
+              {phaseBands.map(
+                ({ phase, top, height, left, width, color, borderColor, singleColumn }) => (
+                  <div
+                    key={phase}
+                    className="absolute rounded-2xl border-2"
+                    style={{
+                      top: `${top}%`,
+                      height: `${height}%`,
+                      left: `${left}%`,
+                      width: `${width}%`,
+                      backgroundColor: color,
+                      borderColor,
+                    }}
                   >
-                    Phase {phase}
-                  </BorderLabel>
-                </div>
-              ))}
+                    <BorderLabel
+                      dot={{ color: borderColor }}
+                      centered={singleColumn}
+                      pinned={pinnedId === `phase:${phase}`}
+                      onToggle={() => togglePinned(`phase:${phase}`)}
+                    >
+                      Phase {phase}
+                    </BorderLabel>
+                  </div>
+                ),
+              )}
               {eraBands.map(({ key, label, left, width, color, borderColor }) => (
                 <div
                   key={key}

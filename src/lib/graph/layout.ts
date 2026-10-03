@@ -197,6 +197,8 @@ export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping:
         top,
         width: Math.max(...xs) + padX - left,
         height: Math.max(...ys) + padY - top,
+        // One work wide: its label centers instead of sitting top-left.
+        singleColumn: Math.max(...xs) - Math.min(...xs) < 1e-6,
       },
     ];
   });
@@ -254,6 +256,7 @@ export function computePhaseBands(
       height: (bottomStep - entry.minStep) * rowHeight - gapPercent,
       left: entry.minX - laneWidth / 2,
       width: entry.maxX - entry.minX + laneWidth,
+      singleColumn: entry.maxX - entry.minX < 1e-6,
       ...bandColor(phase - 1),
     };
   });
