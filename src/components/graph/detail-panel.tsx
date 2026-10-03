@@ -8,6 +8,7 @@ import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 
 import { MediumBadge } from "./medium-badge";
+import { UpcomingBadge } from "./upcoming-badge";
 import { WorkDetailDialog } from "./work-detail-dialog";
 
 interface Props {
@@ -75,6 +76,7 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                     ))}
                     <span aria-hidden>·</span>
                     {work.releaseDate.slice(0, 4)}
+                    <UpcomingBadge work={work} />
                   </span>
                   <span data-slot="detail-title" className="block font-semibold">
                     {titleOf(work)}

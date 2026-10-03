@@ -238,6 +238,8 @@ export interface WorkNode {
   recommendedOrder: number | null;
   tmdb: TmdbRef;
   releaseDate: string;
+  // Only the month is announced; `releaseDate` holds its first day.
+  releaseMonthOnly?: true;
   // TMDB poster path, e.g. "/abc.jpg" — see `posterUrl`.
   poster: string;
 }
@@ -250,6 +252,12 @@ export const MEDIA: readonly Medium[] = ["movie", "series", "animation"];
 export function mediumOf(work: WorkNode): Medium {
   if (work.animated) return "animation";
   return work.tmdb.type === "movie" ? "movie" : "series";
+}
+
+// Whether a work is still to come, by the viewer's clock.
+export function isUpcoming(work: WorkNode, today = new Date()): boolean {
+  const local = new Date(today.getTime() - today.getTimezoneOffset() * 60_000);
+  return work.releaseDate > local.toISOString().slice(0, 10);
 }
 
 export interface WorkEdge {
@@ -1708,6 +1716,7 @@ export const WORKS: WorkNode[] = [
     tmdb: { type: "tv", id: 202555, season: 3 },
     // Only "March 2027" is announced; update the day once it's set.
     releaseDate: "2027-03-01",
+    releaseMonthOnly: true,
     poster: "/xDUoAsU8lQHOOoRkFiBuarmACDN.jpg",
   },
   // --- Defenders Saga (Netflix) ---
@@ -2135,6 +2144,7 @@ export const WORKS: WorkNode[] = [
     recommendedOrder: 58.7,
     tmdb: { type: "tv", id: 138503, season: 2 },
     releaseDate: "2027-01-01",
+    releaseMonthOnly: true,
     poster: "/bifTEU63VFt2ugUte9LqNBb1Dno.jpg",
   },
   // --- Marvel Television (ABC, Hulu, Freeform) ---
