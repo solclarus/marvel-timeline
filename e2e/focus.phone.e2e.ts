@@ -4,7 +4,7 @@ import { opacityOf } from "./helpers";
 
 test("tapping a phase label pins and releases its focus", async ({ page }) => {
   // Select a Phase 1 work to bring the band into view, then clear it.
-  await page.goto("./?work=iron-man&focus=immediate");
+  await page.goto("./?view=map&work=iron-man&focus=immediate");
   await page.locator("[data-slot=detail-title]").first().waitFor();
   await page.keyboard.press("Escape");
   const label = page.getByRole("button", { name: "Phase 1" });
