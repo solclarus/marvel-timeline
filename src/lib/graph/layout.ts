@@ -199,22 +199,30 @@ function computeTimelineLayout(
   };
 }
 
-// Grouped by Earth, each band is split again by franchise, so a franchise
-// sharing an Earth (Netflix's Defenders Saga on 616) keeps its own lanes
-// beside the MCU's phases instead of weaving through them, joining where its
-// edges meet.
-function laneSubgroups(grouping: Grouping, band: string, works: WorkNode[]): string[] {
-  if (grouping.by !== "earth") return [band];
-  const inBand = works.filter((w) => groupKeyOf(w, "earth") === band);
-  return GROUPS.franchise
-    .map((f) => f.key)
-    .filter((franchise) => inBand.some((w) => w.franchise === franchise))
-    .map((franchise) => `${band}|${franchise}`);
-}
-
+// A band is split into lane runs: grouped by Earth, one per franchise (so
+// Netflix's Defenders Saga on 616 sits beside the MCU instead of weaving
+// through it); and in the band that holds the MCU phases, works outside any
+// phase (the One-Shots) get a run of their own, so phase bands never take
+// them in. Runs keep franchise order, phased before unphased.
 function laneSubgroupOf(work: WorkNode, grouping: Grouping): string {
   const band = groupKeyOf(work, grouping.by);
-  return grouping.by === "earth" ? `${band}|${work.franchise}` : band;
+  const key = grouping.by === "earth" ? `${band}|${work.franchise}` : band;
+  const holdsPhases =
+    grouping.by === "earth" ? work.franchise === "mcu" : band === PHASE_GROUP.franchise;
+  return holdsPhases && band === PHASE_GROUP[grouping.by] && work.phase === undefined
+    ? `${key}|unphased`
+    : key;
+}
+
+function laneSubgroups(grouping: Grouping, band: string, works: WorkNode[]): string[] {
+  const inBand = works.filter((w) => groupKeyOf(w, grouping.by) === band);
+  const keys = new Set(inBand.map((w) => laneSubgroupOf(w, grouping)));
+  const franchiseRank = new Map(GROUPS.franchise.map((f, i) => [f.key, i]));
+  const rank = (key: string) => {
+    const franchise = grouping.by === "earth" ? key.split("|")[1] : "";
+    return (franchiseRank.get(franchise as never) ?? 0) * 2 + (key.endsWith("|unphased") ? 1 : 0);
+  };
+  return [...keys].sort((a, b) => rank(a) - rank(b));
 }
 
 function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayout {

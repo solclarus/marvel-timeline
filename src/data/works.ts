@@ -2502,12 +2502,13 @@ export const WORKS: WorkNode[] = [
     poster: "/oD8WSVqz84ZRfelkr7JPeJwR9Iv.jpg",
   },
   // --- Marvel One-Shots (short films) ---
+  // Outside the phases, as Marvel lists them; the map lays them out beside the
+  // phase bands rather than inside.
   {
     id: "one-shot-the-consultant",
     title: "Marvel One-Shot: The Consultant",
     titleJa: "マーベル・ワンショット：相談役",
     franchise: "mcu",
-    phase: 1,
     dependsOn: [{ id: "incredible-hulk", kind: "reference" }],
     chronologyOrder: 5.5,
     setYear: 2011,
@@ -2521,7 +2522,6 @@ export const WORKS: WorkNode[] = [
     title: "Marvel One-Shot: A Funny Thing Happened on the Way to Thor's Hammer",
     titleJa: "マーベル・ワンショット：ハンマー墜落現場へ向かう途中での出来事",
     franchise: "mcu",
-    phase: 1,
     dependsOn: [{ id: "iron-man-2", kind: "reference" }],
     chronologyOrder: 5.6,
     setYear: 2011,
@@ -2535,7 +2535,6 @@ export const WORKS: WorkNode[] = [
     title: "Marvel One-Shot: Item 47",
     titleJa: "マーベル・ワンショット：アイテム47",
     franchise: "mcu",
-    phase: 1,
     dependsOn: [{ id: "avengers", kind: "leads-into" }],
     chronologyOrder: 7.5,
     setYear: 2012,
@@ -2549,7 +2548,6 @@ export const WORKS: WorkNode[] = [
     title: "Marvel One-Shot: Agent Carter",
     titleJa: "マーベル・ワンショット：エージェント・カーター",
     franchise: "mcu",
-    phase: 2,
     dependsOn: [{ id: "captain-america-first-avenger", kind: "spin-off" }],
     chronologyOrder: 1.5,
     setYear: 1946,
@@ -2563,7 +2561,6 @@ export const WORKS: WorkNode[] = [
     title: "Marvel One-Shot: All Hail the King",
     titleJa: "マーベル・ワンショット：王は俺だ",
     franchise: "mcu",
-    phase: 2,
     dependsOn: [{ id: "iron-man-3", kind: "direct-sequel" }],
     chronologyOrder: 8.5,
     setYear: 2013,
