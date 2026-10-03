@@ -2,10 +2,11 @@ import { Autocomplete } from "@base-ui/react/autocomplete";
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { FRANCHISE_META, posterUrl, WORKS, type WorkNode } from "@/data/works";
+import { FRANCHISE_META, WORKS, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 
 import { MediumBadge } from "./medium-badge";
+import { Poster } from "./poster";
 
 const MAX_RESULTS = 8;
 
@@ -114,13 +115,9 @@ export function SearchBox({ onSelect }: Props) {
                   value={work}
                   className="flex cursor-pointer items-center gap-2.5 rounded-item px-2 py-1.5 data-highlighted:bg-accent data-highlighted:text-accent-foreground"
                 >
-                  <img
-                    src={posterUrl(work)}
-                    alt=""
-                    loading="lazy"
-                    className="h-9 w-6 shrink-0 rounded-thumb bg-muted object-cover"
-                    onError={(event) => (event.currentTarget.style.visibility = "hidden")}
-                  />
+                  <span className="relative block h-9 w-6 shrink-0 overflow-hidden rounded-thumb bg-muted">
+                    <Poster key={work.id} work={work} compact />
+                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{titleOf(work)}</span>
                     <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">

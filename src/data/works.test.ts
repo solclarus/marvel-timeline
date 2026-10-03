@@ -11,9 +11,9 @@ describe("isUpcoming", () => {
     expect(isUpcoming(work, new Date(year, month - 1, day, 12))).toBe(false);
   });
 
-  it("marks month-only dates on works still to come", () => {
-    for (const w of WORKS.filter((w) => w.releaseMonthOnly)) {
-      expect(w.releaseDate.endsWith("-01")).toBe(true);
+  it("keeps partial dates on the first of the month or year", () => {
+    for (const w of WORKS.filter((w) => w.releasePrecision)) {
+      expect(w.releaseDate).toMatch(w.releasePrecision === "year" ? /-01-01$/ : /-01$/);
     }
   });
 });

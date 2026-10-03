@@ -1,6 +1,8 @@
-import { posterUrl, type WorkNode } from "@/data/works";
+import type { WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 import { runtimeOf, totalRuntime as totalRuntimeOf } from "@/lib/runtime";
+
+import { Poster } from "./poster";
 
 // Numbered works to watch in order; picking one selects it on the map.
 export function WatchList({
@@ -25,13 +27,9 @@ export function WatchList({
               <span className="w-6 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
                 {i + 1}
               </span>
-              <img
-                src={posterUrl(work)}
-                alt=""
-                loading="lazy"
-                className="h-12 w-8 shrink-0 rounded-thumb bg-muted object-cover"
-                onError={(event) => (event.currentTarget.style.visibility = "hidden")}
-              />
+              <span className="relative block h-12 w-8 shrink-0 overflow-hidden rounded-thumb bg-muted">
+                <Poster key={work.id} work={work} compact />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm">{titleOf(work)}</span>
                 <span className="text-xs text-muted-foreground tabular-nums">

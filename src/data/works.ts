@@ -238,9 +238,10 @@ export interface WorkNode {
   recommendedOrder: number | null;
   tmdb: TmdbRef;
   releaseDate: string;
-  // Only the month is announced; `releaseDate` holds its first day.
-  releaseMonthOnly?: true;
-  // TMDB poster path, e.g. "/abc.jpg" — see `posterUrl`.
+  // Only the month or year is announced; `releaseDate` holds its first day.
+  releasePrecision?: "month" | "year";
+  // TMDB poster path, e.g. "/abc.jpg" — see `posterUrl`; "" while TMDB has
+  // none, which shows stand-in art.
   poster: string;
 }
 
@@ -1648,6 +1649,47 @@ export const WORKS: WorkNode[] = [
     releaseDate: "2027-12-15",
     poster: "/f0YBuh4hyiAheXhh4JnJWoKi9g5.jpg",
   },
+  // --- Phase Seven: the Mutant Saga opens after Secret Wars ---
+  {
+    id: "x-men-2028",
+    title: "X-Men (2028)",
+    titleJa: "X-MEN（2028）",
+    franchise: "mcu",
+    phase: 7,
+    // Marvel's first X-Men film, coming out of Secret Wars.
+    dependsOn: [{ id: "avengers-secret-wars", kind: "leads-into" }],
+    chronologyOrder: 80,
+    recommendedOrder: 61,
+    tmdb: { type: "movie", id: 1293690 },
+    releaseDate: "2028-05-05",
+    poster: "/jSn3jOzI91dOx4aVdfMrirWXH6R.jpg",
+  },
+  {
+    id: "ghost-rider-2028",
+    title: "Ghost Rider (2028)",
+    titleJa: "ゴーストライダー（2028）",
+    franchise: "mcu",
+    phase: 7,
+    chronologyOrder: 81,
+    recommendedOrder: 62,
+    tmdb: { type: "movie", id: 1738010 },
+    releaseDate: "2028-07-28",
+    poster: "/zgC1zo3lyujoEiIMnUrHltvPmZg.jpg",
+  },
+  {
+    id: "black-panther-3",
+    title: "Black Panther 3",
+    titleJa: "ブラックパンサー3",
+    franchise: "mcu",
+    phase: 7,
+    thread: "black-panther",
+    dependsOn: [{ id: "black-panther-wakanda-forever", kind: "direct-sequel" }],
+    chronologyOrder: 82,
+    recommendedOrder: 63,
+    tmdb: { type: "movie", id: 1386618 },
+    releaseDate: "2028-12-15",
+    poster: "/zJc9fYZxgq4yzI0Oru2e1Cf3a3V.jpg",
+  },
 
   // --- MCU: Phase 6 series missing from the original data ---
   {
@@ -1716,7 +1758,7 @@ export const WORKS: WorkNode[] = [
     tmdb: { type: "tv", id: 202555, season: 3 },
     // Only "March 2027" is announced; update the day once it's set.
     releaseDate: "2027-03-01",
-    releaseMonthOnly: true,
+    releasePrecision: "month",
     poster: "/xDUoAsU8lQHOOoRkFiBuarmACDN.jpg",
   },
   // --- Defenders Saga (Netflix) ---
@@ -2130,7 +2172,23 @@ export const WORKS: WorkNode[] = [
     releaseDate: "2026-07-01",
     poster: "/2HKBc5UiFw8JrruHq8S1Y7TnlW0.jpg",
   },
-  // Only "January 2027" is announced and TMDB has no season yet: date and poster are placeholders.
+  // Only "2027" is announced and TMDB has no season yet: no poster.
+  {
+    id: "x-men-97-s3",
+    title: "X-Men '97 — Season 3",
+    titleJa: "X-MEN '97 — シーズン3",
+    franchise: "animation",
+    animated: true,
+    phase: 6,
+    dependsOn: [{ id: "x-men-97-s2", kind: "direct-sequel" }],
+    chronologyOrder: 90.6,
+    recommendedOrder: null,
+    tmdb: { type: "tv", id: 138502, season: 3 },
+    releaseDate: "2027-01-01",
+    releasePrecision: "year",
+    poster: "",
+  },
+  // Only "January 2027" is announced and TMDB has no season yet: no poster.
   {
     id: "your-friendly-neighborhood-spider-man-s2",
     title: "Your Friendly Neighborhood Spider-Man — Season 2",
@@ -2144,8 +2202,8 @@ export const WORKS: WorkNode[] = [
     recommendedOrder: 58.7,
     tmdb: { type: "tv", id: 138503, season: 2 },
     releaseDate: "2027-01-01",
-    releaseMonthOnly: true,
-    poster: "/bifTEU63VFt2ugUte9LqNBb1Dno.jpg",
+    releasePrecision: "month",
+    poster: "",
   },
   // --- Marvel Television (ABC, Hulu, Freeform) ---
   // Made as part of the MCU, but Marvel Studios now files them under "Marvel

@@ -1,11 +1,12 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl, type WorkNode } from "@/data/works";
+import { EARTH_META, earthsOf, FRANCHISE_META, type WorkNode } from "@/data/works";
 import type { WorkGraph } from "@/lib/graph/relations";
 import { watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { runtimeOf } from "@/lib/runtime";
 
 import { MediumBadge } from "./medium-badge";
+import { Poster } from "./poster";
 import { UpcomingBadge } from "./upcoming-badge";
 import { ListTotals, WatchList } from "./watch-list";
 
@@ -30,12 +31,9 @@ export function WorkDetailDialog({ work, graph, open, onOpenChange, onSelect }: 
       {/* The work's header stays put; only the watch-first list scrolls. */}
       <DialogContent closeLabel={t.close} className="flex max-w-xl flex-col overflow-hidden">
         <div className="flex shrink-0 items-start gap-4 pr-6">
-          <img
-            src={posterUrl(work)}
-            alt=""
-            className="h-36 w-24 shrink-0 rounded-thumb bg-muted object-cover"
-            onError={(event) => (event.currentTarget.style.visibility = "hidden")}
-          />
+          <span className="relative block h-36 w-24 shrink-0 overflow-hidden rounded-thumb bg-muted">
+            <Poster key={work.id} work={work} />
+          </span>
           <div className="min-w-0">
             <DialogTitle>{titleOf(work)}</DialogTitle>
             <DialogDescription className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
