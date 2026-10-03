@@ -263,7 +263,7 @@ export function Graph() {
         <div>
           <TransformComponent
             // `!`: the library's fit-content wrapper sizing breaks its viewport math.
-            wrapperClass="!block !h-screen !w-full bg-stone-200 shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+            wrapperClass="!block !h-screen !w-full bg-neutral-800"
             contentClass="!items-start"
           >
             <div

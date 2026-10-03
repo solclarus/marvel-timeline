@@ -44,15 +44,15 @@ interface Props {
 const NUB_CLASS = {
   y: {
     incoming:
-      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-black",
+      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-slate-300",
     outgoing:
-      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-black",
+      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-slate-300",
   },
   x: {
     incoming:
-      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-black",
+      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-slate-300",
     outgoing:
-      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-black",
+      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-slate-300",
   },
 } as const;
 
@@ -89,7 +89,7 @@ export function GraphNode({
           onFocus={(e) => {
             if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
           }}
-          className="absolute rounded-[4px] outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-200"
+          className="absolute rounded-[4px] outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
           aria-pressed={state === "selected"}
           style={{ width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
           initial={false}

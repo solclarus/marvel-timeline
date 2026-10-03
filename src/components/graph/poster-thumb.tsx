@@ -23,7 +23,7 @@ export function PosterThumb({ work }: { work: WorkNode }) {
   return (
     <>
       {status === "loading" && (
-        <Skeleton className="absolute inset-0 rounded-none bg-stone-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.25)]" />
+        <Skeleton className="absolute inset-0 rounded-none bg-neutral-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" />
       )}
       <img
         src={posterUrl(work)}
