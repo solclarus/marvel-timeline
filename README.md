@@ -32,14 +32,15 @@ Everything lives in `src/data/works.ts`: works, dependencies, Earths, release da
 
 ## Scripts
 
-| Command                     | Description                                         |
-| --------------------------- | --------------------------------------------------- |
-| `pnpm build`                | Typecheck and build to `dist/`                      |
-| `pnpm test`                 | Unit tests                                          |
-| `pnpm lint` / `pnpm format` | oxlint / oxfmt                                      |
-| `pnpm check:tmdb`           | Compare dates and posters with TMDB (needs a token) |
+| Command                     | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `pnpm build`                | Typecheck and build to `dist/`                          |
+| `pnpm test`                 | Unit tests                                              |
+| `pnpm test:e2e`             | Browser tests against the production build (Playwright) |
+| `pnpm lint` / `pnpm format` | oxlint / oxfmt                                          |
+| `pnpm check:tmdb`           | Compare dates and posters with TMDB (needs a token)     |
 
-CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, tests, and build on every push and PR, and deploys `main` to GitHub Pages.
+CI (`.github/workflows/ci.yml`) runs format, lint, typecheck, unit tests, build, and the Playwright tests on every push and PR, and deploys `main` to GitHub Pages once both pass. Locally, `PLAYWRIGHT_CHANNEL=chrome pnpm test:e2e` uses an installed Chrome instead of downloading one.
 
 ## License & credits
 
