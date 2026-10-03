@@ -3,15 +3,15 @@ export type Franchise = "mcu" | "x-men" | "spider-man-legacy" | "ssu";
 // works that span too many Earths to list.
 export type EarthId = "616" | "838" | "828" | "10005" | "96283" | "120703" | "1048" | "multiverse";
 
-export const EARTH_META: Record<EarthId, { label: string }> = {
-  "616": { label: "Earth-616" },
-  "838": { label: "Earth-838" },
-  "828": { label: "Earth-828" },
-  "10005": { label: "Earth-10005" },
-  "96283": { label: "Earth-96283" },
-  "120703": { label: "Earth-120703" },
-  "1048": { label: "Earth-1048" },
-  multiverse: { label: "Multiverse" },
+export const EARTH_META: Record<EarthId, { label: string; colorClass: string }> = {
+  "616": { label: "Earth-616", colorClass: "bg-rose-500" },
+  "838": { label: "Earth-838", colorClass: "bg-amber-500" },
+  "828": { label: "Earth-828", colorClass: "bg-teal-500" },
+  "10005": { label: "Earth-10005", colorClass: "bg-indigo-500" },
+  "96283": { label: "Earth-96283", colorClass: "bg-slate-500" },
+  "120703": { label: "Earth-120703", colorClass: "bg-cyan-600" },
+  "1048": { label: "Earth-1048", colorClass: "bg-violet-500" },
+  multiverse: { label: "Multiverse", colorClass: "bg-fuchsia-500" },
 };
 
 export type EdgeKind = "direct-sequel" | "spin-off" | "leads-into" | "crossover" | "reference";

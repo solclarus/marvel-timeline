@@ -33,15 +33,21 @@ export function DetailPanel({ selectedId, onClear, watched, onToggleWatched }: P
                 <img src={posterUrl(work)} alt="" className="size-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
                   <span
                     className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                   />
                   {FRANCHISE_META[work.franchise].label}
-                  {` · ${earthsOf(work)
-                    .map((earth) => EARTH_META[earth].label)
-                    .join(" / ")}`}
-                  {` · ${work.releaseDate.slice(0, 4)}`}
+                  <span aria-hidden>·</span>
+                  {earthsOf(work).map((earth, i) => (
+                    <span key={earth} className="flex items-center gap-1">
+                      {i > 0 && <span aria-hidden>/ </span>}
+                      <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
+                      {EARTH_META[earth].label}
+                    </span>
+                  ))}
+                  <span aria-hidden>·</span>
+                  {work.releaseDate.slice(0, 4)}
                 </p>
                 <p className="font-semibold">{work.title}</p>
                 <Button

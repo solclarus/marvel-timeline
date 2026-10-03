@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { EARTH_META, earthsOf, EDGES, WORKS, type Franchise } from "@/data/works";
+import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
-import { BAND_ORDER, computeFocusLayout, computeLayout, type ViewMode } from "./layout";
+import { GROUPS, isWorkVisible, regroup, type Grouping } from "./groups";
+import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
 import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
 import { isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
-const ALL_FRANCHISES = new Set<Franchise>(BAND_ORDER);
+const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
+  by,
+  visible: new Set(GROUPS[by].map((group) => group.key)),
+}));
 const MODES: ViewMode[] = ["recommended", "release", "chronology"];
 
 describe("works data", () => {
@@ -84,24 +88,34 @@ describe("getRelatedDistances", () => {
 });
 
 describe("computeLayout", () => {
-  for (const mode of MODES) {
-    it(`gives every visible work its own in-bounds cell (${mode})`, () => {
-      const { positions } = computeLayout(mode, ALL_FRANCHISES);
-      expect(positions.size).toBe(WORKS.length);
-      const outOfBounds = [...positions]
-        .filter(([, { x, y }]) => x < 0 || x > 100 || y < 0 || y > 100)
-        .map(([id]) => id);
-      expect(outOfBounds).toEqual([]);
-      const cells = [...positions.values()].map(({ x, y }) => `${x.toFixed(4)},${y.toFixed(4)}`);
-      expect(new Set(cells).size).toBe(cells.length);
-    });
+  for (const grouping of ALL) {
+    for (const mode of MODES) {
+      it(`gives every work its own in-bounds cell (${mode}, by ${grouping.by})`, () => {
+        const { positions } = computeLayout(mode, grouping);
+        expect(positions.size).toBe(WORKS.length);
+        const outOfBounds = [...positions]
+          .filter(([, { x, y }]) => x < 0 || x > 100 || y < 0 || y > 100)
+          .map(([id]) => id);
+        expect(outOfBounds).toEqual([]);
+        const cells = [...positions.values()].map(({ x, y }) => `${x.toFixed(4)},${y.toFixed(4)}`);
+        expect(new Set(cells).size).toBe(cells.length);
+      });
+    }
   }
 
-  it("only lays out works from visible franchises", () => {
-    const { positions } = computeLayout("recommended", new Set(["mcu"]));
-    for (const id of positions.keys()) {
+  it("only lays out works from visible groups", () => {
+    const byFranchise = computeLayout("recommended", {
+      by: "franchise",
+      visible: new Set(["mcu"]),
+    });
+    for (const id of byFranchise.positions.keys()) {
       expect(WORKS.find((w) => w.id === id)!.franchise).toBe("mcu");
     }
+    const byEarth = computeLayout("release", { by: "earth", visible: new Set(["120703"]) });
+    expect([...byEarth.positions.keys()].sort()).toEqual([
+      "amazing-spider-man",
+      "amazing-spider-man-2",
+    ]);
   });
 });
 
@@ -181,5 +195,17 @@ describe("wheel input", () => {
     expect(after.y).toBeCloseTo(before.y);
     expect(zoomAround(state, 100, point, 0.2, 1.5).scale).toBe(1.5);
     expect(zoomAround(state, 0.001, point, 0.2, 1.5).scale).toBe(0.2);
+  });
+});
+
+describe("regroup", () => {
+  it("keeps the same works on screen when switching to Earths", () => {
+    const byFranchise: Grouping = { by: "franchise", visible: new Set(["mcu"]) };
+    const byEarth = regroup(byFranchise, "earth", WORKS);
+    const before = WORKS.filter((w) => isWorkVisible(w, byFranchise)).map((w) => w.id);
+    const after = WORKS.filter((w) => isWorkVisible(w, byEarth)).map((w) => w.id);
+    expect(after).toEqual(expect.arrayContaining(before));
+    expect(byEarth.visible.has("616")).toBe(true);
+    expect(byEarth.visible.has("828")).toBe(true);
   });
 });
