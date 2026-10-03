@@ -1,3 +1,4 @@
+import { ROUTES } from "@/data/routes";
 import { MEDIA, mediumOf, type Medium } from "@/data/works";
 import {
   DEFAULT_VISIBLE_GROUPS,
@@ -20,7 +21,11 @@ export interface UrlState {
   media: MediaFilter;
   // Map or list; null leaves it to the device (a list on phones).
   display: Display | null;
+  // The list narrowed to one work's watch-first path or a route.
+  listFocus: ListFocus | null;
 }
+
+export type ListFocus = { kind: "before"; id: string } | { kind: "route"; id: string };
 
 export type Display = "map" | "list";
 const DISPLAYS: readonly Display[] = ["map", "list"];
@@ -37,7 +42,16 @@ export const DEFAULT_URL_STATE: UrlState = {
   visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
   media: MEDIA,
   display: null,
+  listFocus: null,
 };
+
+// `list=before:thor-ragnarok` or `list=route:fox-x-men`.
+function parseListFocus(value: string | null): ListFocus | null {
+  const [kind, id] = (value ?? "").split(":");
+  if (kind === "before" && id && WORK_BY_ID.has(id)) return { kind, id };
+  if (kind === "route" && id && ROUTES.some((r) => r.id === id)) return { kind, id };
+  return null;
+}
 
 // `media=movie,animation`; the older `movies` and `all` still open.
 function parseMedia(value: string | null): MediaFilter {
@@ -75,6 +89,7 @@ export function parseUrlState(search: string): UrlState {
     display: (DISPLAYS as readonly string[]).includes(params.get("view") ?? "")
       ? (params.get("view") as Display)
       : null,
+    listFocus: parseListFocus(params.get("list")),
   };
 }
 
@@ -89,6 +104,7 @@ export function serializeUrlState(state: UrlState): string {
   const params = new URLSearchParams();
   if (state.selectedId) params.set("work", state.selectedId);
   if (state.display) params.set("view", state.display);
+  if (state.listFocus) params.set("list", `${state.listFocus.kind}:${state.listFocus.id}`);
   if (state.mode !== DEFAULT_URL_STATE.mode) params.set("mode", state.mode);
   if (state.focusMode !== DEFAULT_URL_STATE.focusMode) params.set("focus", state.focusMode);
 

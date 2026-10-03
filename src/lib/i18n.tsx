@@ -55,6 +55,8 @@ const en = {
   showMap: "Show as a map",
   listBefore: "Before",
   listAfter: "After",
+  watchBefore: (title: string) => `Before ${title}`,
+  backToFullList: "Back to the full list",
   // Map
   phase: (n: number) => `Phase ${n}`,
   saga: (saga: Saga) =>
@@ -82,7 +84,6 @@ const en = {
   routes: "Routes",
   routesIntro: "Short paths through one storyline, in watch order.",
   routeCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}`,
-  backToRoutes: "All routes",
   zoomIn: "Zoom in",
   zoomOut: "Zoom out",
   fitToView: "Fit to view",
@@ -143,6 +144,8 @@ const ja: Messages = {
   showMap: "マップで表示",
   listBefore: "先に観る",
   listAfter: "この後",
+  watchBefore: (title) => `${title}の前に観る作品`,
+  backToFullList: "全体のリストに戻る",
   phase: (n) => `フェーズ${n}`,
   saga: (saga) =>
     ({
@@ -169,7 +172,6 @@ const ja: Messages = {
   routes: "視聴ルート",
   routesIntro: "ひとつの物語だけを追う、短めのルート。観る順に並んでいます。",
   routeCount: (n) => `${n}作品`,
-  backToRoutes: "ルート一覧",
   zoomIn: "拡大",
   zoomOut: "縮小",
   fitToView: "全体を表示",

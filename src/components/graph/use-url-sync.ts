@@ -13,6 +13,7 @@ export function useUrlSync({
   visibleGroups,
   media,
   display,
+  listFocus,
 }: UrlState) {
   useEffect(() => {
     const search = serializeUrlState({
@@ -23,8 +24,9 @@ export function useUrlSync({
       visibleGroups,
       media,
       display,
+      listFocus,
     });
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
-  }, [mode, selectedId, focusMode, groupBy, visibleGroups, media, display]);
+  }, [mode, selectedId, focusMode, groupBy, visibleGroups, media, display, listFocus]);
 }

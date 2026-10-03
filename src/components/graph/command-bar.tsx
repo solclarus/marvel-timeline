@@ -17,6 +17,7 @@ import { SettingsMenu } from "./settings-menu";
 interface Props {
   display: Display;
   onDisplayChange: (display: Display) => void;
+  onRouteSelect: (id: string) => void;
   onSearchSelect: (id: string) => void;
   mode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
@@ -35,6 +36,7 @@ interface Props {
 export function CommandBar({
   display,
   onDisplayChange,
+  onRouteSelect,
   onSearchSelect,
   mode,
   onModeChange,
@@ -62,7 +64,7 @@ export function CommandBar({
         >
           {display === "map" ? <List className="size-4" /> : <Map className="size-4" />}
         </Button>
-        <RoutesDialog onSelect={onSearchSelect} />
+        <RoutesDialog onSelect={onRouteSelect} />
         <SettingsMenu
           media={media}
           onMediaChange={onMediaChange}
