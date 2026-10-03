@@ -81,21 +81,43 @@ function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformS
 // Sits on the top-left border of a card or band, in the detail panel's
 // dark colors so it reads over any tint. `dot` takes a Tailwind class
 // (groups) or an inline color (phase and era bands).
+// With `onToggle`, the label pins focus on its card or band: the touch
+// stand-in for hovering it.
 function BorderLabel({
   dot,
   children,
+  pinned = false,
+  onToggle,
 }: {
   dot: { className?: string; color?: string };
   children: React.ReactNode;
+  pinned?: boolean;
+  onToggle?: () => void;
 }) {
-  return (
-    <span className="absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border bg-card/95 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-card-foreground shadow-md shadow-black/20">
+  const className = `absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap shadow-md shadow-black/20 ${pinned ? "bg-card-foreground text-card" : "bg-card/95 text-card-foreground"}`;
+  const content = (
+    <>
       <span
         className={`size-2 rounded-full ${dot.className ?? ""}`}
         style={{ backgroundColor: dot.color }}
       />
       {children}
-    </span>
+    </>
+  );
+  if (!onToggle) return <span className={className}>{content}</span>;
+  return (
+    <button
+      type="button"
+      // A wider hit area than the label: it's tiny when zoomed out.
+      className={`${className} cursor-pointer before:absolute before:-inset-3 before:content-['']`}
+      aria-pressed={pinned}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggle();
+      }}
+    >
+      {content}
+    </button>
   );
 }
 
@@ -135,7 +157,15 @@ export function Graph() {
     return () => window.clearTimeout(timer);
   }, [pending]);
   // Stale once the pointer moves on; a selection wins over it.
-  const focusedId = !selectedId && hovered === pending?.id ? hovered : null;
+  // Tapping a label pins focus until it's tapped again or the map is.
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const togglePinned = (id: string) => {
+    setSelectedId(null);
+    setPinnedId((current) => (current === id ? null : id));
+  };
+  const focusedId = selectedId
+    ? null
+    : ((hovered !== null && hovered === pending?.id ? hovered : null) ?? pinnedId);
   const focusedPhase = phaseBands.find((band) => `phase:${band.phase}` === focusedId);
   const focusedCard = groupCards.find((card) => `group:${card.key}` === focusedId);
   const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -432,7 +462,10 @@ export function Graph() {
                 className="relative"
                 style={{ width: focusLayout.width, height: focusLayout.height }}
                 role="presentation"
-                onClick={() => setSelectedId(null)}
+                onClick={() => {
+                  setSelectedId(null);
+                  setPinnedId(null);
+                }}
               >
                 <GraphEdges
                   edges={graph.edges}
@@ -470,7 +503,10 @@ export function Graph() {
                 className="relative"
                 style={{ width: canvasWidth, height: canvasHeight }}
                 role="presentation"
-                onClick={() => setSelectedId(null)}
+                onClick={() => {
+                  setSelectedId(null);
+                  setPinnedId(null);
+                }}
                 onPointerMove={handleCanvasPointerMove}
                 onPointerLeave={() => setPending(null)}
               >
@@ -486,7 +522,13 @@ export function Graph() {
                         width: `${width}%`,
                       }}
                     >
-                      <BorderLabel dot={{ className: colorClass }}>{label}</BorderLabel>
+                      <BorderLabel
+                        dot={{ className: colorClass }}
+                        pinned={pinnedId === `group:${key}`}
+                        onToggle={() => togglePinned(`group:${key}`)}
+                      >
+                        {label}
+                      </BorderLabel>
                     </div>
                   ),
                 )}
@@ -503,7 +545,13 @@ export function Graph() {
                       borderColor,
                     }}
                   >
-                    <BorderLabel dot={{ color: borderColor }}>Phase {phase}</BorderLabel>
+                    <BorderLabel
+                      dot={{ color: borderColor }}
+                      pinned={pinnedId === `phase:${phase}`}
+                      onToggle={() => togglePinned(`phase:${phase}`)}
+                    >
+                      Phase {phase}
+                    </BorderLabel>
                   </div>
                 ))}
                 {eraBands.map(({ key, label, left, width, color, borderColor }) => (
@@ -555,7 +603,8 @@ export function Graph() {
           </TransformComponent>
 
           <PosterTooltip />
-          {(focusedPhase || focusedCard) && pending && (
+          {/* Only for hover focus; a pinned label already names its group. */}
+          {(focusedPhase || focusedCard) && pending?.id === focusedId && (
             <GroupHoverChip
               key={pending.id}
               label={focusedPhase ? `Phase ${focusedPhase.phase}` : focusedCard!.label}
