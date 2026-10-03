@@ -1,30 +1,28 @@
 import { X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { useState } from "react";
 
 import { EARTH_META, earthsOf, FRANCHISE_META } from "@/data/works";
-import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
+import { WORK_BY_ID } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
+import { runtimeOf } from "@/lib/runtime";
 
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
 import { UpcomingBadge } from "./upcoming-badge";
-import { WorkDetailDialog } from "./work-detail-dialog";
 
 interface Props {
   selectedId: string | null;
   onClear: () => void;
-  onSelect: (id: string) => void;
-  graph: WorkGraph;
+  // Shows what to watch before the work (the list, narrowed to its path).
+  onOpen: () => void;
 }
 
-// The compact card for the selection; tapping it opens the full detail
-// dialog with what to watch first.
-export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
-  const [detailOpen, setDetailOpen] = useState(false);
+// The compact card for the selection; tapping it lists what to watch first.
+export function DetailPanel({ selectedId, onClear, onOpen }: Props) {
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
+  const runtime = work && runtimeOf(work);
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
@@ -47,7 +45,7 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                onClick={() => setDetailOpen(true)}
+                onClick={onOpen}
                 aria-label={t.showDetails(titleOf(work))}
                 className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-item p-1 text-left hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
               >
@@ -71,6 +69,13 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
                     ))}
                     <span aria-hidden>·</span>
                     {work.releaseDate.slice(0, 4)}
+                    {runtime && (
+                      <>
+                        <span aria-hidden>·</span>
+                        {runtime.episodes && `${t.episodes(runtime.episodes)} · `}
+                        {t.duration(runtime.minutes)}
+                      </>
+                    )}
                     <UpcomingBadge work={work} />
                   </span>
                   <span data-slot="detail-title" className="block font-semibold">
@@ -89,18 +94,6 @@ export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
             </m.div>
           )}
         </AnimatePresence>
-        {work && (
-          <WorkDetailDialog
-            work={work}
-            graph={graph}
-            open={detailOpen}
-            onOpenChange={setDetailOpen}
-            onSelect={(id) => {
-              setDetailOpen(false);
-              onSelect(id);
-            }}
-          />
-        )}
       </div>
     </div>
   );

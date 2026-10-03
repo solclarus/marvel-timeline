@@ -7,7 +7,8 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 ## Using the map
 
 - **Select** a poster to highlight what it builds on and what follows; the map zooms to fit them. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
-- **Routes** (bottom bar): short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga) in watch order, with their total running time; pick a work to jump to it on the map.
+- **Watch first**: tap the detail card to narrow the list to everything to watch before the selected work, in order, with the total running time; ✕ or Escape goes back.
+- **Routes** (bottom bar): short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga), shown the same way.
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; either can switch.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology.
 - **Settings** (bottom bar), in two parts:
@@ -18,7 +19,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
 - **Language**: English or Japanese (Settings → Display → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.
 
-The view is kept in the URL (`work`, `view`, `mode`, `focus`, `group`, `show`, `media`), so any state can be shared as a link.
+The view is kept in the URL (`work`, `view`, `list`, `mode`, `focus`, `group`, `show`, `media`), so any state can be shared as a link.
 
 ## Development
 

@@ -5,6 +5,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
+import { ROUTES } from "@/data/routes";
 import { mediumOf, WORKS } from "@/data/works";
 import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
@@ -31,12 +32,14 @@ import {
   getRelatedDistances,
   WORK_BY_ID,
   graphForMedia,
+  WORK_GRAPHS,
   type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
+import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
-import { parseUrlState, withMedium, type Display } from "@/lib/url-state";
+import { parseUrlState, withMedium, type Display, type ListFocus } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
 import { attachDesktopInput, keepInView } from "./desktop-input";
@@ -50,7 +53,7 @@ import {
   type NodeState,
 } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
-import { ListView } from "./list-view";
+import { ListView, type ListFocusView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
 import { useHoverFocus } from "./use-hover-focus";
 import { useSelectionFit } from "./use-selection-fit";
@@ -71,7 +74,7 @@ const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 const DEVICE_DISPLAY: Display = window.matchMedia("(max-width: 640px)").matches ? "list" : "map";
 
 export function Graph() {
-  const { t, groupLabel } = useI18n();
+  const { t, groupLabel, titleOf, locale } = useI18n();
   const [initial] = useState(() => parseUrlState(window.location.search));
   const [mode, setMode] = useState<ViewMode>(initial.mode);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
@@ -81,7 +84,28 @@ export function Graph() {
     visible: initial.visibleGroups,
   });
   const [media, setMedia] = useState<MediaFilter>(initial.media);
-  const [display, setDisplay] = useState<Display>(initial.display ?? DEVICE_DISPLAY);
+  const [display, setDisplay] = useState<Display>(
+    initial.listFocus ? "list" : (initial.display ?? DEVICE_DISPLAY),
+  );
+  // The list narrowed to a watch-first path or a route; clearing it returns
+  // to whichever display was showing before.
+  const [listFocus, setListFocus] = useState<ListFocus | null>(initial.listFocus);
+  const [displayBeforeFocus, setDisplayBeforeFocus] = useState<Display | null>(null);
+  const openListFocus = (next: ListFocus) => {
+    if (!listFocus) setDisplayBeforeFocus(display);
+    setDisplay("list");
+    setListFocus(next);
+  };
+  const clearListFocus = () => {
+    setListFocus(null);
+    if (displayBeforeFocus) setDisplay(displayBeforeFocus);
+    setDisplayBeforeFocus(null);
+  };
+  const handleDisplayChange = (next: Display) => {
+    setListFocus(null);
+    setDisplayBeforeFocus(null);
+    setDisplay(next);
+  };
   const graph = graphForMedia(media);
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
@@ -125,14 +149,15 @@ export function Graph() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // A dialog takes Escape for itself; the selection stays.
-      if (event.key === "Escape" && !document.querySelector("[data-slot=dialog-content]")) {
-        setSelectedId(null);
-      }
+      // A dialog takes Escape for itself; the selection stays. A narrowed
+      // list widens back first.
+      if (event.key !== "Escape" || document.querySelector("[data-slot=dialog-content]")) return;
+      if (listFocus) clearListFocus();
+      else setSelectedId(null);
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  });
 
   useUrlSync({
     mode,
@@ -141,7 +166,8 @@ export function Graph() {
     groupBy: grouping.by,
     visibleGroups: grouping.visible,
     media,
-    display: display === DEVICE_DISPLAY ? null : display,
+    display: display === DEVICE_DISPLAY || listFocus ? null : display,
+    listFocus,
   });
 
   useSelectionFit({
@@ -359,6 +385,32 @@ export function Graph() {
     </TransformWrapper>
   );
 
+  const focusView = ((): ListFocusView | null => {
+    if (listFocus?.kind === "before") {
+      const work = WORK_BY_ID.get(listFocus.id);
+      if (!work) return null;
+      const steps = watchFirst(work.id, graph);
+      return {
+        title: t.watchBefore(titleOf(work)),
+        items: [...steps, { work }],
+        empty: steps.length === 0 ? t.nothingFirst : undefined,
+        onClear: clearListFocus,
+      };
+    }
+    if (listFocus?.kind === "route") {
+      const route = ROUTES.find((r) => r.id === listFocus.id);
+      if (!route) return null;
+      const ja = locale === "ja";
+      return {
+        title: ja ? route.titleJa : route.title,
+        summary: ja ? route.summaryJa : route.summary,
+        items: routeWorks(route, WORK_GRAPHS.all).map((work) => ({ work })),
+        onClear: clearListFocus,
+      };
+    }
+    return null;
+  })();
+
   return (
     <>
       {display === "map" ? (
@@ -371,19 +423,20 @@ export function Graph() {
           selectedId={selectedId}
           activeSet={selectedId ? activeSet : null}
           distances={distances}
-          onSelect={handleSelect}
+          onSelect={focusView ? handleSearchSelect : handleSelect}
+          focus={focusView}
         />
       )}
       <DetailPanel
         selectedId={selectedId}
         onClear={() => setSelectedId(null)}
-        onSelect={handleSearchSelect}
-        graph={graph}
+        onOpen={() => selectedId && openListFocus({ kind: "before", id: selectedId })}
       />
 
       <CommandBar
         display={display}
-        onDisplayChange={setDisplay}
+        onDisplayChange={handleDisplayChange}
+        onRouteSelect={(id) => openListFocus({ kind: "route", id })}
         onSearchSelect={handleSearchSelect}
         mode={mode}
         onModeChange={setMode}

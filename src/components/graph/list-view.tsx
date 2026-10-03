@@ -1,15 +1,16 @@
-import { useEffect } from "react";
+import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
-import { EARTH_META, earthsOf, FRANCHISE_META, type WorkNode } from "@/data/works";
+import type { WorkNode } from "@/data/works";
 import type { Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import { listSections } from "@/lib/graph/list";
 import type { WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
+import { totalRuntime } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
 
-import { MediumBadge } from "./medium-badge";
-import { Poster } from "./poster";
+import { WorkRow, type RowTag } from "./work-row";
 
 interface Props {
   mode: ViewMode;
@@ -21,6 +22,18 @@ interface Props {
   // Negative for what comes before the selection, positive for after.
   distances: Map<string, number>;
   onSelect: (id: string) => void;
+  // Narrows the list to one path (a work's watch-first list, or a route).
+  focus: ListFocusView | null;
+}
+
+export interface ListFocusView {
+  title: string;
+  summary?: string;
+  // In watch order; `direct` marks a prerequisite of the work itself.
+  items: Array<{ work: WorkNode; direct?: boolean }>;
+  // Shown when there's nothing to list before the work.
+  empty?: string;
+  onClear: () => void;
 }
 
 // The map as a scrolling list, for small screens: every work in the view
@@ -34,13 +47,29 @@ export function ListView({
   activeSet,
   distances,
   onSelect,
+  focus,
 }: Props) {
   const { t } = useI18n();
   const sections = listSections(mode, grouping, graph);
+  // Relatives of the selection: what comes before it, and after.
+  const tagFor = (distance: number | undefined): RowTag | undefined =>
+    distance === undefined
+      ? undefined
+      : distance < 0
+        ? { label: t.listBefore, tone: "before" }
+        : { label: t.listAfter, tone: "after" };
 
-  // A selection made elsewhere (search, a route) scrolls into view.
+  const mainRef = useRef<HTMLElement>(null);
+  // A narrowed list opens at its header.
+  const focusTitle = focus?.title;
   useEffect(() => {
-    if (!selectedId) return;
+    if (focusTitle) mainRef.current?.scrollTo({ top: 0 });
+  }, [focusTitle]);
+
+  // A selection made elsewhere (search, a route) scrolls into view; picks
+  // within a narrowed list are already on screen.
+  useEffect(() => {
+    if (!selectedId || focusTitle) return;
     const row = document.getElementById(`list-${selectedId}`);
     const rect = row?.getBoundingClientRect();
     if (!row || !rect) return;
@@ -48,103 +77,96 @@ export function ListView({
     if (rect.top < 140 || rect.bottom > window.innerHeight - 100) {
       row.scrollIntoView({ block: "center", behavior: "smooth" });
     }
-  }, [selectedId]);
+  }, [selectedId, focusTitle]);
 
   return (
     <main
+      ref={mainRef}
       className={cn(
         "h-dvh overflow-y-auto bg-neutral-800 px-3 pb-28 transition-[padding] duration-200 sm:px-6",
         selectedId ? "pt-36 sm:pt-44" : "pt-4",
       )}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        {sections.map((section) => (
-          <section key={section.kind === "saga" ? section.saga : section.decade}>
-            <h2 className="mb-2 flex items-baseline justify-between px-2 text-xs font-semibold tracking-wide text-muted-foreground">
-              {section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
-              <span className="font-normal tabular-nums">{t.workCount(section.works.length)}</span>
-            </h2>
-            <ol className="flex flex-col gap-1">
-              {section.works.map((work) => (
-                <ListRow
-                  key={work.id}
-                  work={work}
-                  selected={work.id === selectedId}
-                  dimmed={activeSet !== null && !activeSet.has(work.id)}
-                  distance={distances.get(work.id)}
-                  onSelect={onSelect}
-                />
-              ))}
-            </ol>
-          </section>
-        ))}
+        {focus ? (
+          <FocusedList focus={focus} selectedId={selectedId} onSelect={onSelect} />
+        ) : (
+          sections.map((section) => (
+            <section key={section.kind === "saga" ? section.saga : section.decade}>
+              <h2 className="mb-2 flex items-baseline justify-between px-2 text-xs font-semibold tracking-wide text-muted-foreground">
+                {section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
+                <span className="font-normal tabular-nums">
+                  {t.workCount(section.works.length)}
+                </span>
+              </h2>
+              <ol className="flex flex-col gap-1">
+                {section.works.map((work) => (
+                  <WorkRow
+                    key={work.id}
+                    id={`list-${work.id}`}
+                    work={work}
+                    selected={work.id === selectedId}
+                    dimmed={activeSet !== null && !activeSet.has(work.id)}
+                    tag={tagFor(distances.get(work.id))}
+                    onSelect={onSelect}
+                  />
+                ))}
+              </ol>
+            </section>
+          ))
+        )}
       </div>
     </main>
   );
 }
 
-function ListRow({
-  work,
-  selected,
-  dimmed,
-  distance,
+// One path in watch order under a header with its count and running time.
+function FocusedList({
+  focus,
+  selectedId,
   onSelect,
 }: {
-  work: WorkNode;
-  selected: boolean;
-  dimmed: boolean;
-  distance: number | undefined;
+  focus: ListFocusView;
+  selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
-  const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
+  const { t } = useI18n();
+  const works = focus.items.map((item) => item.work);
+  const { minutes, missing } = totalRuntime(works);
   return (
-    <li id={`list-${work.id}`}>
-      <button
-        type="button"
-        onClick={() => onSelect(work.id)}
-        aria-pressed={selected}
-        className={cn(
-          "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none",
-          selected ? "border-white/40 bg-white/10" : "border-transparent bg-card/60 hover:bg-card",
-          dimmed && "opacity-35",
-        )}
-      >
-        <span className="relative block h-[72px] w-12 shrink-0 overflow-hidden rounded-thumb bg-muted">
-          <Poster key={work.id} work={work} compact />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="line-clamp-2 text-sm leading-snug font-medium">{titleOf(work)}</span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
-            <MediumBadge work={work} />
-            <span
-              className={`size-1.5 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
-            />
-            {franchiseLabel(work.franchise)}
-            {work.phase !== undefined && <span>· {t.phase(work.phase)}</span>}
-            <span className="tabular-nums">· {work.releaseDate.slice(0, 4)}</span>
-          </span>
-          <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted-foreground/80">
-            {earthsOf(work).map((earth) => (
-              <span key={earth} className="flex items-center gap-1">
-                <span className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`} />
-                {earthLabel(earth)}
-              </span>
-            ))}
-          </span>
-        </span>
-        {distance !== undefined && (
-          <span
-            className={cn(
-              "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap",
-              distance < 0
-                ? "border-amber-400/40 text-amber-200"
-                : "border-sky-400/40 text-sky-200",
-            )}
-          >
-            {distance < 0 ? t.listBefore : t.listAfter}
-          </span>
-        )}
-      </button>
-    </li>
+    <section>
+      <div className="mb-3 flex items-start gap-3 px-2">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-semibold">{focus.title}</h2>
+          {focus.summary && <p className="mt-0.5 text-xs text-muted-foreground">{focus.summary}</p>}
+          <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+            {t.watchFirstCount(works.length)}
+            {minutes > 0 && ` · ${t.totalTime(t.duration(minutes), missing)}`}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={focus.onClear}
+          aria-label={t.backToFullList}
+          title={t.backToFullList}
+          className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+      {focus.empty && <p className="mb-3 px-2 text-sm text-muted-foreground">{focus.empty}</p>}
+      <ol className="flex flex-col gap-1">
+        {focus.items.map(({ work, direct }) => (
+          <WorkRow
+            key={work.id}
+            id={`list-${work.id}`}
+            work={work}
+            selected={work.id === selectedId}
+            tag={direct ? { label: t.directTag, tone: "before" } : undefined}
+            onSelect={onSelect}
+          />
+        ))}
+      </ol>
+    </section>
   );
 }
