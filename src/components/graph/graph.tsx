@@ -21,6 +21,7 @@ import {
   computeGroupCards,
   computeLayout,
   computePhaseBands,
+  computeSagaBands,
   computeYearMarks,
   type Axis,
   type ViewMode,
@@ -84,8 +85,9 @@ export function Graph() {
   // for the selection fit.
   const layout = computeLayout(mode, grouping, graph);
   const canvas = canvasSize(layout);
-  const groupCards = computeGroupCards(mode, layout, grouping);
   const phaseBands = computePhaseBands(mode, layout, grouping, graph);
+  const sagaBands = computeSagaBands(layout, phaseBands);
+  const groupCards = computeGroupCards(mode, layout, grouping, sagaBands);
   const eraBands = computeEraBands(mode, layout, grouping);
   const yearMarks = computeYearMarks(mode, layout, grouping);
 
@@ -278,6 +280,7 @@ export function Graph() {
                 groupBy={grouping.by}
                 groupCards={groupCards}
                 phaseBands={phaseBands}
+                sagaBands={sagaBands}
                 eraBands={eraBands}
                 yearMarks={yearMarks}
                 focusedCardKey={focus.focusedCard?.key}
