@@ -4,7 +4,7 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
-import { computeLayout, type ViewMode } from "./layout";
+import { computeLayout, computePhaseBands, type ViewMode } from "./layout";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -320,5 +320,20 @@ describe("fitBox", () => {
     expect(tiny.scale).toBe(0.8);
     const huge = fitBox({ left: 0, top: 0, right: 1e6, bottom: 1e6 }, viewport, insets, 0.2, 0.8);
     expect(huge.scale).toBe(0.2);
+  });
+});
+
+describe("Earth grouping", () => {
+  it("keeps another franchise on Earth-616 outside the MCU phase bands", () => {
+    const grouping: Grouping = { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) };
+    const layout = computeLayout("recommended", grouping);
+    const bands = computePhaseBands("recommended", layout, grouping);
+    const inside = WORKS.filter((w) => w.franchise === "defenders")
+      .filter((w) => {
+        const { x } = layout.positions.get(w.id)!;
+        return bands.some((band) => x >= band.left && x <= band.left + band.width);
+      })
+      .map((w) => w.id);
+    expect(inside).toEqual([]);
   });
 });

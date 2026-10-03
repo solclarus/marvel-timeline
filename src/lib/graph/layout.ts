@@ -1,6 +1,13 @@
-import { WORKS } from "@/data/works";
+import { WORKS, type WorkNode } from "@/data/works";
 
-import { groupKeyOf, isWorkVisible, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
+import {
+  GROUPS,
+  groupKeyOf,
+  isWorkVisible,
+  PHASE_GROUP,
+  visibleGroups,
+  type Grouping,
+} from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
 import { WORK_GRAPHS, type WorkGraph } from "./relations";
 
@@ -103,50 +110,75 @@ function computeTimelineLayout(
   return { positions, totalLanes: Math.max(1, sorted.length), rowCount: rows };
 }
 
+// Grouped by Earth, each band is split again by franchise, so a franchise
+// sharing an Earth (Netflix's Defenders Saga on 616) keeps its own lanes
+// beside the MCU's phases instead of weaving through them, joining where its
+// edges meet.
+function laneSubgroups(grouping: Grouping, band: string, works: WorkNode[]): string[] {
+  if (grouping.by !== "earth") return [band];
+  const inBand = works.filter((w) => groupKeyOf(w, "earth") === band);
+  return GROUPS.franchise
+    .map((f) => f.key)
+    .filter((franchise) => inBand.some((w) => w.franchise === franchise))
+    .map((franchise) => `${band}|${franchise}`);
+}
+
+function laneSubgroupOf(work: WorkNode, grouping: Grouping): string {
+  const band = groupKeyOf(work, grouping.by);
+  return grouping.by === "earth" ? `${band}|${work.franchise}` : band;
+}
+
 function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayout {
   const { step: stepMap, maxStep } = graph;
   const bands = visibleBands(grouping);
   const timeRank = recommendedTimeRank();
-  const laneByBand = new Map<string, Map<string, number>>();
+  const laneBySub = new Map<string, Map<string, number>>();
   const laneCount = new Map<string, number>();
-  for (const band of bands) {
-    const worksInBand = graph.works
-      .filter((w) => groupKeyOf(w, grouping.by) === band)
+  const subsByBand = new Map(
+    bands.map((band) => [band, laneSubgroups(grouping, band, graph.works)]),
+  );
+  for (const sub of [...subsByBand.values()].flat()) {
+    const worksInSub = graph.works
+      .filter((w) => laneSubgroupOf(w, grouping) === sub)
       .sort((a, b) => {
         const stepDiff = stepMap.get(a.id)! - stepMap.get(b.id)!;
         return stepDiff !== 0 ? stepDiff : timeRank.get(a.id)! - timeRank.get(b.id)!;
       });
     const { laneMap } = centerMainLane(
-      assignLanes(worksInBand, stepMap, graph),
-      worksInBand,
+      assignLanes(worksInSub, stepMap, graph),
+      worksInSub,
       undefined,
       stepMap,
       graph,
     );
-    laneCount.set(band, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
-    laneByBand.set(band, laneMap);
+    laneCount.set(sub, laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1);
+    laneBySub.set(sub, laneMap);
   }
 
-  // Groups sit apart by a gap wide enough for their cards' outer padding.
-  const bandStart = new Map<string, number>();
+  // Groups sit apart by a gap wide enough for their cards' outer padding;
+  // franchises within an Earth by a smaller one.
+  const subStart = new Map<string, number>();
   let total = 0;
   bands.forEach((band, i) => {
     if (i > 0) total += GROUP_GAP_PX / LANE_PX;
-    bandStart.set(band, total);
-    total += laneCount.get(band)!;
+    subsByBand.get(band)!.forEach((sub, j) => {
+      if (j > 0) total += SUBGROUP_GAP_PX / LANE_PX;
+      subStart.set(sub, total);
+      total += laneCount.get(sub)!;
+    });
   });
 
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
   const rowHeight = 100 / (maxStep + 1);
   for (const work of graph.works) {
-    const band = groupKeyOf(work, grouping.by);
-    const laneMap = laneByBand.get(band);
+    const sub = laneSubgroupOf(work, grouping);
+    const laneMap = laneBySub.get(sub);
     if (!laneMap) continue;
     const laneIndex = laneMap.get(work.id) ?? 0;
     const step = stepMap.get(work.id) ?? 0;
     positions.set(work.id, {
-      x: (bandStart.get(band)! + laneIndex) * laneWidth + laneWidth / 2,
+      x: (subStart.get(sub)! + laneIndex) * laneWidth + laneWidth / 2,
       y: step * rowHeight + rowHeight / 2,
     });
   }
@@ -162,6 +194,9 @@ const ROW_PX = 146;
 // phase bands inside it get a margin; GROUP_GAP_PX keeps neighbors apart.
 const GROUP_CARD_OUTSET_PX = 14;
 const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 10;
+// Between franchises sharing an Earth: keeps a phase band clear of the
+// neighboring franchise's posters.
+const SUBGROUP_GAP_PX = 32;
 
 export function canvasSize(layout: GraphLayout) {
   return {
