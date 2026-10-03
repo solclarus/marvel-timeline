@@ -108,6 +108,7 @@ export function SearchBox({ onSelect }: Props) {
                     alt=""
                     loading="lazy"
                     className="h-9 w-6 shrink-0 rounded-sm bg-muted object-cover"
+                    onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{work.title}</span>
