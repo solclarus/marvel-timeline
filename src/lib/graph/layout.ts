@@ -176,7 +176,7 @@ export function computeGroupColumns(mode: ViewMode, layout: GraphLayout, groupin
   });
 }
 
-// One tinted card per Earth, hugging its works like the phase bands do.
+// One outlined card per Earth, hugging its works like the phase bands do.
 export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (grouping.by !== "earth") return [];
   const { width, height } = canvasSize(layout);

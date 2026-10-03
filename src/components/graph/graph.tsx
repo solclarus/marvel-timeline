@@ -372,7 +372,7 @@ export function Graph() {
                   ({ key, label, colorClass, cardClass, top, height, left, width }) => (
                     <div
                       key={key}
-                      className={`absolute rounded-2xl border-2 ${cardClass ?? ""}`}
+                      className={`absolute rounded-2xl border-3 border-dashed bg-white/35 ${cardClass ?? ""}`}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
