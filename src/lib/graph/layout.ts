@@ -302,17 +302,45 @@ export function computePhaseBands(
   });
 }
 
-export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
-  if (mode === "recommended") return [];
-  const dated = WORKS.filter((w) => isWorkVisible(w, grouping))
+// Visible works in left-to-right order with the year a timeline sorts them
+// by: release year, or the in-story year (falling back to release) for the
+// chronology.
+function datedWorks(
+  mode: Exclude<ViewMode, "recommended">,
+  layout: GraphLayout,
+  grouping: Grouping,
+) {
+  return WORKS.filter((w) => isWorkVisible(w, grouping))
     .map((work) => {
       const pos = layout.positions.get(work.id);
       const releaseYear = Number(work.releaseDate.slice(0, 4));
       const year = mode === "release" ? releaseYear : (work.setYear ?? releaseYear);
-      return pos ? { pos, decade: Math.floor(year / 10) * 10 } : null;
+      return pos ? { pos, year, decade: Math.floor(year / 10) * 10 } : null;
     })
     .filter((e) => e !== null)
     .sort((a, b) => a.pos.x - b.pos.x);
+}
+
+// A faint line wherever the year changes between neighboring works, labeled
+// with the year that starts there. Works sit by rank, not date, so the lines
+// aren't evenly spaced. Decade changes are left to the decade bands' edges.
+export function computeYearMarks(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+  if (mode === "recommended") return [];
+  const dated = datedWorks(mode, layout, grouping);
+  return dated.flatMap((current, i) => {
+    const previous = dated[i - 1];
+    if (!previous || previous.year === current.year || previous.decade !== current.decade) {
+      return [];
+    }
+    return [
+      { key: `${current.year}-${i}`, year: current.year, x: (previous.pos.x + current.pos.x) / 2 },
+    ];
+  });
+}
+
+export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+  if (mode === "recommended") return [];
+  const dated = datedWorks(mode, layout, grouping);
   if (dated.length === 0) return [];
 
   const runs: Array<{ decade: number; minX: number; maxX: number }> = [];
