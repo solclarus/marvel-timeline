@@ -339,6 +339,23 @@ describe("fitBox", () => {
   });
 });
 
+describe("phase bands", () => {
+  for (const by of ["franchise", "earth"] as const) {
+    it(`never take in works outside the phases (by ${by})`, () => {
+      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
+      const layout = computeLayout("recommended", grouping);
+      const bands = computePhaseBands("recommended", layout, grouping);
+      const inside = WORKS.filter((w) => w.phase === undefined)
+        .filter((w) => {
+          const { x } = layout.positions.get(w.id)!;
+          return bands.some((band) => x >= band.left && x <= band.left + band.width);
+        })
+        .map((w) => w.id);
+      expect(inside).toEqual([]);
+    });
+  }
+});
+
 describe("Earth grouping", () => {
   it("keeps another franchise on Earth-616 outside the MCU phase bands", () => {
     const grouping: Grouping = { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) };
