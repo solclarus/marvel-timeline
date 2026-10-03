@@ -25,6 +25,7 @@ import {
   WORK_BY_ID,
   type FocusMode,
 } from "@/lib/graph/relations";
+import { wheelZoomFactor, zoomAround } from "@/lib/graph/wheel-zoom";
 import { parseUrlState, serializeUrlState } from "@/lib/url-state";
 import { computeNextUp, useWatched } from "@/lib/watched";
 
@@ -219,7 +220,8 @@ export function Graph() {
       limitToBounds={false}
       centerOnInit={false}
       doubleClick={{ step: 0.6, mode: "zoomIn" }}
-      wheel={{ step: 0.15 }}
+      // Desktop wheel and trackpad zoom are handled below; see wheel-zoom.ts.
+      wheel={{ disabled: true }}
       pinch={{ step: 5 }}
       onTransform={(_ref, state) => setZoomPercent(state.scale)}
       onInit={(ref) => {
@@ -231,6 +233,23 @@ export function Graph() {
           wrapper.scrollTop = 0;
           wrapper.scrollLeft = 0;
         });
+        wrapper?.addEventListener(
+          "wheel",
+          (event) => {
+            event.preventDefault();
+            const rect = wrapper.getBoundingClientRect();
+            const { positionX, positionY, scale } = ref.instance.state;
+            const next = zoomAround(
+              { x: positionX, y: positionY, scale },
+              wheelZoomFactor(event),
+              { x: event.clientX - rect.left, y: event.clientY - rect.top },
+              MIN_ZOOM,
+              MAX_ZOOM,
+            );
+            ref.setTransform(next.x, next.y, next.scale, 0);
+          },
+          { passive: false },
+        );
         // A linked work opens centered; otherwise start at the Avengers.
         const startId = initial.selectedId ?? AVENGERS_ID;
         if (startId && document.getElementById(startId)) {
