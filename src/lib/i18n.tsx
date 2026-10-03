@@ -59,6 +59,18 @@ const en = {
   watchFirstCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}, in order`,
   nothingFirst: "Nothing to watch first — you can start here.",
   directTag: "Direct",
+  duration: (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ""}` : `${m}m`;
+  },
+  episodes: (n: number) => `${n} episodes`,
+  totalTime: (duration: string, missing: number) =>
+    `${duration} in all${missing > 0 ? ` (${missing} not yet known)` : ""}`,
+  routes: "Routes",
+  routesIntro: "Short paths through one storyline, in watch order.",
+  routeCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}`,
+  backToRoutes: "All routes",
   zoomIn: "Zoom in",
   zoomOut: "Zoom out",
   fitToView: "Fit to view",
@@ -124,6 +136,18 @@ const ja: Messages = {
   watchFirstCount: (n) => `観る順に ${n} 作品`,
   nothingFirst: "先に観る作品はありません。ここから観られます。",
   directTag: "直接",
+  duration: (minutes) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}時間${m > 0 ? `${m}分` : ""}` : `${m}分`;
+  },
+  episodes: (n) => `全${n}話`,
+  totalTime: (duration, missing) =>
+    `計 ${duration}${missing > 0 ? `（${missing}作品は未定）` : ""}`,
+  routes: "視聴ルート",
+  routesIntro: "ひとつの物語だけを追う、短めのルート。観る順に並んでいます。",
+  routeCount: (n) => `${n}作品`,
+  backToRoutes: "ルート一覧",
   zoomIn: "拡大",
   zoomOut: "縮小",
   fitToView: "全体を表示",
