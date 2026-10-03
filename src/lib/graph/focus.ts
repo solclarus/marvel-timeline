@@ -4,9 +4,10 @@ import { groupKeyOf, PHASE_GROUP, type Grouping } from "./groups";
 import type { ViewMode } from "./layout";
 import type { WorkGraph } from "./relations";
 
-// What the map highlights: a selection and its relatives, else a focused
-// phase (its works in the phase band's group), else a focused group card.
-// `null` means nothing is highlighted.
+// What the map highlights: a selection, its relatives and the works it
+// references (or is referenced by), else a focused phase (its works in the
+// phase band's group), else a focused group card. `null` means nothing is
+// highlighted.
 export function computeActiveSet({
   selectedId,
   distances,
@@ -22,7 +23,9 @@ export function computeActiveSet({
   grouping: Grouping;
   graph: WorkGraph;
 }): Set<string> | null {
-  if (selectedId) return new Set([selectedId, ...distances.keys()]);
+  if (selectedId) {
+    return new Set([selectedId, ...distances.keys(), ...referencesOf(selectedId, graph.edges)]);
+  }
   if (focusedPhase !== undefined) {
     return new Set(
       graph.works
@@ -39,6 +42,13 @@ export function computeActiveSet({
     );
   }
   return null;
+}
+
+// Works tied to `id` by a reference edge, either way.
+function referencesOf(id: string, edges: WorkEdge[]): string[] {
+  return edges
+    .filter((edge) => edge.kind === "reference" && (edge.from === id || edge.to === id))
+    .map((edge) => (edge.from === id ? edge.to : edge.from));
 }
 
 // Edges to draw. Recommended mode is laid out by these dependencies, so it

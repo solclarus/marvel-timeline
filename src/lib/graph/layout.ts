@@ -507,14 +507,11 @@ export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: G
 export function computeEdgeGeometry(
   flowAxisSpan: number,
   flowStepCount: number,
-  crossAxisCount: number,
   nodeFlowSize: number,
 ) {
   const nodeHalfSizePercent = (nodeFlowSize / 2 / flowAxisSpan) * 100;
   const flowStepPercent = 100 / flowStepCount;
   const tightestGapPercent = Math.max(0.1, flowStepPercent - 2 * nodeHalfSizePercent);
   const stubPercent = tightestGapPercent / 2;
-  const crossStepPercent = 100 / crossAxisCount;
-  const cornerRadius = Math.min(1.5, stubPercent, crossStepPercent / 2);
-  return { nodeHalfSizePercent, stubPercent, cornerRadius };
+  return { nodeHalfSizePercent, stubPercent };
 }

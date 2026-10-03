@@ -5,25 +5,25 @@ import type { EdgeKind, WorkEdge } from "@/data/works";
 import { elbowPath } from "@/lib/graph/edge-path";
 import type { Axis, Point } from "@/lib/graph/layout";
 
-// Three looks for five kinds: a series' own sequels, ties to other series
-// (spin-offs, lead-ins, crossovers), and loose references.
-export type EdgeStyle = "sequel" | "tie" | "reference";
+// Every kind but "reference" means "watch this first", so they share one
+// look; references are drawn dashed since they aren't prerequisites.
+export type EdgeStyle = "prerequisite" | "reference";
 
 const STYLE_OF_KIND: Record<EdgeKind, EdgeStyle> = {
-  "direct-sequel": "sequel",
-  "spin-off": "tie",
-  "leads-into": "tie",
-  crossover: "tie",
+  "direct-sequel": "prerequisite",
+  "spin-off": "prerequisite",
+  "leads-into": "prerequisite",
+  crossover: "prerequisite",
   reference: "reference",
 };
 
 export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
-  sequel: { stroke: "#94a3b8", width: 4.5 },
-  tie: { stroke: "#d4a017", width: 3 },
+  prerequisite: { stroke: "#d4a017", width: 3.5 },
   reference: { stroke: "#78716c", width: 2.5, dash: "5 5" },
 };
 
 const HOVER_DELAY_MS = 250;
+const CORNER_RADIUS_PX = 14;
 
 interface Props {
   edges: WorkEdge[];
@@ -33,8 +33,10 @@ interface Props {
   visibleIds: Set<string>;
   axis: Axis;
   nodeHalfSizePercent: number;
-  cornerRadius: number;
   stubPercent: number;
+  // Canvas size in pixels. Lines are drawn in pixels so corners stay round
+  // however the canvas is proportioned.
+  canvas: { width: number; height: number };
 }
 
 function edgeKey(edge: { from: string; to: string }) {
@@ -49,8 +51,8 @@ export function GraphEdges({
   visibleIds,
   axis,
   nodeHalfSizePercent,
-  cornerRadius,
   stubPercent,
+  canvas,
 }: Props) {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   // Only a resting pointer counts, so panning across lines doesn't flicker.
@@ -74,21 +76,34 @@ export function GraphEdges({
     onLeave: () => void;
   }> = [];
 
-  for (const edge of edges) {
+  const toPx = (p: Point): Point => ({
+    x: (p.x / 100) * canvas.width,
+    y: (p.y / 100) * canvas.height,
+  });
+  const stubPx = (stubPercent / 100) * (axis === "y" ? canvas.height : canvas.width);
+  const radiusPx = Math.min(CORNER_RADIUS_PX, stubPx);
+
+  // References go first so prerequisite lines are drawn over them.
+  const ordered = [...edges].sort(
+    (a, b) => Number(b.kind === "reference") - Number(a.kind === "reference"),
+  );
+  for (const edge of ordered) {
     if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) continue;
     const fromCenter = positions.get(edge.from);
     const toCenter = positions.get(edge.to);
     if (!fromCenter || !toCenter) continue;
-    const from =
+    const from = toPx(
       axis === "y"
         ? { x: fromCenter.x, y: fromCenter.y + nodeHalfSizePercent }
-        : { x: fromCenter.x + nodeHalfSizePercent, y: fromCenter.y };
-    const to =
+        : { x: fromCenter.x + nodeHalfSizePercent, y: fromCenter.y },
+    );
+    const to = toPx(
       axis === "y"
         ? { x: toCenter.x, y: toCenter.y - nodeHalfSizePercent }
-        : { x: toCenter.x - nodeHalfSizePercent, y: toCenter.y };
-
+        : { x: toCenter.x - nodeHalfSizePercent, y: toCenter.y },
+    );
     const key = edgeKey(edge);
+    const style = STYLE_OF_KIND[edge.kind];
     const isHovered = hoveredEdge === key;
     const isActive = activeSet !== null && activeSet.has(edge.from) && activeSet.has(edge.to);
     const dim = activeSet !== null && !isActive;
@@ -97,17 +112,17 @@ export function GraphEdges({
         0.06
       : 0;
 
-    const baseOpacity = edge.kind === "reference" ? 0.22 : 0.55;
+    const baseOpacity = edge.kind === "reference" ? 0.4 : 0.55;
     // Hover lifts just the one line; the rest of the map stays put.
     const opacity = isHovered ? 1 : dim ? 0.05 : isActive ? 1 : baseOpacity;
 
     edgeRenders.push({
       key,
-      style: STYLE_OF_KIND[edge.kind],
-      path: elbowPath(from, to, cornerRadius, stubPercent, axis),
+      style,
+      path: elbowPath(from, to, radiusPx, stubPx, axis),
       opacity,
       delay: isHovered ? 0 : delay,
-      strokeWidth: EDGE_STYLE[STYLE_OF_KIND[edge.kind]].width * (isHovered ? 1.6 : 1),
+      strokeWidth: EDGE_STYLE[style].width * (isHovered ? 1.6 : 1),
       onEnter: () => setPendingEdge(key),
       onLeave: () => {
         setPendingEdge((current) => (current === key ? null : current));
@@ -126,8 +141,7 @@ export function GraphEdges({
   return (
     <svg
       className="absolute inset-0 h-full w-full"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
+      viewBox={`0 0 ${canvas.width} ${canvas.height}`}
       aria-hidden
     >
       {[...groups.entries()].map(([groupKey, group]) => {

@@ -24,8 +24,9 @@ export interface WorkGraph {
   // ("reference" excluded).
   incoming: Map<string, string[]>;
   outgoing: Map<string, string[]>;
-  // Row in recommended mode: longest path from a root, floored per MCU phase
-  // so phases stack as clean bands.
+  // Row in recommended mode: longest path from a root over every edge
+  // (references too, so their lines point down like the rest), floored per
+  // MCU phase so phases stack as clean bands.
   step: Map<string, number>;
   maxStep: number;
 }
@@ -64,10 +65,14 @@ function bridgeEdges(included: Set<string>): WorkEdge[] {
   return [...byPair.values()];
 }
 
-function buildAdjacency(edges: WorkEdge[], direction: "incoming" | "outgoing") {
+function buildAdjacency(
+  edges: WorkEdge[],
+  direction: "incoming" | "outgoing",
+  { withReferences = false } = {},
+) {
   const map = new Map<string, string[]>();
   for (const edge of edges) {
-    if (!HARD_EDGE_KINDS.includes(edge.kind)) continue;
+    if (!withReferences && !HARD_EDGE_KINDS.includes(edge.kind)) continue;
     const [key, value] = direction === "incoming" ? [edge.to, edge.from] : [edge.from, edge.to];
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(value);
@@ -121,7 +126,7 @@ export function buildWorkGraph(include: (work: WorkNode) => boolean): WorkGraph 
   const edges = works.length === WORKS.length ? EDGES : bridgeEdges(included);
   const incoming = buildAdjacency(edges, "incoming");
   const outgoing = buildAdjacency(edges, "outgoing");
-  const step = buildSteps(works, incoming);
+  const step = buildSteps(works, buildAdjacency(edges, "incoming", { withReferences: true }));
   return {
     works,
     edges,

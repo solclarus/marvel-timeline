@@ -31,8 +31,7 @@ interface Props {
 type MessageKey = { [K in keyof Messages]: Messages[K] extends string ? K : never }[keyof Messages];
 
 const EDGE_LEGEND: Array<{ style: EdgeStyle; label: MessageKey; detail?: MessageKey }> = [
-  { style: "sequel", label: "lineSequel" },
-  { style: "tie", label: "lineTie", detail: "lineTieDetail" },
+  { style: "prerequisite", label: "linePrerequisite", detail: "linePrerequisiteDetail" },
   { style: "reference", label: "lineReference", detail: "lineReferenceDetail" },
 ];
 
