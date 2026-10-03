@@ -5,12 +5,22 @@ import type { EdgeKind, WorkEdge } from "@/data/works";
 import { elbowPath } from "@/lib/graph/edge-path";
 import type { Axis, Point } from "@/lib/graph/layout";
 
-export const KIND_STYLE: Record<EdgeKind, { stroke: string; width: number; dash?: string }> = {
-  "direct-sequel": { stroke: "#334155", width: 4.5 },
-  "spin-off": { stroke: "#2563eb", width: 4.5 },
-  "leads-into": { stroke: "#ca8a04", width: 4.5 },
-  crossover: { stroke: "#dc2626", width: 6.2 },
-  reference: { stroke: "#7c3aed", width: 3.5, dash: "5 5" },
+// Three looks for five kinds: a series' own sequels, ties to other series
+// (spin-offs, lead-ins, crossovers), and loose references.
+type EdgeStyle = "sequel" | "tie" | "reference";
+
+const STYLE_OF_KIND: Record<EdgeKind, EdgeStyle> = {
+  "direct-sequel": "sequel",
+  "spin-off": "tie",
+  "leads-into": "tie",
+  crossover: "tie",
+  reference: "reference",
+};
+
+export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
+  sequel: { stroke: "#334155", width: 4.5 },
+  tie: { stroke: "#ca8a04", width: 3 },
+  reference: { stroke: "#a8a29e", width: 2.5, dash: "5 5" },
 };
 
 const HOVER_DELAY_MS = 250;
@@ -51,11 +61,11 @@ export function GraphEdges({
     return () => window.clearTimeout(timer);
   }, [pendingEdge]);
 
-  // Overlapping same-kind edges share one group opacity; per-path opacity
+  // Overlapping same-style edges share one group opacity; per-path opacity
   // would composite overlaps into a darker line.
   const edgeRenders: Array<{
     key: string;
-    kind: EdgeKind;
+    style: EdgeStyle;
     path: string;
     opacity: number;
     delay: number;
@@ -93,11 +103,11 @@ export function GraphEdges({
 
     edgeRenders.push({
       key,
-      kind: edge.kind,
+      style: STYLE_OF_KIND[edge.kind],
       path: elbowPath(from, to, cornerRadius, stubPercent, axis),
       opacity,
       delay: isHovered ? 0 : delay,
-      strokeWidth: isHovered ? KIND_STYLE[edge.kind].width * 1.6 : KIND_STYLE[edge.kind].width,
+      strokeWidth: EDGE_STYLE[STYLE_OF_KIND[edge.kind]].width * (isHovered ? 1.6 : 1),
       onEnter: () => setPendingEdge(key),
       onLeave: () => {
         setPendingEdge((current) => (current === key ? null : current));
@@ -108,7 +118,7 @@ export function GraphEdges({
 
   const groups = new Map<string, typeof edgeRenders>();
   for (const render of edgeRenders) {
-    const groupKey = `${render.kind}:${render.opacity}:${render.delay}:${render.strokeWidth}`;
+    const groupKey = `${render.style}:${render.opacity}:${render.delay}:${render.strokeWidth}`;
     if (!groups.has(groupKey)) groups.set(groupKey, []);
     groups.get(groupKey)!.push(render);
   }
@@ -121,8 +131,8 @@ export function GraphEdges({
       aria-hidden
     >
       {[...groups.entries()].map(([groupKey, group]) => {
-        const { kind, opacity, delay, strokeWidth } = group[0];
-        const style = KIND_STYLE[kind];
+        const { opacity, delay, strokeWidth } = group[0];
+        const style = EDGE_STYLE[group[0].style];
         return (
           <m.g
             key={groupKey}
