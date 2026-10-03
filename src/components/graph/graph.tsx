@@ -54,6 +54,7 @@ import {
   WIDTH as NODE_WIDTH,
   type NodeState,
 } from "./graph-node";
+import { GroupHoverChip } from "./group-hover-chip";
 import { LegendFab } from "./legend-fab";
 import { ModeFab } from "./mode-fab";
 import { ZoomFab } from "./zoom-fab";
@@ -68,7 +69,7 @@ const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 function BandLabel({ color, children }: { color: string; children: React.ReactNode }) {
   return (
     <span
-      className="absolute bottom-2 left-2 z-10 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap"
+      className="absolute bottom-0 left-4 z-10 translate-y-1/2 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap"
       style={{ borderColor: color, color, backgroundColor: "rgba(255,255,255,0.85)" }}
     >
       {children}
@@ -89,7 +90,7 @@ function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformS
 
 function GroupLabel({ colorClass, children }: { colorClass: string; children: React.ReactNode }) {
   return (
-    <span className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full border border-border/60 bg-white/85 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-stone-700">
+    <span className="absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-border/60 bg-white px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-stone-700">
       <span className={`size-2 rounded-full ${colorClass}`} />
       {children}
     </span>
@@ -120,15 +121,19 @@ export function Graph() {
 
   // Hovering a card (anywhere inside it, posters included) focuses its
   // group once the pointer rests, so sweeping across cards doesn't flicker.
-  const [pendingGroup, setPendingGroup] = useState<string | null>(null);
+  // `pendingGroup` keeps where the pointer entered the card, for the chip.
+  const [pendingGroup, setPendingGroup] = useState<{ key: string; x: number; y: number } | null>(
+    null,
+  );
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   useEffect(() => {
     if (pendingGroup === null) return;
-    const timer = window.setTimeout(() => setHoveredGroup(pendingGroup), GROUP_HOVER_DELAY_MS);
+    const timer = window.setTimeout(() => setHoveredGroup(pendingGroup.key), GROUP_HOVER_DELAY_MS);
     return () => window.clearTimeout(timer);
   }, [pendingGroup]);
   // Stale once the pointer moves on; a selection wins over it.
-  const focusedGroup = !selectedId && hoveredGroup === pendingGroup ? hoveredGroup : null;
+  const focusedGroup = !selectedId && hoveredGroup === pendingGroup?.key ? hoveredGroup : null;
+  const focusedCard = groupCards.find((card) => card.key === focusedGroup);
   const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse") return;
     const rect = event.currentTarget.getBoundingClientRect();
@@ -136,7 +141,15 @@ export function Graph() {
       x: ((event.clientX - rect.left) / rect.width) * 100,
       y: ((event.clientY - rect.top) / rect.height) * 100,
     });
-    setPendingGroup(card?.key ?? null);
+    const key = card?.key ?? null;
+    // Same card: keep the state as is, so moving within it doesn't re-render.
+    setPendingGroup((current) =>
+      (current?.key ?? null) === key
+        ? current
+        : key === null
+          ? null
+          : { key, x: event.clientX, y: event.clientY },
+    );
   };
 
   const distances = selectedId
@@ -479,6 +492,15 @@ export function Graph() {
           </TransformComponent>
 
           <PosterTooltip />
+          {focusedCard && pendingGroup && (
+            <GroupHoverChip
+              key={focusedCard.key}
+              label={focusedCard.label}
+              colorClass={focusedCard.colorClass}
+              count={activeSet?.size ?? 0}
+              initial={pendingGroup}
+            />
+          )}
 
           <DetailPanel
             selectedId={selectedId}

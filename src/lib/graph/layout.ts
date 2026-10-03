@@ -116,12 +116,14 @@ function computeGitGraphLayout(grouping: Grouping): GraphLayout {
     laneByBand.set(band, laneMap);
   }
 
+  // Groups sit apart by a gap wide enough for their cards' outer padding.
   const bandStart = new Map<string, number>();
   let total = 0;
-  for (const band of bands) {
+  bands.forEach((band, i) => {
+    if (i > 0) total += GROUP_GAP_PX / LANE_PX;
     bandStart.set(band, total);
     total += laneCount.get(band)!;
-  }
+  });
 
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
@@ -141,10 +143,14 @@ function computeGitGraphLayout(grouping: Grouping): GraphLayout {
   return { positions, totalLanes: total, rowCount: MAX_STEP + 1 };
 }
 
-// Cells leave room around each 68x102 poster for the phase and Earth cards'
+// Cells leave room around each 68x102 poster for the phase and group cards'
 // inner padding.
 const LANE_PX = 116;
 const ROW_PX = 146;
+// In recommended mode a group card reaches this far past its cells, so the
+// phase bands inside it get a margin; GROUP_GAP_PX keeps neighbors apart.
+const GROUP_CARD_OUTSET_PX = 14;
+const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 10;
 
 export function canvasSize(layout: GraphLayout) {
   return {
@@ -159,10 +165,14 @@ export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping:
   const { width, height } = canvasSize(layout);
   const crossCount = mode === "recommended" ? layout.totalLanes : layout.rowCount;
   const flowCount = mode === "recommended" ? layout.rowCount : layout.totalLanes;
-  // Half a cell on each axis, less a 10px gutter between neighboring cards.
-  const halfLane = 50 / crossCount - (5 / (mode === "recommended" ? width : height)) * 100;
-  const halfStep = 50 / flowCount - (5 / (mode === "recommended" ? height : width)) * 100;
-  const [padX, padY] = mode === "recommended" ? [halfLane, halfStep] : [halfStep, halfLane];
+  // Half a cell on each axis. Recommended mode adds an outset around the
+  // phase bands; timeline rows touch, so their cards keep a 10px gutter.
+  const [padXPx, padYPx] =
+    mode === "recommended"
+      ? [GROUP_CARD_OUTSET_PX, GROUP_CARD_OUTSET_PX]
+      : [GROUP_CARD_OUTSET_PX, -5];
+  const padX = 50 / (mode === "recommended" ? crossCount : flowCount) + (padXPx / width) * 100;
+  const padY = 50 / (mode === "recommended" ? flowCount : crossCount) + (padYPx / height) * 100;
 
   return visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
