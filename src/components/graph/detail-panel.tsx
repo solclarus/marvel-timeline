@@ -3,7 +3,7 @@ import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
 import { Button } from "@/components/ui/button";
-import { FRANCHISE_META, posterUrl } from "@/data/works";
+import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
 import { WORK_BY_ID } from "@/lib/graph/relations";
 
 interface Props {
@@ -38,7 +38,9 @@ export function DetailPanel({ selectedId, onClear, watched, onToggleWatched }: P
                     className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                   />
                   {FRANCHISE_META[work.franchise].label}
-                  {` · ${work.earth ?? FRANCHISE_META[work.franchise].earth}`}
+                  {` · ${earthsOf(work)
+                    .map((earth) => EARTH_META[earth].label)
+                    .join(" / ")}`}
                   {` · ${work.releaseDate.slice(0, 4)}`}
                 </p>
                 <p className="font-semibold">{work.title}</p>
