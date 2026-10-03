@@ -34,8 +34,9 @@ export interface GraphLayout {
 function decadeTint(step: number) {
   const hue = Math.round(step * 270);
   return {
-    color: `hsla(${hue}, 85%, 55%, 0.12)`,
-    borderColor: `hsla(${hue}, 70%, 45%, 0.5)`,
+    // Strong enough that cooler hues don't fade into the gray page.
+    color: `hsla(${hue}, 90%, 58%, 0.2)`,
+    borderColor: `hsla(${hue}, 75%, 42%, 0.55)`,
   };
 }
 
