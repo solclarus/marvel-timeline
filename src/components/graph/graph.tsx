@@ -344,8 +344,9 @@ export function Graph() {
           box,
           viewport,
           {
-            top: 88,
-            bottom: phone ? 170 : 150,
+            // The detail panel is on top, the command bar below.
+            top: phone ? 120 : 150,
+            bottom: 88,
             left: 24,
             right: viewport.width >= 768 ? 96 : 24,
           },

@@ -18,8 +18,9 @@ const EPSILON = 0.001;
 
 export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: Props) {
   return (
-    // Desktop only: phones pinch to zoom.
-    <FabBar from="bottom" className="fixed right-6 bottom-6 z-40 hidden flex-col md:flex">
+    // Desktop only: phones pinch to zoom. Top-right, out of the way of the
+    // command bar.
+    <FabBar from="top" className="fixed top-6 right-6 z-40 hidden flex-col md:flex">
       <Button
         variant="ghost"
         size="icon"

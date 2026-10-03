@@ -91,7 +91,7 @@ export function SearchBox({ onSelect }: Props) {
         />
       </div>
       <Autocomplete.Portal>
-        <Autocomplete.Positioner sideOffset={18} align="start" className="z-50">
+        <Autocomplete.Positioner side="top" sideOffset={18} align="start" className="z-50">
           <Autocomplete.Popup className="max-h-[60vh] w-(--anchor-width) min-w-64 overflow-y-auto rounded-lg border bg-card/95 p-1 text-card-foreground shadow-xl shadow-black/30 backdrop-blur-md">
             <Autocomplete.Empty className="px-3 py-2 text-xs text-muted-foreground empty:hidden">
               {query.trim() !== "" && "No matches"}
