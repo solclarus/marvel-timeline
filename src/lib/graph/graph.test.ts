@@ -5,7 +5,7 @@ import { EDGES, WORKS, type Franchise } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { BAND_ORDER, computeFocusLayout, computeLayout, type ViewMode } from "./layout";
 import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
-import { wheelZoomFactor, zoomAround } from "./wheel-zoom";
+import { isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
 const ALL_FRANCHISES = new Set<Franchise>(BAND_ORDER);
 const MODES: ViewMode[] = ["recommended", "release", "chronology"];
@@ -120,27 +120,43 @@ describe("elbowPath", () => {
   });
 });
 
-describe("wheel zoom", () => {
+describe("wheel input", () => {
+  const wheel = (deltaY: number, extra: Partial<Parameters<typeof wheelPanDelta>[0]> = {}) => ({
+    deltaX: 0,
+    deltaY,
+    deltaMode: 0,
+    shiftKey: false,
+    ...extra,
+  });
+
+  it("zooms only for pinch and modifier gestures", () => {
+    expect(isZoomGesture({ ctrlKey: true, metaKey: false })).toBe(true);
+    expect(isZoomGesture({ ctrlKey: false, metaKey: true })).toBe(true);
+    expect(isZoomGesture({ ctrlKey: false, metaKey: false })).toBe(false);
+  });
+
+  it("pans opposite to the scroll delta, sideways with shift", () => {
+    expect(wheelPanDelta(wheel(100))).toEqual({ x: -0, y: -100 });
+    expect(wheelPanDelta(wheel(0, { deltaX: 40 }))).toEqual({ x: -40, y: -0 });
+    expect(wheelPanDelta(wheel(100, { shiftKey: true }))).toEqual({ x: -100, y: 0 });
+    expect(wheelPanDelta(wheel(3, { deltaMode: 1 })).y).toBe(-48);
+  });
+
   it("zooms by the same ratio at any scale", () => {
-    const notch = wheelZoomFactor({ deltaY: -100, deltaMode: 0, ctrlKey: false });
-    expect(notch).toBeGreaterThan(1.15);
-    expect(notch).toBeLessThan(1.25);
-    const a = zoomAround({ x: 0, y: 0, scale: 0.3 }, notch, { x: 0, y: 0 }, 0.2, 1.5);
-    const b = zoomAround({ x: 0, y: 0, scale: 0.6 }, notch, { x: 0, y: 0 }, 0.2, 1.5);
+    const step = wheelZoomFactor(wheel(-4));
+    const a = zoomAround({ x: 0, y: 0, scale: 0.3 }, step, { x: 0, y: 0 }, 0.2, 1.5);
+    const b = zoomAround({ x: 0, y: 0, scale: 0.6 }, step, { x: 0, y: 0 }, 0.2, 1.5);
     expect(a.scale / 0.3).toBeCloseTo(b.scale / 0.6);
   });
 
-  it("undoes a notch with the opposite notch", () => {
-    const zoomIn = wheelZoomFactor({ deltaY: -100, deltaMode: 0, ctrlKey: false });
-    const zoomOut = wheelZoomFactor({ deltaY: 100, deltaMode: 0, ctrlKey: false });
-    expect(zoomIn * zoomOut).toBeCloseTo(1);
+  it("undoes a pinch step with the opposite step", () => {
+    expect(wheelZoomFactor(wheel(-4)) * wheelZoomFactor(wheel(4))).toBeCloseTo(1);
   });
 
-  it("caps line-mode and oversized deltas", () => {
-    const line = wheelZoomFactor({ deltaY: -3, deltaMode: 1, ctrlKey: false });
-    const huge = wheelZoomFactor({ deltaY: -5000, deltaMode: 0, ctrlKey: false });
-    expect(line).toBeLessThan(1.3);
-    expect(huge).toBeLessThan(1.3);
+  it("caps a ctrl+mouse notch and oversized deltas", () => {
+    expect(wheelZoomFactor(wheel(-100))).toBeLessThan(1.25);
+    expect(wheelZoomFactor(wheel(-3, { deltaMode: 1 }))).toBeLessThan(1.25);
+    expect(wheelZoomFactor(wheel(-5000))).toBeLessThan(1.25);
   });
 
   it("keeps the point under the cursor fixed and clamps the scale", () => {

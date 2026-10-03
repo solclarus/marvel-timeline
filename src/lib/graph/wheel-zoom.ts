@@ -1,27 +1,43 @@
-// Desktop wheel zoom. The library's wheel zoom is additive (the same step at
-// 20% and 150%) and rubber-bands past the limits; this scales
-// multiplicatively and stops at them. Touch pinch is left to the library.
+// Desktop wheel input, map-app style: scrolling pans, pinching zooms.
+// Trackpad pinches arrive as ctrl+wheel, and so does ctrl+mouse wheel.
+// The library's wheel zoom is additive (the same step at 20% and 150%) and
+// rubber-bands past the limits; this scales multiplicatively and stops at
+// them. Touch gestures are left to the library.
 
-// Per pixel of deltaY. A mouse notch (~100px) zooms ~1.2x; trackpad pinches
-// (sent as ctrl+wheel with small deltas) need more gain per pixel.
-const WHEEL_GAIN = 0.0018;
+export function isZoomGesture(event: { ctrlKey: boolean; metaKey: boolean }): boolean {
+  return event.ctrlKey || event.metaKey;
+}
+
+// Per pixel of deltaY. Pinch deltas are small and continuous (~1.04x per
+// event); the cap holds a ctrl+mouse notch (~100px) to ~1.2x.
 const PINCH_GAIN = 0.01;
-// Caps one event so a fast flick or a line/page-mode delta can't jump far.
-const MAX_DELTA_PX = 120;
-
+const MAX_ZOOM_DELTA_PX = 20;
 const LINE_PX = 16;
 const PAGE_PX = 800;
 
 export interface WheelInput {
+  deltaX: number;
   deltaY: number;
   deltaMode: number;
-  ctrlKey: boolean;
+  shiftKey: boolean;
 }
 
-export function wheelZoomFactor({ deltaY, deltaMode, ctrlKey }: WheelInput): number {
-  const px = deltaY * (deltaMode === 1 ? LINE_PX : deltaMode === 2 ? PAGE_PX : 1);
-  const clamped = Math.max(-MAX_DELTA_PX, Math.min(MAX_DELTA_PX, px));
-  return Math.exp(-clamped * (ctrlKey ? PINCH_GAIN : WHEEL_GAIN));
+function toPixels(delta: number, deltaMode: number) {
+  return delta * (deltaMode === 1 ? LINE_PX : deltaMode === 2 ? PAGE_PX : 1);
+}
+
+export function wheelZoomFactor({ deltaY, deltaMode }: WheelInput): number {
+  const px = toPixels(deltaY, deltaMode);
+  const clamped = Math.max(-MAX_ZOOM_DELTA_PX, Math.min(MAX_ZOOM_DELTA_PX, px));
+  return Math.exp(-clamped * PINCH_GAIN);
+}
+
+// Screen pixels to move the content by. Shift turns a vertical mouse wheel
+// sideways (macOS already does this itself, reporting deltaX).
+export function wheelPanDelta({ deltaX, deltaY, deltaMode, shiftKey }: WheelInput) {
+  const x = toPixels(deltaX, deltaMode);
+  const y = toPixels(deltaY, deltaMode);
+  return shiftKey && x === 0 ? { x: -y, y: 0 } : { x: -x, y: -y };
 }
 
 export interface TransformState {
