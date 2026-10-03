@@ -414,6 +414,27 @@ describe("phase bands", () => {
 });
 
 describe("timeline rows", () => {
+  it("run from the group with the earliest work down", () => {
+    for (const by of ["franchise", "earth"] as const) {
+      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
+      for (const media of [["movie", "series", "animation"], ["animation"]] as const) {
+        const graph = graphForMedia([...media]);
+        for (const mode of ["release", "chronology"] as const) {
+          const layout = computeLayout(mode, grouping, graph);
+          // Each row's leftmost work, top to bottom, gets later or stays.
+          const firstX = new Map<number, number>();
+          for (const w of graph.works) {
+            const { x, y } = layout.positions.get(w.id)!;
+            const row = Math.round(y * 1000);
+            firstX.set(row, Math.min(firstX.get(row) ?? Infinity, x));
+          }
+          const ordered = [...firstX.entries()].sort(([a], [b]) => a - b).map(([, x]) => x);
+          expect(ordered).toEqual([...ordered].sort((a, b) => a - b));
+        }
+      }
+    }
+  });
+
   it("skip groups the media filter has emptied", () => {
     const grouping: Grouping = {
       by: "franchise",
