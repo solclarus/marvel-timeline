@@ -9,7 +9,7 @@ import {
   type Grouping,
 } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
-import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "./relations";
+import { sagaOf, WORK_BY_ID, WORK_GRAPHS, type Saga, type WorkGraph } from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
 export type Axis = "x" | "y";
@@ -246,8 +246,8 @@ const UNPHASED = "|unphased";
 // The lane run an unphased work shares with its phased neighbors.
 const runOf = (sub: string) => (sub.endsWith(UNPHASED) ? sub.slice(0, -UNPHASED.length) : sub);
 
-// Lanes for works outside the phases: each sits just right of the phase band
-// covering its row (the band's rightmost phased lane, plus one), stepping
+// Lanes for works outside the phases: each sits just right of the saga frame
+// covering its row (the saga's rightmost phased lane, plus one), stepping
 // further right when a row has several. Returns the run's new lane count.
 function placeUnphased(
   unphased: WorkNode[],
@@ -255,24 +255,24 @@ function placeUnphased(
   stepMap: Map<string, number>,
   laneMap: Map<string, number>,
 ): number {
-  const byPhase = new Map<number, { minStep: number; maxLane: number }>();
+  const bySaga = new Map<Saga, { minStep: number; maxLane: number }>();
   for (const [id, laneIndex] of phasedLanes) {
     const phase = WORK_BY_ID.get(id)?.phase;
     if (phase === undefined) continue;
     const step = stepMap.get(id) ?? 0;
-    const entry = byPhase.get(phase);
-    byPhase.set(phase, {
+    const entry = bySaga.get(sagaOf(phase));
+    bySaga.set(sagaOf(phase), {
       minStep: Math.min(entry?.minStep ?? step, step),
       maxLane: Math.max(entry?.maxLane ?? laneIndex, laneIndex),
     });
   }
-  const phases = [...byPhase.entries()].sort((a, b) => a[1].minStep - b[1].minStep);
+  const sagas = [...bySaga.entries()].sort((a, b) => a[1].minStep - b[1].minStep);
   const usedInRow = new Map<number, number>();
   let lanes = phasedLanes.size > 0 ? Math.max(...phasedLanes.values()) + 1 : 0;
   for (const work of unphased) {
     const step = stepMap.get(work.id) ?? 0;
-    // The last phase starting at or above this row.
-    const band = phases.filter(([, e]) => e.minStep <= step).at(-1)?.[1] ?? phases[0]?.[1];
+    // The last saga starting at or above this row.
+    const band = sagas.filter(([, e]) => e.minStep <= step).at(-1)?.[1] ?? sagas[0]?.[1];
     const offset = usedInRow.get(step) ?? 0;
     usedInRow.set(step, offset + 1);
     const laneIndex = (band?.maxLane ?? -1) + 1 + offset;
@@ -362,12 +362,14 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
 
 // Cells leave room around each 68x102 poster for the phase and group cards'
 // inner padding.
-const LANE_PX = 116;
-const ROW_PX = 146;
+const LANE_PX = 128;
+const ROW_PX = 170;
 // In recommended mode a group card reaches this far past its cells, so the
 // phase bands inside it get a margin; GROUP_GAP_PX keeps neighbors apart.
 const GROUP_CARD_OUTSET_PX = 14;
-const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 10;
+// Wide enough for the MCU card, which reaches further to hold the saga
+// frames (SAGA_PAD_PX plus SAGA_CARD_PAD_PX past its lanes).
+const GROUP_GAP_PX = 2 * GROUP_CARD_OUTSET_PX + 40;
 // Between franchises sharing an Earth: keeps a phase band clear of the
 // neighboring franchise's posters.
 const SUBGROUP_GAP_PX = 32;
@@ -387,7 +389,12 @@ export function canvasSize(layout: GraphLayout) {
 
 // One outlined card per franchise or Earth, hugging its works like the
 // phase bands do.
-export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+export function computeGroupCards(
+  mode: ViewMode,
+  layout: GraphLayout,
+  grouping: Grouping,
+  sagaBands: ReturnType<typeof computeSagaBands> = [],
+) {
   const { width, height } = canvasSize(layout);
   // Half a cell on each axis. Recommended mode adds an outset around the
   // phase bands; timeline rows touch, so their cards keep a 10px gutter.
@@ -407,15 +414,30 @@ export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping:
     if (points.length === 0) return [];
     const xs = points.map((pos) => pos.x);
     const ys = points.map((pos) => pos.y);
-    const left = Math.min(...xs) - padX;
-    const top = Math.min(...ys) - padY;
+    let left = Math.min(...xs) - padX;
+    let top = Math.min(...ys) - padY;
+    let right = Math.max(...xs) + padX;
+    let bottom = Math.max(...ys) + padY;
+    // The card holding the phases also wraps their saga frames, with room
+    // for its own label above the first saga's.
+    if (group.key === PHASE_GROUP[grouping.by]) {
+      const side = (SAGA_CARD_PAD_PX.side / width) * 100;
+      const vSide = (SAGA_CARD_PAD_PX.side / height) * 100;
+      const vTop = (SAGA_CARD_PAD_PX.top / height) * 100;
+      for (const saga of sagaBands) {
+        left = Math.min(left, saga.left - side);
+        right = Math.max(right, saga.left + saga.width + side);
+        top = Math.min(top, saga.top - vTop);
+        bottom = Math.max(bottom, saga.top + saga.height + vSide);
+      }
+    }
     return [
       {
         ...group,
         left,
         top,
-        width: Math.max(...xs) + padX - left,
-        height: Math.max(...ys) + padY - top,
+        width: right - left,
+        height: bottom - top,
         // One work wide: its label centers instead of sitting top-left.
         singleColumn: Math.max(...xs) - Math.min(...xs) < 1e-6,
       },
@@ -474,6 +496,7 @@ export function computePhaseBands(
     .sort(([a], [b]) => a - b)
     .map(([phase, entry]) => ({
       phase,
+      saga: sagaOf(phase),
       top: entry.minStep * rowHeight + gapPercent / 2,
       height: (entry.maxStep + 1 - entry.minStep) * rowHeight - gapPercent,
       left: entry.minX - laneWidth / 2,
@@ -481,6 +504,36 @@ export function computePhaseBands(
       singleColumn: entry.maxX - entry.minX < 1e-6,
       ...PHASE_COLOR,
     }));
+}
+
+// How far a saga's frame reaches past its phase bands. The top reaches into
+// the empty row above each saga (see `buildSteps`), so the saga's label and
+// its first phase's label sit apart.
+const SAGA_PAD_PX = { side: 18, top: 40 };
+// Between a saga frame and the card around it (the MCU, or Earth-616).
+const SAGA_CARD_PAD_PX = { side: 18, top: 40 };
+
+// One frame per saga around its phase bands.
+export function computeSagaBands(
+  layout: GraphLayout,
+  phaseBands: ReturnType<typeof computePhaseBands>,
+) {
+  const { width, height } = canvasSize(layout);
+  const padX = (SAGA_PAD_PX.side / width) * 100;
+  const padTop = (SAGA_PAD_PX.top / height) * 100;
+  const padBottom = (SAGA_PAD_PX.side / height) * 100;
+  const bySaga = new Map<Saga, typeof phaseBands>();
+  for (const band of phaseBands) {
+    if (!bySaga.has(band.saga)) bySaga.set(band.saga, []);
+    bySaga.get(band.saga)!.push(band);
+  }
+  return [...bySaga.entries()].map(([saga, bands]) => {
+    const left = Math.min(...bands.map((b) => b.left)) - padX;
+    const top = Math.min(...bands.map((b) => b.top)) - padTop;
+    const right = Math.max(...bands.map((b) => b.left + b.width)) + padX;
+    const bottom = Math.max(...bands.map((b) => b.top + b.height)) + padBottom;
+    return { saga, left, top, width: right - left, height: bottom - top };
+  });
 }
 
 // Visible works in left-to-right order with the year a timeline sorts them

@@ -3,6 +3,7 @@ import type {
   computeEraBands,
   computeGroupCards,
   computePhaseBands,
+  computeSagaBands,
   computeYearMarks,
 } from "@/lib/graph/layout";
 import { useI18n } from "@/lib/i18n";
@@ -13,6 +14,7 @@ interface Props {
   groupBy: GroupBy;
   groupCards: ReturnType<typeof computeGroupCards>;
   phaseBands: ReturnType<typeof computePhaseBands>;
+  sagaBands: ReturnType<typeof computeSagaBands>;
   eraBands: ReturnType<typeof computeEraBands>;
   yearMarks: ReturnType<typeof computeYearMarks>;
   focusedCardKey: string | undefined;
@@ -27,11 +29,12 @@ const box = (b: { top?: number; height?: number; left: number; width: number }) 
 });
 
 // Everything drawn behind the edges and posters: franchise/Earth cards, MCU
-// phase bands, and (in timeline modes) decade bands, each with its label.
+// saga frames and phase bands, and (in timeline modes) decade bands, each with its label.
 export function MapBackdrop({
   groupBy,
   groupCards,
   phaseBands,
+  sagaBands,
   eraBands,
   yearMarks,
   focusedCardKey,
@@ -55,6 +58,15 @@ export function MapBackdrop({
           >
             {groupLabel(groupBy, card.key)}
           </BorderLabel>
+        </div>
+      ))}
+      {sagaBands.map((band) => (
+        <div
+          key={band.saga}
+          className="absolute rounded-surface border border-white/30 bg-white/[0.025]"
+          style={box(band)}
+        >
+          <BorderLabel dot={{ className: "bg-white/70" }}>{t.saga(band.saga)}</BorderLabel>
         </div>
       ))}
       {phaseBands.map((band) => (

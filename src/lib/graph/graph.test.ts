@@ -7,8 +7,10 @@ import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, PHASE_GROUP, regroup, type Grouping } from "./groups";
 import {
   computeEraBands,
+  computeGroupCards,
   computeLayout,
   computePhaseBands,
+  computeSagaBands,
   computeYearMarks,
   timelineYear,
   type ViewMode,
@@ -373,21 +375,50 @@ describe("phase bands", () => {
     });
   }
 
-  it("place the One-Shots right beside their phase band", () => {
+  it("place the One-Shots just outside their saga's frame", () => {
     const grouping: Grouping = {
       by: "franchise",
       visible: new Set(GROUPS.franchise.map((g) => g.key)),
     };
     const layout = computeLayout("recommended", grouping);
-    const bands = computePhaseBands("recommended", layout, grouping);
+    const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
     const column = 100 / layout.totalLanes;
     for (const w of WORKS.filter((w) => w.id.startsWith("one-shot-"))) {
       const { x, y } = layout.positions.get(w.id)!;
-      const band = bands.find((b) => y >= b.top && y <= b.top + b.height)!;
-      // Within a few lanes of the band's right edge, not across the canvas.
-      expect(x - (band.left + band.width)).toBeLessThan(3 * column);
+      const saga = sagas.find((b) => y >= b.top && y <= b.top + b.height)!;
+      const right = saga.left + saga.width;
+      // Outside the frame, but within a few lanes of it.
+      expect(x).toBeGreaterThan(right);
+      expect(x - right).toBeLessThan(3 * column);
     }
   });
+
+  it("sit wholly inside the card that holds the phases, with room to spare", () => {
+    for (const by of ["franchise", "earth"] as const) {
+      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
+      const layout = computeLayout("recommended", grouping);
+      const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
+      const card = computeGroupCards("recommended", layout, grouping, sagas).find(
+        (c) => c.key === PHASE_GROUP[by],
+      )!;
+      expect(sagas.length).toBe(3);
+      for (const saga of sagas) {
+        expect(saga.left).toBeGreaterThan(card.left);
+        expect(saga.top).toBeGreaterThan(card.top);
+        expect(saga.left + saga.width).toBeLessThan(card.left + card.width);
+        expect(saga.top + saga.height).toBeLessThan(card.top + card.height);
+      }
+    }
+  });
+
+  it("leave an empty row between sagas", () => {
+    const graph = WORK_GRAPHS.all;
+    const rowsOf = (phases: number[]) =>
+      graph.works.filter((w) => phases.includes(w.phase ?? 0)).map((w) => graph.step.get(w.id)!);
+    expect(Math.min(...rowsOf([4, 5, 6]))).toBe(Math.max(...rowsOf([1, 2, 3])) + 2);
+    expect(Math.min(...rowsOf([7]))).toBe(Math.max(...rowsOf([4, 5, 6])) + 2);
+  });
+
   it("shrink to the rows their works sit in when filtered", () => {
     // Grouped by Earth with animation only, Phase 5 on Earth-616 is just
     // I Am Groot S2; the band used to reach down to Phase 6's first row.

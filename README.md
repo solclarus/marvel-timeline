@@ -12,6 +12,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Settings** (bottom bar), in two parts:
   - **Filter**: films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
   - **Display**: highlight all related works or direct ones only; language.
+- **Sagas**: in recommended order the MCU phases sit inside saga frames (Infinity: 1–3, Multiverse: 4–6, Mutant: 7 on); works outside the phases, like the One-Shots, sit just outside their saga.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
 - **Language**: English or Japanese (Settings → Display → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.

@@ -7,6 +7,7 @@ import {
   type Franchise,
   type WorkNode,
 } from "@/data/works";
+import type { Saga } from "@/lib/graph/relations";
 
 export type Locale = "en" | "ja";
 export const LOCALES: Locale[] = ["en", "ja"];
@@ -51,6 +52,12 @@ const en = {
   showOnlyHint: "Long-press or right-click to show only that one",
   // Map
   phase: (n: number) => `Phase ${n}`,
+  saga: (saga: Saga) =>
+    ({
+      infinity: "The Infinity Saga",
+      multiverse: "The Multiverse Saga",
+      mutant: "The Mutant Saga",
+    })[saga],
   decade: (decade: number) => `${decade}s`,
   workCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}`,
   clearSelection: "Clear selection",
@@ -128,6 +135,12 @@ const ja: Messages = {
   groupsShown: (shown, total) => `${shown} / ${total}`,
   showOnlyHint: "長押し・右クリックでそれだけ表示",
   phase: (n) => `フェーズ${n}`,
+  saga: (saga) =>
+    ({
+      infinity: "インフィニティ・サーガ",
+      multiverse: "マルチバース・サーガ",
+      mutant: "ミュータント・サーガ",
+    })[saga],
   decade: (decade) => `${decade}年代`,
   workCount: (n) => `${n}作品`,
   clearSelection: "選択を解除",
