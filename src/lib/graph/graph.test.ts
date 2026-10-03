@@ -5,7 +5,14 @@ import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 import { elbowPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
-import { computeLayout, computePhaseBands, computeYearMarks, type ViewMode } from "./layout";
+import {
+  computeEraBands,
+  computeLayout,
+  computePhaseBands,
+  computeYearMarks,
+  timelineYear,
+  type ViewMode,
+} from "./layout";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -427,5 +434,36 @@ describe("computeYearMarks", () => {
     const years = marks.map((m) => m.year);
     expect(years).toEqual([...years].sort((a, b) => a - b));
     expect(years.some((y) => y % 10 === 0)).toBe(false);
+  });
+});
+
+describe("timeline layouts", () => {
+  const grouping: Grouping = {
+    by: "franchise",
+    visible: new Set(GROUPS.franchise.map((g) => g.key)),
+  };
+
+  for (const mode of ["release", "chronology"] as const) {
+    it(`never runs a year backwards from left to right (${mode})`, () => {
+      const { positions } = computeLayout(mode, grouping);
+      const backwards = WORKS.flatMap((a) =>
+        WORKS.filter(
+          (b) =>
+            timelineYear(a, mode) < timelineYear(b, mode) &&
+            positions.get(a.id)!.x >= positions.get(b.id)!.x,
+        ).map((b) => `${a.id} → ${b.id}`),
+      );
+      expect(backwards).toEqual([]);
+    });
+  }
+
+  it("colors decade bands through the rainbow, oldest to newest", () => {
+    const layout = computeLayout("release", grouping);
+    const hues = computeEraBands("release", layout, grouping).map((band) =>
+      Number(band.color.match(/^hsla\((\d+),/)![1]),
+    );
+    expect(hues[0]).toBe(0);
+    expect(hues.at(-1)).toBe(270);
+    expect(hues).toEqual([...hues].sort((a, b) => a - b));
   });
 });
