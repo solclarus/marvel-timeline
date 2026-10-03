@@ -62,3 +62,23 @@ export function zoomAround(
     scale,
   };
 }
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+// Keeps the content covering at least half the viewport on each axis, so
+// the map can't be scrolled out of sight: an edge may come in no further
+// than the viewport's center.
+export function clampPan(state: TransformState, content: Size, viewport: Size): TransformState {
+  const clampAxis = (pos: number, contentSpan: number, viewportSpan: number) => {
+    const center = viewportSpan / 2;
+    return Math.min(center, Math.max(center - contentSpan * state.scale, pos));
+  };
+  return {
+    x: clampAxis(state.x, content.width, viewport.width),
+    y: clampAxis(state.y, content.height, viewport.height),
+    scale: state.scale,
+  };
+}

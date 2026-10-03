@@ -6,7 +6,7 @@ import { elbowPath } from "./edge-path";
 import { GROUPS, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
 import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
-import { isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
+import { clampPan, isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
 
 const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
   by,
@@ -207,5 +207,29 @@ describe("regroup", () => {
     expect(after).toEqual(expect.arrayContaining(before));
     expect(byEarth.visible.has("616")).toBe(true);
     expect(byEarth.visible.has("828")).toBe(true);
+  });
+});
+
+describe("clampPan", () => {
+  const content = { width: 2000, height: 1000 };
+  const viewport = { width: 800, height: 600 };
+
+  it("leaves an in-range position alone", () => {
+    const state = { x: -300, y: -100, scale: 0.5 };
+    expect(clampPan(state, content, viewport)).toEqual(state);
+  });
+
+  it("stops each edge at the viewport's center", () => {
+    expect(clampPan({ x: 5000, y: 5000, scale: 0.5 }, content, viewport)).toEqual({
+      x: 400,
+      y: 300,
+      scale: 0.5,
+    });
+    // Right/bottom edges: x + 2000 * 0.5 = 400, y + 1000 * 0.5 = 300.
+    expect(clampPan({ x: -5000, y: -5000, scale: 0.5 }, content, viewport)).toEqual({
+      x: -600,
+      y: -200,
+      scale: 0.5,
+    });
   });
 });

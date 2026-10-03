@@ -27,7 +27,14 @@ import {
   WORK_BY_ID,
   type FocusMode,
 } from "@/lib/graph/relations";
-import { isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "@/lib/graph/wheel-zoom";
+import {
+  clampPan,
+  isZoomGesture,
+  wheelPanDelta,
+  wheelZoomFactor,
+  zoomAround,
+  type TransformState,
+} from "@/lib/graph/wheel-zoom";
 import { parseUrlState, serializeUrlState } from "@/lib/url-state";
 import { computeNextUp, useWatched } from "@/lib/watched";
 
@@ -59,6 +66,17 @@ function BandLabel({ color, children }: { color: string; children: React.ReactNo
     >
       {children}
     </span>
+  );
+}
+
+// Content sizes are unscaled layout pixels; see `clampPan`.
+function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformState {
+  const { wrapperComponent: wrapper, contentComponent: content } = ref.instance;
+  if (!wrapper || !content) return next;
+  return clampPan(
+    next,
+    { width: content.offsetWidth, height: content.offsetHeight },
+    { width: wrapper.clientWidth, height: wrapper.clientHeight },
   );
 }
 
@@ -242,6 +260,12 @@ export function Graph() {
       wheel={{ disabled: true }}
       pinch={{ step: 5 }}
       onTransform={(_ref, state) => setZoomPercent(state.scale)}
+      // Dragging may overshoot; it eases back once released.
+      onPanningStop={(ref) => {
+        const { positionX: x, positionY: y, scale } = ref.instance.state;
+        const next = keepInView(ref, { x, y, scale });
+        if (next.x !== x || next.y !== y) ref.setTransform(next.x, next.y, scale, 200);
+      }}
       onInit={(ref) => {
         transformRef.current = ref;
         // The wrapper is still natively scrollable (e.g. focus scroll-into-view),
@@ -258,16 +282,24 @@ export function Graph() {
             const { positionX, positionY, scale } = ref.instance.state;
             if (!isZoomGesture(event)) {
               const pan = wheelPanDelta(event);
-              ref.setTransform(positionX + pan.x, positionY + pan.y, scale, 0);
+              const next = keepInView(ref, {
+                x: positionX + pan.x,
+                y: positionY + pan.y,
+                scale,
+              });
+              ref.setTransform(next.x, next.y, scale, 0);
               return;
             }
             const rect = wrapper.getBoundingClientRect();
-            const next = zoomAround(
-              { x: positionX, y: positionY, scale },
-              wheelZoomFactor(event),
-              { x: event.clientX - rect.left, y: event.clientY - rect.top },
-              MIN_ZOOM,
-              MAX_ZOOM,
+            const next = keepInView(
+              ref,
+              zoomAround(
+                { x: positionX, y: positionY, scale },
+                wheelZoomFactor(event),
+                { x: event.clientX - rect.left, y: event.clientY - rect.top },
+                MIN_ZOOM,
+                MAX_ZOOM,
+              ),
             );
             ref.setTransform(next.x, next.y, next.scale, 0);
           },
