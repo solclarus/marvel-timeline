@@ -19,12 +19,10 @@ interface Props {
   grouping: Grouping;
   onToggleGroup: (key: string) => void;
   onGroupByChange: (by: GroupBy) => void;
-  watchedCount: number;
-  onClearWatched: () => void;
 }
 
 // Every map-wide control in one bar: search, view mode, media filter, and
-// the grouping/visibility/watched settings. Full width on phones.
+// the grouping/visibility settings. Full width on phones.
 export function CommandBar({
   onSearchSelect,
   mode,
@@ -34,8 +32,6 @@ export function CommandBar({
   grouping,
   onToggleGroup,
   onGroupByChange,
-  watchedCount,
-  onClearWatched,
 }: Props) {
   const moviesOnly = media === "movies";
   return (
@@ -64,8 +60,6 @@ export function CommandBar({
           grouping={grouping}
           onToggle={onToggleGroup}
           onGroupByChange={onGroupByChange}
-          watchedCount={watchedCount}
-          onClearWatched={onClearWatched}
         />
       </FabBar>
     </div>

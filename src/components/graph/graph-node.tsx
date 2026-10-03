@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import * as m from "motion/react-m";
 
 import {
@@ -37,9 +36,6 @@ interface Props {
   axis: Axis;
   hasIncoming: boolean;
   hasOutgoing: boolean;
-  watched: boolean;
-  // Every prerequisite is watched.
-  nextUp: boolean;
 }
 
 const NUB_CLASS = {
@@ -67,8 +63,6 @@ export function GraphNode({
   axis,
   hasIncoming,
   hasOutgoing,
-  watched,
-  nextUp,
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
@@ -103,7 +97,7 @@ export function GraphNode({
           }}
           whileHover={{ scale: style.scale * 1.15 }}
           whileTap={{ scale: style.scale * 0.95 }}
-          aria-label={`${work.title}${earths.length > 1 ? ` (${earths.map((e) => EARTH_META[e].label).join(" / ")})` : ""}${watched ? " (watched)" : nextUp ? " (up next)" : ""}`}
+          aria-label={`${work.title}${earths.length > 1 ? ` (${earths.map((e) => EARTH_META[e].label).join(" / ")})` : ""}`}
         />
       }
     >
@@ -113,14 +107,6 @@ export function GraphNode({
       >
         <PosterThumb work={work} />
       </div>
-      {watched && (
-        <span
-          aria-hidden
-          className={`absolute -top-1.5 -right-1.5 z-10 flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow ${style.grayscale ? "grayscale" : ""}`}
-        >
-          <Check className="size-3.5" strokeWidth={3} />
-        </span>
-      )}
       {hasOutgoing && <span aria-hidden className={nubClass.outgoing} />}
     </TooltipTrigger>
   );
