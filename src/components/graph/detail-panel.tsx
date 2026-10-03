@@ -1,17 +1,25 @@
 import { X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
+import { useState } from "react";
 
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
-import { WORK_BY_ID } from "@/lib/graph/relations";
+import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
+
+import { WorkDetailDialog } from "./work-detail-dialog";
 
 interface Props {
   selectedId: string | null;
   onClear: () => void;
+  onSelect: (id: string) => void;
+  graph: WorkGraph;
 }
 
-export function DetailPanel({ selectedId, onClear }: Props) {
+// The compact card for the selection; tapping it opens the full detail
+// dialog with what to watch first.
+export function DetailPanel({ selectedId, onClear, onSelect, graph }: Props) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
 
@@ -30,14 +38,17 @@ export function DetailPanel({ selectedId, onClear }: Props) {
               transition={{ duration: 0.2 }}
               className="pointer-events-auto flex items-start gap-3 rounded-lg border bg-card/95 px-4 py-3 shadow-xl shadow-black/30 backdrop-blur-md"
             >
-              <m.div
+              <m.button
+                type="button"
                 key={work.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                className="flex min-w-0 flex-1 items-start gap-3"
+                onClick={() => setDetailOpen(true)}
+                aria-label={t.showDetails(titleOf(work))}
+                className="-m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-md p-1 text-left hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
               >
-                <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
+                <span className="relative block h-16 w-11 shrink-0 overflow-hidden rounded-sm bg-muted sm:h-24 sm:w-16">
                   <img
                     src={posterUrl(work)}
                     alt=""
@@ -45,9 +56,9 @@ export function DetailPanel({ selectedId, onClear }: Props) {
                     // A failed poster leaves the muted box rather than a broken icon.
                     onError={(event) => (event.currentTarget.style.visibility = "hidden")}
                   />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                </span>
+                <span className="block min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
                     <span
                       className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                     />
@@ -62,10 +73,12 @@ export function DetailPanel({ selectedId, onClear }: Props) {
                     ))}
                     <span aria-hidden>·</span>
                     {work.releaseDate.slice(0, 4)}
-                  </p>
-                  <p className="font-semibold">{titleOf(work)}</p>
-                </div>
-              </m.div>
+                  </span>
+                  <span data-slot="detail-title" className="block font-semibold">
+                    {titleOf(work)}
+                  </span>
+                </span>
+              </m.button>
               <button
                 type="button"
                 onClick={onClear}
@@ -77,6 +90,18 @@ export function DetailPanel({ selectedId, onClear }: Props) {
             </m.div>
           )}
         </AnimatePresence>
+        {work && (
+          <WorkDetailDialog
+            work={work}
+            graph={graph}
+            open={detailOpen}
+            onOpenChange={setDetailOpen}
+            onSelect={(id) => {
+              setDetailOpen(false);
+              onSelect(id);
+            }}
+          />
+        )}
       </div>
     </div>
   );
