@@ -1,5 +1,5 @@
 import * as m from "motion/react-m";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { EDGES, type EdgeKind } from "@/data/works";
 import { elbowPath } from "@/lib/graph/edge-path";
@@ -12,6 +12,8 @@ export const KIND_STYLE: Record<EdgeKind, { stroke: string; width: number; dash?
   crossover: { stroke: "#dc2626", width: 6.2 },
   reference: { stroke: "#7c3aed", width: 3.5, dash: "5 5" },
 };
+
+const HOVER_DELAY_MS = 250;
 
 interface Props {
   positions: Map<string, Point>;
@@ -39,6 +41,13 @@ export function GraphEdges({
   stubPercent,
 }: Props) {
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
+  // Only a resting pointer counts, so panning across lines doesn't flicker.
+  const [pendingEdge, setPendingEdge] = useState<string | null>(null);
+  useEffect(() => {
+    if (pendingEdge === null) return;
+    const timer = window.setTimeout(() => setHoveredEdge(pendingEdge), HOVER_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [pendingEdge]);
 
   // Overlapping same-kind edges share one group opacity; per-path opacity
   // would composite overlaps into a darker line.
@@ -69,7 +78,6 @@ export function GraphEdges({
 
     const key = edgeKey(edge);
     const isHovered = hoveredEdge === key;
-    const someHovered = hoveredEdge !== null;
     const isActive = activeSet !== null && activeSet.has(edge.from) && activeSet.has(edge.to);
     const dim = activeSet !== null && !isActive;
     const delay = isActive
@@ -78,17 +86,21 @@ export function GraphEdges({
       : 0;
 
     const baseOpacity = edge.kind === "reference" ? 0.22 : 0.55;
-    const opacity = someHovered ? (isHovered ? 1 : 0.06) : dim ? 0.05 : isActive ? 1 : baseOpacity;
+    // Hover lifts just the one line; the rest of the map stays put.
+    const opacity = isHovered ? 1 : dim ? 0.05 : isActive ? 1 : baseOpacity;
 
     edgeRenders.push({
       key,
       kind: edge.kind,
       path: elbowPath(from, to, cornerRadius, stubPercent, axis),
       opacity,
-      delay: someHovered ? 0 : delay,
+      delay: isHovered ? 0 : delay,
       strokeWidth: isHovered ? KIND_STYLE[edge.kind].width * 1.6 : KIND_STYLE[edge.kind].width,
-      onEnter: () => setHoveredEdge(key),
-      onLeave: () => setHoveredEdge((current) => (current === key ? null : current)),
+      onEnter: () => setPendingEdge(key),
+      onLeave: () => {
+        setPendingEdge((current) => (current === key ? null : current));
+        setHoveredEdge((current) => (current === key ? null : current));
+      },
     });
   }
 
