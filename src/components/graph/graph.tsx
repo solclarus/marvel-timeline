@@ -182,14 +182,10 @@ export function Graph() {
     setSelectedId((current) => (current === id ? null : id));
   };
 
-  const handleToggleGroup = (key: string) => {
-    setGrouping((current) => {
-      if (current.visible.has(key) && current.visible.size === 1) return current;
-      const visible = new Set(current.visible);
-      if (visible.has(key)) visible.delete(key);
-      else visible.add(key);
-      return { ...current, visible };
-    });
+  const handleVisibleGroupsChange = (visible: Set<string>) => {
+    // At least one group stays on screen.
+    if (visible.size === 0) return;
+    setGrouping((current) => ({ ...current, visible }));
   };
 
   const handleGroupByChange = (by: GroupBy) => {
@@ -355,7 +351,7 @@ export function Graph() {
             media={media}
             onMediaChange={handleMediaChange}
             grouping={grouping}
-            onToggleGroup={handleToggleGroup}
+            onVisibleGroupsChange={handleVisibleGroupsChange}
             onGroupByChange={handleGroupByChange}
             focusMode={focusMode}
             onFocusModeChange={setFocusMode}

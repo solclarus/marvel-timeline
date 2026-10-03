@@ -4,7 +4,7 @@ test("switches to Japanese and remembers it", async ({ page }) => {
   await page.goto("./?work=thor-ragnarok");
   await expect(page.locator("[data-slot=detail-title]").first()).toHaveText("Thor: Ragnarok");
   await page.getByRole("button", { name: "View settings" }).click();
-  await page.getByRole("menuitemradio", { name: "日本語" }).click();
+  await page.getByRole("button", { name: "日本語" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ja");
   await expect(page.locator("[data-slot=detail-title]").first()).toHaveText(
     "マイティ・ソー バトルロイヤル",

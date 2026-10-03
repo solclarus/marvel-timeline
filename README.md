@@ -7,12 +7,13 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 ## Using the map
 
 - **Select** a poster to highlight what it builds on and what follows; the map zooms to fit them. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
-- **View mode** (top bar): recommended order, release date, or in-story chronology.
-- **Films only** (top bar) hides series and bridges their chains, so a film that follows a series still links to the films before it.
-- **Settings** (top bar): highlight all related works or direct ones only; group the map by franchise or by Earth; show or hide groups.
+- **View mode** (bottom bar): recommended order, release date, or in-story chronology.
+- **Settings** (bottom bar), in two parts:
+  - **Filter**: films and series, or films only (hides series and bridges their chains, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
+  - **Display**: highlight all related works or direct ones only; language.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
-- **Language**: English or Japanese (Settings → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.
+- **Language**: English or Japanese (Settings → Display → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.
 
 The view is kept in the URL (`work`, `mode`, `focus`, `group`, `show`, `media`), so any state can be shared as a link.
 
