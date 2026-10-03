@@ -30,19 +30,28 @@ describe("url state", () => {
     );
   });
 
+  it("shows every group by default", () => {
+    expect([...parseUrlState("").visibleGroups]).toEqual([
+      "x-men",
+      "mcu",
+      "spider-man-legacy",
+      "ssu",
+    ]);
+  });
+
   it("shows the franchise of a linked work", () => {
-    const { visibleGroups } = parseUrlState("?work=logan");
+    const { visibleGroups } = parseUrlState("?work=logan&show=mcu");
     expect([...visibleGroups].sort()).toEqual(["mcu", "x-men"]);
   });
 
   it("groups by Earth, showing a linked work's home Earth", () => {
-    const state = parseUrlState("?work=amazing-spider-man&group=earth");
+    const state = parseUrlState("?work=amazing-spider-man&group=earth&show=616");
     expect(state.groupBy).toBe("earth");
     expect([...state.visibleGroups].sort()).toEqual(["120703", "616"]);
     expect(serializeUrlState(state)).toBe("?work=amazing-spider-man&group=earth&show=616%2C120703");
   });
 
   it("ignores franchise keys when grouping by Earth", () => {
-    expect([...parseUrlState("?group=earth&show=mcu").visibleGroups]).toEqual(["616"]);
+    expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(7);
   });
 });

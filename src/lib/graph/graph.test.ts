@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
 import { elbowPath } from "./edge-path";
-import { GROUPS, isWorkVisible, regroup, type Grouping } from "./groups";
+import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import { computeFocusLayout, computeLayout, type ViewMode } from "./layout";
 import { GLOBAL_STEP, getRelatedDistances, INCOMING } from "./relations";
 import { clampPan, isZoomGesture, wheelPanDelta, wheelZoomFactor, zoomAround } from "./wheel-zoom";
@@ -195,6 +195,17 @@ describe("wheel input", () => {
     expect(after.y).toBeCloseTo(before.y);
     expect(zoomAround(state, 100, point, 0.2, 1.5).scale).toBe(1.5);
     expect(zoomAround(state, 0.001, point, 0.2, 1.5).scale).toBe(0.2);
+  });
+});
+
+describe("groups", () => {
+  it("never lists an empty group", () => {
+    for (const by of ["franchise", "earth"] as const) {
+      const empty = GROUPS[by]
+        .filter((group) => !WORKS.some((w) => groupKeyOf(w, by) === group.key))
+        .map((group) => group.key);
+      expect(empty).toEqual([]);
+    }
   });
 });
 
