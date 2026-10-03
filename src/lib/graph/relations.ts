@@ -100,12 +100,17 @@ export function getRelatedDistances(id: string, mode: FocusMode) {
 }
 
 // Only counts edges drawn in the current view, so a poster never gets a
-// connector nub without a line.
-export function computeEdgeVisibility(visibleIds: Set<string>) {
+// connector nub without a line. With a selection, edges outside `activeSet`
+// fade out, so they don't count either.
+export function computeEdgeVisibility(
+  visibleIds: Set<string>,
+  activeSet: Set<string> | null = null,
+) {
   const hasIncoming = new Set<string>();
   const hasOutgoing = new Set<string>();
   for (const edge of EDGES) {
     if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) continue;
+    if (activeSet && (!activeSet.has(edge.from) || !activeSet.has(edge.to))) continue;
     hasOutgoing.add(edge.from);
     hasIncoming.add(edge.to);
   }
