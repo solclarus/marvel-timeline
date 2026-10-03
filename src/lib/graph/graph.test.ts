@@ -4,7 +4,7 @@ import { EARTH_META, earthsOf, EDGES, mediumOf, WORKS } from "@/data/works";
 
 import { elbowPath, elbowPieces, mergedPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
-import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
+import { GROUPS, groupKeyOf, isWorkVisible, PHASE_GROUP, regroup, type Grouping } from "./groups";
 import {
   computeEraBands,
   computeLayout,
@@ -386,6 +386,29 @@ describe("phase bands", () => {
       const band = bands.find((b) => y >= b.top && y <= b.top + b.height)!;
       // Within a few lanes of the band's right edge, not across the canvas.
       expect(x - (band.left + band.width)).toBeLessThan(3 * column);
+    }
+  });
+  it("shrink to the rows their works sit in when filtered", () => {
+    // Grouped by Earth with animation only, Phase 5 on Earth-616 is just
+    // I Am Groot S2; the band used to reach down to Phase 6's first row.
+    const graph = graphForMedia(["animation"]);
+    for (const grouping of [
+      { by: "franchise", visible: new Set(GROUPS.franchise.map((g) => g.key)) },
+      { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) },
+    ] satisfies Grouping[]) {
+      const layout = computeLayout("recommended", grouping, graph);
+      const row = 100 / (graph.maxStep + 1);
+      for (const band of computePhaseBands("recommended", layout, grouping, graph)) {
+        const rows = new Set(
+          graph.works
+            .filter(
+              (w) =>
+                w.phase === band.phase && groupKeyOf(w, grouping.by) === PHASE_GROUP[grouping.by],
+            )
+            .map((w) => graph.step.get(w.id)),
+        );
+        expect(Math.round((band.height + 0.5) / row)).toBe(rows.size);
+      }
     }
   });
 });
