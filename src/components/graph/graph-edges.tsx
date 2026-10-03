@@ -2,7 +2,7 @@ import * as m from "motion/react-m";
 import { useEffect, useState } from "react";
 
 import type { EdgeKind, WorkEdge } from "@/data/works";
-import { elbowPath } from "@/lib/graph/edge-path";
+import { elbowPath, elbowPieces, mergedPath, type EdgePiece } from "@/lib/graph/edge-path";
 import type { Axis, Point } from "@/lib/graph/layout";
 
 // Every kind but "reference" means "watch this first", so they share one
@@ -68,6 +68,7 @@ export function GraphEdges({
   const edgeRenders: Array<{
     key: string;
     style: EdgeStyle;
+    pieces: EdgePiece[];
     path: string;
     opacity: number;
     delay: number;
@@ -103,6 +104,7 @@ export function GraphEdges({
         : { x: toCenter.x - nodeHalfSizePercent, y: toCenter.y },
     );
     const key = edgeKey(edge);
+    const pieces = elbowPieces(from, to, radiusPx, stubPx, axis);
     const style = STYLE_OF_KIND[edge.kind];
     const isHovered = hoveredEdge === key;
     const isActive = activeSet !== null && activeSet.has(edge.from) && activeSet.has(edge.to);
@@ -112,13 +114,13 @@ export function GraphEdges({
         0.06
       : 0;
 
-    const baseOpacity = edge.kind === "reference" ? 0.4 : 0.55;
-    // Hover lifts just the one line; the rest of the map stays put.
-    const opacity = isHovered ? 1 : dim ? 0.05 : isActive ? 1 : baseOpacity;
+    // Two looks only: full, or faded while something else is highlighted.
+    const opacity = dim && !isHovered ? 0.05 : 1;
 
     edgeRenders.push({
       key,
       style,
+      pieces,
       path: elbowPath(from, to, radiusPx, stubPx, axis),
       opacity,
       delay: isHovered ? 0 : delay,
@@ -154,7 +156,11 @@ export function GraphEdges({
             animate={{ opacity }}
             transition={{ duration: 0.2, delay }}
           >
-            {group.map((render) => (
+            {/* Dashed lines are merged so overlaps keep their gaps. */}
+            {(style.dash
+              ? [{ key: "merged", path: mergedPath(group.map((render) => render.pieces)) }]
+              : group
+            ).map((render) => (
               <path
                 key={render.key}
                 d={render.path}

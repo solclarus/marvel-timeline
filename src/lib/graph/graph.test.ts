@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { EARTH_META, earthsOf, EDGES, WORKS } from "@/data/works";
 
-import { elbowPath } from "./edge-path";
+import { elbowPath, elbowPieces, mergedPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, regroup, type Grouping } from "./groups";
 import {
@@ -549,4 +549,18 @@ describe("decade bands", () => {
       expect(bands.at(-1)!.left + bands.at(-1)!.width).toBeCloseTo(100);
     });
   }
+});
+
+describe("mergedPath", () => {
+  it("draws a stretch shared by several edges once", () => {
+    const a = elbowPieces({ x: 0, y: 0 }, { x: 0, y: 50 }, 1, 5, "y");
+    const b = elbowPieces({ x: 0, y: 20 }, { x: 0, y: 80 }, 1, 5, "y");
+    expect(mergedPath([a, b])).toBe("M 0 0 L 0 80");
+  });
+
+  it("keeps separate stretches apart", () => {
+    const a = elbowPieces({ x: 0, y: 0 }, { x: 0, y: 10 }, 1, 5, "y");
+    const b = elbowPieces({ x: 0, y: 20 }, { x: 0, y: 30 }, 1, 5, "y");
+    expect(mergedPath([a, b])).toBe("M 0 0 L 0 10 M 0 20 L 0 30");
+  });
 });
