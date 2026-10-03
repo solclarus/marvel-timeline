@@ -5,8 +5,6 @@ import { assignLanes, centerMainLane } from "./lanes";
 import { WORK_GRAPHS, type WorkGraph } from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
-// "compact" redraws only the selection and its relatives.
-export type DisplayMode = "inline" | "compact";
 export type Axis = "x" | "y";
 
 // Percentages (0–100) of the canvas.
@@ -295,60 +293,6 @@ export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: G
       ...bandColor(colorIndex.get(run.decade) ?? 0),
     };
   });
-}
-
-export interface FocusLayout extends GraphLayout {
-  width: number;
-  height: number;
-}
-
-// Rows are hop distance from the selection rather than the graph step, so e.g.
-// all of Endgame's direct parents share a row.
-export function computeFocusLayout(
-  selectedId: string,
-  distances: Map<string, number>,
-  graph: WorkGraph = WORK_GRAPHS.all,
-): FocusLayout {
-  const localStep = new Map<string, number>([[selectedId, 0], ...distances]);
-  const relatedWorks = WORKS.filter((w) => localStep.has(w.id)).sort((a, b) => {
-    const stepDiff = localStep.get(a.id)! - localStep.get(b.id)!;
-    return stepDiff !== 0 ? stepDiff : a.chronologyOrder - b.chronologyOrder;
-  });
-
-  const { laneMap } = centerMainLane(
-    assignLanes(relatedWorks, localStep, graph),
-    relatedWorks,
-    selectedId,
-    localStep,
-    graph,
-  );
-  const totalLanes = laneMap.size > 0 ? Math.max(...laneMap.values()) + 1 : 1;
-
-  const stepValues = [...new Set(relatedWorks.map((w) => localStep.get(w.id)!))].sort(
-    (a, b) => a - b,
-  );
-  const rowIndexByStep = new Map(stepValues.map((step, i) => [step, i]));
-  const rowCount = Math.max(1, stepValues.length);
-  const laneWidth = 100 / totalLanes;
-  const rowHeight = 100 / rowCount;
-
-  const positions = new Map<string, Point>();
-  for (const work of relatedWorks) {
-    const lane = laneMap.get(work.id) ?? 0;
-    const rowIndex = rowIndexByStep.get(localStep.get(work.id)!) ?? 0;
-    positions.set(work.id, {
-      x: lane * laneWidth + laneWidth / 2,
-      y: rowIndex * rowHeight + rowHeight / 2,
-    });
-  }
-
-  return {
-    positions,
-    totalLanes,
-    rowCount,
-    width: Math.max(240, totalLanes * 100),
-    height: Math.max(240, rowCount * 150),
-  };
 }
 
 export function computeEdgeGeometry(

@@ -18,14 +18,11 @@ import {
   canvasSize,
   computeEdgeGeometry,
   computeEraBands,
-  computeFocusLayout,
   computeGroupCards,
   groupCardAt,
   computeLayout,
   computePhaseBands,
   type Axis,
-  type DisplayMode,
-  type Point,
   type ViewMode,
 } from "@/lib/graph/layout";
 import {
@@ -38,6 +35,7 @@ import {
 } from "@/lib/graph/relations";
 import {
   clampPan,
+  fitBox,
   isZoomGesture,
   wheelPanDelta,
   wheelZoomFactor,
@@ -63,6 +61,9 @@ import { ZoomFab } from "./zoom-fab";
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 1.5;
 const INITIAL_ZOOM = 0.6;
+// Fitting a selection never zooms past 100%, so a work with few relatives
+// isn't blown up.
+const FIT_MAX_ZOOM = 1;
 const GROUP_HOVER_DELAY_MS = 250;
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
@@ -126,7 +127,6 @@ export function Graph() {
   const [mode, setMode] = useState<ViewMode>(initial.mode);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
   const [focusMode, setFocusMode] = useState<FocusMode>(initial.focusMode);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>(initial.displayMode);
   const [grouping, setGrouping] = useState<Grouping>({
     by: initial.groupBy,
     visible: initial.visibleGroups,
@@ -137,8 +137,8 @@ export function Graph() {
   const { watched, toggleWatched, clearWatched } = useWatched();
   const nextUp = computeNextUp(watched);
 
-  // React Compiler memoizes these, which keeps `layout`/`focusLayout` stable
-  // for the reframe effect's deps.
+  // React Compiler memoizes these, which keeps `layout` stable for the fit
+  // effect's deps.
   const layout = computeLayout(mode, grouping, graph);
   const { width: canvasWidth, height: canvasHeight } = canvasSize(layout);
   const groupCards = computeGroupCards(mode, layout, grouping);
@@ -235,14 +235,13 @@ export function Graph() {
       mode,
       selectedId,
       focusMode,
-      displayMode,
       groupBy: grouping.by,
       visibleGroups: grouping.visible,
       media,
     });
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
-  }, [mode, selectedId, focusMode, displayMode, grouping, media]);
+  }, [mode, selectedId, focusMode, grouping, media]);
 
   const handleSelect = (id: string) => {
     setSelectedId((current) => (current === id ? null : id));
@@ -270,9 +269,8 @@ export function Graph() {
     }
   };
 
-  // A search pick may be filtered out: show its media and group, select it,
-  // then center on it once it's rendered (the effect below).
-  const centerOnRef = useRef<string | null>(null);
+  // A search pick may be filtered out: show its media and group, then select
+  // it (which fits the view to it).
   const handleSearchSelect = (id: string) => {
     const work = WORK_BY_ID.get(id);
     if (!work) return;
@@ -282,7 +280,6 @@ export function Graph() {
       setGrouping((current) => ({ ...current, visible: new Set([...current.visible, key]) }));
     }
     setSelectedId(id);
-    centerOnRef.current = id;
   };
 
   const visibleWorks = graph.works.filter((w) => isWorkVisible(w, grouping));
@@ -297,91 +294,55 @@ export function Graph() {
     axis === "y" ? NODE_HEIGHT : NODE_WIDTH,
   );
 
-  const focusLayout =
-    displayMode === "compact" && selectedId
-      ? computeFocusLayout(selectedId, distances, graph)
-      : null;
-  const focusIds = focusLayout ? new Set(focusLayout.positions.keys()) : null;
-  const focusEdgeVisibility = focusIds ? computeEdgeVisibility(focusIds, null, graph) : null;
-  const focusGeometry = focusLayout
-    ? computeEdgeGeometry(
-        focusLayout.height,
-        focusLayout.rowCount,
-        focusLayout.totalLanes,
-        NODE_HEIGHT,
-      )
-    : null;
-
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
 
+  // Selecting a work zooms the map so it and its relatives fit in the area
+  // the bars and detail panel leave uncovered. Also refits when the related
+  // set or the layout changes. The first fit (a shared link) jumps; later
+  // ones animate.
+  const hasFittedRef = useRef(false);
   useEffect(() => {
-    const id = centerOnRef.current;
-    // The compact view reframes on its own.
-    if (!id || displayMode === "compact") return;
-    centerOnRef.current = null;
-    // Two frames, as in the reframe effect below.
-    let raf = requestAnimationFrame(() => {
-      raf = requestAnimationFrame(() => {
-        const scale = Math.max(transformRef.current?.instance.state.scale ?? 0, INITIAL_ZOOM);
-        transformRef.current?.zoomToElement(id, { scale }, 400);
-      });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [selectedId, layout, displayMode]);
-  // Reframes when the display mode (or the compact view's selection) changes.
-  // Comparing to the last key makes StrictMode's double-invoke a no-op.
-  const lastFocusKeyRef = useRef<string | null>(null);
-  const rafRef = useRef<number | null>(null);
-  useEffect(() => {
-    const key = displayMode === "compact" ? `compact:${selectedId ?? ""}` : "inline";
-    if (lastFocusKeyRef.current === null || lastFocusKeyRef.current === key) {
-      lastFocusKeyRef.current = key;
-      return;
-    }
-    lastFocusKeyRef.current = key;
-
-    // Centered from layout data, not the DOM: nodes may still be mid-spring.
-    const centerOn = (pos: Point, spanX: number, spanY: number, scale: number) => {
-      const wrapper = transformRef.current?.instance.wrapperComponent;
-      if (!wrapper) return;
-      const contentX = (pos.x / 100) * spanX;
-      const contentY = (pos.y / 100) * spanY;
-      transformRef.current?.setTransform(
-        wrapper.clientWidth / 2 - contentX * scale,
-        wrapper.clientHeight / 2 - contentY * scale,
-        scale,
-        300,
-      );
+    if (!selectedId) return;
+    const ids = [selectedId, ...getRelatedDistances(selectedId, focusMode, graph).keys()];
+    const points = ids.map((id) => layout.positions.get(id)).filter((pos) => pos !== undefined);
+    if (points.length === 0) return;
+    const pad = 24;
+    const xs = points.map((pos) => (pos.x / 100) * canvasWidth);
+    const ys = points.map((pos) => (pos.y / 100) * canvasHeight);
+    const box = {
+      left: Math.min(...xs) - NODE_WIDTH / 2 - pad,
+      right: Math.max(...xs) + NODE_WIDTH / 2 + pad,
+      top: Math.min(...ys) - NODE_HEIGHT / 2 - pad,
+      bottom: Math.max(...ys) + NODE_HEIGHT / 2 + pad,
     };
-
-    const reframe = () => {
-      const selectedPos = selectedId ? layout.positions.get(selectedId) : undefined;
-      if (displayMode === "compact" && selectedId && focusLayout) {
-        const wrapper = transformRef.current?.instance.wrapperComponent;
-        const pos = focusLayout.positions.get(selectedId);
-        if (!wrapper || !pos) return;
-        const scale = Math.min(
-          wrapper.clientWidth / focusLayout.width,
-          wrapper.clientHeight / focusLayout.height,
-        );
-        centerOn(pos, focusLayout.width, focusLayout.height, scale);
-      } else if (selectedPos) {
-        centerOn(selectedPos, canvasWidth, canvasHeight, INITIAL_ZOOM);
-      } else {
-        transformRef.current?.fitToView({ animationTime: 300 });
-      }
-    };
+    const animationTime = hasFittedRef.current ? 450 : 0;
+    hasFittedRef.current = true;
 
     // Two frames, so the library's ResizeObserver (which cancels in-flight
     // animations on resize) has already fired.
-    const raf1 = requestAnimationFrame(() => {
-      rafRef.current = requestAnimationFrame(reframe);
+    let raf = requestAnimationFrame(() => {
+      raf = requestAnimationFrame(() => {
+        const wrapper = transformRef.current?.instance.wrapperComponent;
+        if (!wrapper) return;
+        const viewport = { width: wrapper.clientWidth, height: wrapper.clientHeight };
+        const phone = viewport.width < 640;
+        const next = fitBox(
+          box,
+          viewport,
+          {
+            top: 88,
+            bottom: phone ? 210 : 180,
+            left: 24,
+            right: viewport.width >= 768 ? 96 : 24,
+          },
+          MIN_ZOOM,
+          FIT_MAX_ZOOM,
+        );
+        transformRef.current?.setTransform(next.x, next.y, next.scale, animationTime);
+      });
     });
-    rafRef.current = raf1;
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [displayMode, selectedId, focusLayout, layout, canvasWidth, canvasHeight]);
+    return () => cancelAnimationFrame(raf);
+  }, [selectedId, focusMode, graph, layout, canvasWidth, canvasHeight]);
 
   return (
     <TransformWrapper
@@ -440,10 +401,11 @@ export function Graph() {
           },
           { passive: false },
         );
-        // A linked work opens centered; otherwise start at the Avengers.
-        const startId = initial.selectedId ?? AVENGERS_ID;
-        if (startId && document.getElementById(startId)) {
-          ref.zoomToElement(startId, { scale: INITIAL_ZOOM }, 0);
+        // A linked work is fitted by the selection effect; otherwise start at
+        // the Avengers.
+        if (initial.selectedId) return;
+        if (AVENGERS_ID && document.getElementById(AVENGERS_ID)) {
+          ref.zoomToElement(AVENGERS_ID, { scale: INITIAL_ZOOM }, 0);
         } else {
           ref.fitToView({ animationTime: 0 });
         }
@@ -456,150 +418,105 @@ export function Graph() {
             wrapperClass="!block !h-screen !w-full bg-stone-200 shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
             contentClass="!items-start"
           >
-            {focusLayout && focusGeometry && focusEdgeVisibility && focusIds ? (
-              <div
-                key="compact"
-                className="relative"
-                style={{ width: focusLayout.width, height: focusLayout.height }}
-                role="presentation"
-                onClick={() => {
-                  setSelectedId(null);
-                  setPinnedId(null);
-                }}
-              >
-                <GraphEdges
-                  edges={graph.edges}
-                  positions={focusLayout.positions}
-                  activeSet={focusIds}
-                  distances={distances}
-                  visibleIds={focusIds}
-                  axis="y"
-                  {...focusGeometry}
-                />
-                {[...focusLayout.positions.entries()].map(([id, pos]) => {
-                  const work = WORK_BY_ID.get(id);
-                  if (!work) return null;
-                  return (
-                    <GraphNode
-                      key={id}
-                      work={work}
-                      x={pos.x}
-                      y={pos.y}
-                      state={id === selectedId ? "selected" : "ancestor"}
-                      delay={0}
-                      onSelect={handleSelect}
-                      axis="y"
-                      hasIncoming={focusEdgeVisibility.hasIncoming.has(id)}
-                      hasOutgoing={focusEdgeVisibility.hasOutgoing.has(id)}
-                      watched={watched.has(id)}
-                      nextUp={nextUp.has(id)}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                key="main"
-                className="relative"
-                style={{ width: canvasWidth, height: canvasHeight }}
-                role="presentation"
-                onClick={() => {
-                  setSelectedId(null);
-                  setPinnedId(null);
-                }}
-                onPointerMove={handleCanvasPointerMove}
-                onPointerLeave={() => setPending(null)}
-              >
-                {groupCards.map(
-                  ({ key, label, colorClass, cardClass, top, height, left, width }) => (
-                    <div
-                      key={key}
-                      className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedCard?.key ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
-                      style={{
-                        top: `${top}%`,
-                        height: `${height}%`,
-                        left: `${left}%`,
-                        width: `${width}%`,
-                      }}
-                    >
-                      <BorderLabel
-                        dot={{ className: colorClass }}
-                        pinned={pinnedId === `group:${key}`}
-                        onToggle={() => togglePinned(`group:${key}`)}
-                      >
-                        {label}
-                      </BorderLabel>
-                    </div>
-                  ),
-                )}
-                {phaseBands.map(({ phase, top, height, left, width, color, borderColor }) => (
-                  <div
-                    key={phase}
-                    className="absolute rounded-2xl border-2"
-                    style={{
-                      top: `${top}%`,
-                      height: `${height}%`,
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      backgroundColor: color,
-                      borderColor,
-                    }}
+            <div
+              key="main"
+              className="relative"
+              style={{ width: canvasWidth, height: canvasHeight }}
+              role="presentation"
+              onClick={() => {
+                setSelectedId(null);
+                setPinnedId(null);
+              }}
+              onPointerMove={handleCanvasPointerMove}
+              onPointerLeave={() => setPending(null)}
+            >
+              {groupCards.map(({ key, label, colorClass, cardClass, top, height, left, width }) => (
+                <div
+                  key={key}
+                  className={`absolute rounded-2xl border-2 border-dashed transition-colors ${key === focusedCard?.key ? "bg-white/70" : "bg-white/35"} ${cardClass}`}
+                  style={{
+                    top: `${top}%`,
+                    height: `${height}%`,
+                    left: `${left}%`,
+                    width: `${width}%`,
+                  }}
+                >
+                  <BorderLabel
+                    dot={{ className: colorClass }}
+                    pinned={pinnedId === `group:${key}`}
+                    onToggle={() => togglePinned(`group:${key}`)}
                   >
-                    <BorderLabel
-                      dot={{ color: borderColor }}
-                      pinned={pinnedId === `phase:${phase}`}
-                      onToggle={() => togglePinned(`phase:${phase}`)}
-                    >
-                      Phase {phase}
-                    </BorderLabel>
-                  </div>
-                ))}
-                {eraBands.map(({ key, label, left, width, color, borderColor }) => (
-                  <div
-                    key={key}
-                    className="absolute inset-y-0 border-r border-dashed last:border-r-0"
-                    style={{
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      backgroundColor: color,
-                      borderColor,
-                    }}
+                    {label}
+                  </BorderLabel>
+                </div>
+              ))}
+              {phaseBands.map(({ phase, top, height, left, width, color, borderColor }) => (
+                <div
+                  key={phase}
+                  className="absolute rounded-2xl border-2"
+                  style={{
+                    top: `${top}%`,
+                    height: `${height}%`,
+                    left: `${left}%`,
+                    width: `${width}%`,
+                    backgroundColor: color,
+                    borderColor,
+                  }}
+                >
+                  <BorderLabel
+                    dot={{ color: borderColor }}
+                    pinned={pinnedId === `phase:${phase}`}
+                    onToggle={() => togglePinned(`phase:${phase}`)}
                   >
-                    <BorderLabel dot={{ color: borderColor }}>{label}</BorderLabel>
-                  </div>
-                ))}
-                <GraphEdges
-                  edges={graph.edges}
-                  positions={layout.positions}
-                  activeSet={activeSet}
-                  distances={distances}
-                  visibleIds={visibleIds}
-                  axis={axis}
-                  {...geometry}
-                />
-                {visibleWorks.map((work) => {
-                  const pos = layout.positions.get(work.id)!;
-                  return (
-                    <GraphNode
-                      key={work.id}
-                      work={work}
-                      x={pos.x}
-                      y={pos.y}
-                      state={nodeState(work.id)}
-                      delay={
-                        activeSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
-                      }
-                      onSelect={handleSelect}
-                      axis={axis}
-                      hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
-                      hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
-                      watched={watched.has(work.id)}
-                      nextUp={nextUp.has(work.id)}
-                    />
-                  );
-                })}
-              </div>
-            )}
+                    Phase {phase}
+                  </BorderLabel>
+                </div>
+              ))}
+              {eraBands.map(({ key, label, left, width, color, borderColor }) => (
+                <div
+                  key={key}
+                  className="absolute inset-y-0 border-r border-dashed last:border-r-0"
+                  style={{
+                    left: `${left}%`,
+                    width: `${width}%`,
+                    backgroundColor: color,
+                    borderColor,
+                  }}
+                >
+                  <BorderLabel dot={{ color: borderColor }}>{label}</BorderLabel>
+                </div>
+              ))}
+              <GraphEdges
+                edges={graph.edges}
+                positions={layout.positions}
+                activeSet={activeSet}
+                distances={distances}
+                visibleIds={visibleIds}
+                axis={axis}
+                {...geometry}
+              />
+              {visibleWorks.map((work) => {
+                const pos = layout.positions.get(work.id)!;
+                return (
+                  <GraphNode
+                    key={work.id}
+                    work={work}
+                    x={pos.x}
+                    y={pos.y}
+                    state={nodeState(work.id)}
+                    delay={
+                      activeSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
+                    }
+                    onSelect={handleSelect}
+                    axis={axis}
+                    hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
+                    hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
+                    watched={watched.has(work.id)}
+                    nextUp={nextUp.has(work.id)}
+                  />
+                );
+              })}
+            </div>
           </TransformComponent>
 
           <PosterTooltip />
@@ -626,10 +543,6 @@ export function Graph() {
             focusMode={focusMode}
             onToggleFocusMode={() =>
               setFocusMode((current) => (current === "chain" ? "immediate" : "chain"))
-            }
-            displayMode={displayMode}
-            onToggleDisplayMode={() =>
-              setDisplayMode((current) => (current === "inline" ? "compact" : "inline"))
             }
           />
 
