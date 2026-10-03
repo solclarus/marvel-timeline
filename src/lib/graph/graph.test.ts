@@ -47,6 +47,14 @@ describe("works data", () => {
     expect(invalid).toEqual([]);
   });
 
+  it("gives every work a distinct title in each language", () => {
+    // Search resolves a picked result by its title.
+    for (const key of ["title", "titleJa"] as const) {
+      const titles = WORKS.map((w) => w[key]);
+      expect(titles.filter((t, i) => titles.indexOf(t) !== i)).toEqual([]);
+    }
+  });
+
   it("lists each work's Earths without duplicates", () => {
     const invalid = WORKS.filter((w) => {
       const earths = earthsOf(w);
