@@ -67,17 +67,6 @@ const GROUP_HOVER_DELAY_MS = 250;
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
-function BandLabel({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <span
-      className="absolute bottom-0 left-4 z-10 translate-y-1/2 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap"
-      style={{ borderColor: color, color, backgroundColor: "rgba(255,255,255,0.85)" }}
-    >
-      {children}
-    </span>
-  );
-}
-
 // Content sizes are unscaled layout pixels; see `clampPan`.
 function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformState {
   const { wrapperComponent: wrapper, contentComponent: content } = ref.instance;
@@ -89,10 +78,22 @@ function keepInView(ref: ReactZoomPanPinchRef, next: TransformState): TransformS
   );
 }
 
-function GroupLabel({ colorClass, children }: { colorClass: string; children: React.ReactNode }) {
+// Sits on the top-left border of a card or band, in the detail panel's
+// dark colors so it reads over any tint. `dot` takes a Tailwind class
+// (groups) or an inline color (phase and era bands).
+function BorderLabel({
+  dot,
+  children,
+}: {
+  dot: { className?: string; color?: string };
+  children: React.ReactNode;
+}) {
   return (
-    <span className="absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-border/60 bg-white px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-stone-700">
-      <span className={`size-2 rounded-full ${colorClass}`} />
+    <span className="absolute top-0 left-4 z-10 flex -translate-y-1/2 items-center gap-1.5 rounded-full border bg-card/95 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-card-foreground shadow-md shadow-black/20">
+      <span
+        className={`size-2 rounded-full ${dot.className ?? ""}`}
+        style={{ backgroundColor: dot.color }}
+      />
       {children}
     </span>
   );
@@ -437,7 +438,7 @@ export function Graph() {
                         width: `${width}%`,
                       }}
                     >
-                      <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
+                      <BorderLabel dot={{ className: colorClass }}>{label}</BorderLabel>
                     </div>
                   ),
                 )}
@@ -454,7 +455,7 @@ export function Graph() {
                       borderColor,
                     }}
                   >
-                    <BandLabel color={borderColor}>Phase {phase}</BandLabel>
+                    <BorderLabel dot={{ color: borderColor }}>Phase {phase}</BorderLabel>
                   </div>
                 ))}
                 {eraBands.map(({ key, label, left, width, color, borderColor }) => (
@@ -468,7 +469,7 @@ export function Graph() {
                       borderColor,
                     }}
                   >
-                    <BandLabel color={borderColor}>{label}</BandLabel>
+                    <BorderLabel dot={{ color: borderColor }}>{label}</BorderLabel>
                   </div>
                 ))}
                 <GraphEdges
