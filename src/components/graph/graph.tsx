@@ -227,7 +227,6 @@ export function Graph() {
   const geometry = computeEdgeGeometry(
     axis === "y" ? canvas.height : canvas.width,
     axis === "y" ? layout.rowCount : layout.totalLanes,
-    axis === "y" ? layout.totalLanes : layout.rowCount,
     axis === "y" ? NODE_HEIGHT : NODE_WIDTH,
   );
 
@@ -298,6 +297,7 @@ export function Graph() {
                 visibleIds={visibleIds}
                 axis={axis}
                 {...geometry}
+                canvas={canvas}
               />
               {visibleWorks.map((work) => {
                 const pos = layout.positions.get(work.id)!;

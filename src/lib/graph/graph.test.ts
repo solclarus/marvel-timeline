@@ -453,6 +453,20 @@ describe("edgesToDraw", () => {
     expect(edgesToDraw("recommended", edges, null, null)).toBe(edges);
   });
 
+  it("lights a selection's references and draws them in timelines", () => {
+    const reference = edges.find((e) => e.kind === "reference")!;
+    const active = computeActiveSet({
+      selectedId: reference.to,
+      distances: new Map(),
+      focusedPhase: undefined,
+      focusedGroup: undefined,
+      grouping: { by: "franchise", visible: new Set(GROUPS.franchise.map((g) => g.key)) },
+      graph: WORK_GRAPHS.all,
+    });
+    expect(active!.has(reference.from)).toBe(true);
+    expect(edgesToDraw("release", edges, reference.to, active)).toContain(reference);
+  });
+
   it("draws nothing in timelines until something is selected", () => {
     expect(edgesToDraw("release", edges, null, null)).toEqual([]);
     expect(edgesToDraw("chronology", edges, null, new Set(["iron-man"]))).toEqual([]);
