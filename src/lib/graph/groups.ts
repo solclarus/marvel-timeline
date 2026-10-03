@@ -20,6 +20,8 @@ export interface GroupMeta {
   key: string;
   label: string;
   colorClass: string;
+  // Earths only: their works sit on a tinted card, like the MCU phases.
+  cardClass?: string;
 }
 
 const FRANCHISE_ORDER: Franchise[] = ["x-men", "mcu", "spider-man-legacy", "ssu"];

@@ -141,15 +141,20 @@ function computeGitGraphLayout(grouping: Grouping): GraphLayout {
   return { positions, totalLanes: total, rowCount: MAX_STEP + 1 };
 }
 
+// Cells leave room around each 68x102 poster for the phase and Earth cards'
+// inner padding.
+const LANE_PX = 116;
+const ROW_PX = 146;
+
 export function canvasSize(layout: GraphLayout) {
   return {
-    width: Math.max(500, layout.totalLanes * 100),
-    height: Math.max(500, layout.rowCount * 130),
+    width: Math.max(500, layout.totalLanes * LANE_PX),
+    height: Math.max(500, layout.rowCount * ROW_PX),
   };
 }
 
 export function computeGroupRows(mode: ViewMode, grouping: Grouping) {
-  if (mode === "recommended") return [];
+  if (mode === "recommended" || grouping.by === "earth") return [];
   const groups = visibleGroups(grouping);
   const rowHeight = 100 / Math.max(1, groups.length);
   return groups.map((group, i) => ({ ...group, top: i * rowHeight, height: rowHeight }));
@@ -159,7 +164,7 @@ export function computeGroupRows(mode: ViewMode, grouping: Grouping) {
 // than one to tell apart.
 export function computeGroupColumns(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   const groups = visibleGroups(grouping);
-  if (mode !== "recommended" || groups.length < 2) return [];
+  if (mode !== "recommended" || grouping.by === "earth" || groups.length < 2) return [];
   const laneWidth = 100 / layout.totalLanes;
   return groups.flatMap((group) => {
     const xs = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
@@ -168,6 +173,38 @@ export function computeGroupColumns(mode: ViewMode, layout: GraphLayout, groupin
     if (xs.length === 0) return [];
     const left = Math.min(...xs) - laneWidth / 2;
     return [{ ...group, left, width: Math.max(...xs) + laneWidth / 2 - left }];
+  });
+}
+
+// One tinted card per Earth, hugging its works like the phase bands do.
+export function computeGroupCards(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
+  if (grouping.by !== "earth") return [];
+  const { width, height } = canvasSize(layout);
+  const crossCount = mode === "recommended" ? layout.totalLanes : layout.rowCount;
+  const flowCount = mode === "recommended" ? layout.rowCount : layout.totalLanes;
+  // Half a cell on each axis, less a 10px gutter between neighboring cards.
+  const halfLane = 50 / crossCount - (5 / (mode === "recommended" ? width : height)) * 100;
+  const halfStep = 50 / flowCount - (5 / (mode === "recommended" ? height : width)) * 100;
+  const [padX, padY] = mode === "recommended" ? [halfLane, halfStep] : [halfStep, halfLane];
+
+  return visibleGroups(grouping).flatMap((group) => {
+    const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
+      .map((w) => layout.positions.get(w.id))
+      .filter((pos) => pos !== undefined);
+    if (points.length === 0) return [];
+    const xs = points.map((pos) => pos.x);
+    const ys = points.map((pos) => pos.y);
+    const left = Math.min(...xs) - padX;
+    const top = Math.min(...ys) - padY;
+    return [
+      {
+        ...group,
+        left,
+        top,
+        width: Math.max(...xs) + padX - left,
+        height: Math.max(...ys) + padY - top,
+      },
+    ];
   });
 }
 

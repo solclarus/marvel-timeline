@@ -12,6 +12,7 @@ import {
   computeEdgeGeometry,
   computeEraBands,
   computeFocusLayout,
+  computeGroupCards,
   computeGroupColumns,
   computeGroupRows,
   computeLayout,
@@ -109,6 +110,7 @@ export function Graph() {
   const { width: canvasWidth, height: canvasHeight } = canvasSize(layout);
   const groupRows = computeGroupRows(mode, grouping);
   const groupColumns = computeGroupColumns(mode, layout, grouping);
+  const groupCards = computeGroupCards(mode, layout, grouping);
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const eraBands = computeEraBands(mode, layout, grouping);
 
@@ -366,6 +368,22 @@ export function Graph() {
                 role="presentation"
                 onClick={() => setSelectedId(null)}
               >
+                {groupCards.map(
+                  ({ key, label, colorClass, cardClass, top, height, left, width }) => (
+                    <div
+                      key={key}
+                      className={`absolute rounded-2xl border-2 ${cardClass ?? ""}`}
+                      style={{
+                        top: `${top}%`,
+                        height: `${height}%`,
+                        left: `${left}%`,
+                        width: `${width}%`,
+                      }}
+                    >
+                      <GroupLabel colorClass={colorClass}>{label}</GroupLabel>
+                    </div>
+                  ),
+                )}
                 {phaseBands.map(({ phase, top, height, left, width, color, borderColor }) => (
                   <div
                     key={phase}
