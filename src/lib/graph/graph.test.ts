@@ -6,6 +6,7 @@ import { elbowPath, elbowPieces, mergedPath } from "./edge-path";
 import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, PHASE_GROUP, regroup, type Grouping } from "./groups";
 import {
+  canvasSize,
   computeEraBands,
   computeGroupCards,
   computeLayout,
@@ -437,12 +438,19 @@ describe("phase bands", () => {
     }
   });
 
-  it("leave an empty row between sagas", () => {
-    const graph = WORK_GRAPHS.all;
-    const rowsOf = (phases: number[]) =>
-      graph.works.filter((w) => phases.includes(w.phase ?? 0)).map((w) => graph.step.get(w.id)!);
-    expect(Math.min(...rowsOf([4, 5, 6]))).toBe(Math.max(...rowsOf([1, 2, 3])) + 2);
-    expect(Math.min(...rowsOf([7]))).toBe(Math.max(...rowsOf([4, 5, 6])) + 2);
+  it("keep neighboring saga frames a card padding apart", () => {
+    const grouping: Grouping = {
+      by: "franchise",
+      visible: new Set(GROUPS.franchise.map((g) => g.key)),
+    };
+    const layout = computeLayout("recommended", grouping);
+    const { height } = canvasSize(layout);
+    const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
+    const gaps = sagas
+      .slice(1)
+      .map((saga, i) => ((saga.top - (sagas[i].top + sagas[i].height)) / 100) * height);
+    expect(gaps.map(Math.round)).toEqual([40, 40]);
+    expect(sagas[0].top).toBeGreaterThanOrEqual(0);
   });
 
   it("shrink to the rows their works sit in when filtered", () => {
@@ -455,7 +463,7 @@ describe("phase bands", () => {
     ] satisfies Grouping[]) {
       const layout = computeLayout("recommended", grouping, graph);
       const row = 100 / (graph.maxStep + 1);
-      for (const band of computePhaseBands("recommended", layout, grouping, graph)) {
+      for (const band of computePhaseBands("recommended", layout, grouping)) {
         const rows = new Set(
           graph.works
             .filter(

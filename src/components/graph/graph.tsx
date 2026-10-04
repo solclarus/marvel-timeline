@@ -114,7 +114,7 @@ export function Graph() {
   // for the selection fit.
   const layout = computeLayout(mode, grouping, graph);
   const canvas = canvasSize(layout);
-  const phaseBands = computePhaseBands(mode, layout, grouping, graph);
+  const phaseBands = computePhaseBands(mode, layout, grouping);
   const sagaBands = computeSagaBands(layout, phaseBands);
   const groupCards = computeGroupCards(mode, layout, grouping, sagaBands);
   const eraBands = computeEraBands(mode, layout, grouping);
@@ -258,6 +258,7 @@ export function Graph() {
     axis === "y" ? canvas.height : canvas.width,
     axis === "y" ? layout.rowCount : layout.totalLanes,
     axis === "y" ? NODE_HEIGHT : NODE_WIDTH,
+    axis === "y" ? (layout.headerPx ?? 0) : 0,
   );
 
   const map = (
