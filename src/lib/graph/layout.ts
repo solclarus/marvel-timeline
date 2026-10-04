@@ -402,7 +402,7 @@ export function computeGroupCards(
   const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
   const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
 
-  return visibleGroups(grouping).flatMap((group) => {
+  const cards = visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
       .map((w) => layout.positions.get(w.id))
       .filter((pos) => pos !== undefined);
@@ -436,6 +436,11 @@ export function computeGroupCards(
       },
     ];
   });
+  if (mode !== "recommended" || cards.length === 0) return cards;
+  // Side by side, every card starts at the same top edge, however deep its
+  // own padding nests (the MCU card's sagas start a row down).
+  const top = Math.min(...cards.map((card) => card.top));
+  return cards.map((card) => ({ ...card, top, height: card.height + card.top - top }));
 }
 
 // The card under a point given in canvas percentages, if any.

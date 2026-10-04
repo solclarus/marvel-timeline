@@ -411,6 +411,16 @@ describe("phase bands", () => {
     }
   });
 
+  it("line every group card up along one top edge", () => {
+    for (const by of ["franchise", "earth"] as const) {
+      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
+      const layout = computeLayout("recommended", grouping);
+      const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
+      const tops = computeGroupCards("recommended", layout, grouping, sagas).map((c) => c.top);
+      expect(new Set(tops).size).toBe(1);
+    }
+  });
+
   it("leave an empty row between sagas", () => {
     const graph = WORK_GRAPHS.all;
     const rowsOf = (phases: number[]) =>
