@@ -142,7 +142,7 @@ export function GraphEdges({
 
   return (
     <svg
-      className="absolute inset-0 h-full w-full"
+      className="absolute inset-0 size-full"
       viewBox={`0 0 ${canvas.width} ${canvas.height}`}
       aria-hidden
     >

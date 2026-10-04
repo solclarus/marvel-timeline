@@ -43,7 +43,7 @@ export function RoutesDialog({ onSelect }: { onSelect: (id: string) => void }) {
                     setOpen(false);
                     onSelect(route.id);
                   }}
-                  className="flex w-full items-center gap-3 rounded-item border border-white/10 bg-white/[0.05] p-3 text-left hover:bg-white/[0.09] focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
+                  className="flex w-full items-center gap-3 rounded-item border border-white/10 bg-white/5 p-3 text-left hover:bg-white/9 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium">{ja ? route.titleJa : route.title}</span>

@@ -47,7 +47,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-3 rounded-item bg-white/[0.03] p-3 ring-1 ring-white/5">
+    <section className="flex flex-col gap-3 rounded-item bg-white/3 p-3 ring-1 ring-white/5">
       <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-foreground/80 uppercase">
         <Icon className="size-3.5" />
         {title}

@@ -20,7 +20,7 @@ export function MediumBadge({ work, className }: { work: WorkNode; className?: s
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-full whitespace-nowrap border border-white/15 px-1.5 py-px text-[10px] leading-4 font-medium text-foreground/80",
+        "inline-flex shrink-0 items-center gap-1 rounded-full whitespace-nowrap border border-white/15 px-1.5 py-px text-[10px]/4  font-medium text-foreground/80",
         className,
       )}
     >

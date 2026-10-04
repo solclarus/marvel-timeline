@@ -16,7 +16,7 @@ export function UpcomingBadge({ work }: { work: WorkNode }) {
     day: work.releasePrecision ? undefined : "numeric",
   }).format(new Date(year, month - 1, day));
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px] leading-4 font-medium whitespace-nowrap text-amber-200">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px]/4 font-medium whitespace-nowrap text-amber-200">
       <CalendarClock className="size-3" aria-hidden />
       {t.upcoming} {date}
     </span>

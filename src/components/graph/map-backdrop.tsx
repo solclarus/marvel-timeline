@@ -47,7 +47,7 @@ export function MapBackdrop({
       {groupCards.map((card) => (
         <div
           key={card.key}
-          className={`absolute rounded-surface border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/[0.03]"} ${card.cardClass}`}
+          className={`absolute rounded-surface border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/3"} ${card.cardClass}`}
           style={box(card)}
         >
           <BorderLabel
@@ -63,7 +63,7 @@ export function MapBackdrop({
       {sagaBands.map((band) => (
         <div
           key={band.saga}
-          className="absolute rounded-surface border border-white/30 bg-white/[0.025]"
+          className="absolute rounded-surface border border-white/30 bg-white/2.5"
           style={box(band)}
         >
           <BorderLabel dot={{ className: "bg-white/70" }}>{t.saga(band.saga)}</BorderLabel>
