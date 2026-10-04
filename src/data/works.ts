@@ -1661,7 +1661,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 80,
     recommendedOrder: 61,
     tmdb: { type: "movie", id: 1293690 },
-    releaseDate: "2028-05-05",
+    releaseDate: "2028-05-04",
     poster: "/jSn3jOzI91dOx4aVdfMrirWXH6R.jpg",
   },
   {
@@ -1673,7 +1673,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 81,
     recommendedOrder: 62,
     tmdb: { type: "movie", id: 1738010 },
-    releaseDate: "2028-07-28",
+    releaseDate: "2028-07-27",
     poster: "/zgC1zo3lyujoEiIMnUrHltvPmZg.jpg",
   },
   {
@@ -1687,7 +1687,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 82,
     recommendedOrder: 63,
     tmdb: { type: "movie", id: 1386618 },
-    releaseDate: "2028-12-15",
+    releaseDate: "2028-12-13",
     poster: "/zJc9fYZxgq4yzI0Oru2e1Cf3a3V.jpg",
   },
 
