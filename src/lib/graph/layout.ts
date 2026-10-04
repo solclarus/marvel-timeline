@@ -299,6 +299,7 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
   const timeRank = recommendedTimeRank();
   const laneBySub = new Map<string, Map<string, number>>();
   const laneCount = new Map<string, number>();
+  const sagaOutset = new Map<string, { left: number; right: number }>();
   const subsByBand = new Map(
     bands.map((band) => [band, laneSubgroups(grouping, band, graph.works)]),
   );
@@ -327,6 +328,24 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     const lanes = placeUnphased(unphased, phasedLanes, stepMap, laneMap);
     laneCount.set(sub, Math.max(1, lanes));
     laneBySub.set(sub, laneMap);
+    // Phase bands and saga frames nest two more paddings around their
+    // posters; where they reach the run's edge, the run takes that much
+    // more room so the card around it sits as far from its neighbors as
+    // any other card.
+    const phased = [...laneMap].filter(([id]) => {
+      const work = WORK_BY_ID.get(id);
+      return (
+        work?.phase !== undefined && groupKeyOf(work, grouping.by) === PHASE_GROUP[grouping.by]
+      );
+    });
+    if (phased.length > 0) {
+      const lanesUsed = phased.map(([, lane]) => lane);
+      const nest = (2 * CARD_PAD_PX) / LANE_PX;
+      sagaOutset.set(sub, {
+        left: Math.min(...lanesUsed) === 0 ? nest : 0,
+        right: Math.max(...lanesUsed) === Math.max(1, lanes) - 1 ? nest : 0,
+      });
+    }
   }
 
   // Groups sit apart by a gap wide enough for their cards' outer padding;
@@ -337,8 +356,10 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     if (i > 0) total += GROUP_GAP_PX / LANE_PX;
     subsByBand.get(band)!.forEach((sub, j) => {
       if (j > 0) total += SUBGROUP_GAP_PX / LANE_PX;
+      total += sagaOutset.get(sub)?.left ?? 0;
       subStart.set(sub, total);
       total += laneCount.get(sub)!;
+      total += sagaOutset.get(sub)?.right ?? 0;
     });
   });
 
@@ -370,8 +391,8 @@ const POSTER_PX = { width: 68, height: 102 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
 // four sides between its edge and what it holds.
 const CARD_PAD_PX = 28;
-// Between neighboring cards' lane runs; wide enough for the MCU card, which
-// nests three paddings (phase, saga, card) around its posters.
+// Between neighboring cards' lane runs (a run holding phases also takes room
+// for its nested frames; see computeGitGraphLayout).
 const GROUP_GAP_PX = 56;
 // Between franchises sharing an Earth: keeps a phase band clear of the
 // neighboring franchise's posters.

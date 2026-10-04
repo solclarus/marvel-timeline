@@ -411,6 +411,22 @@ describe("phase bands", () => {
     }
   });
 
+  it("keep neighboring group cards evenly apart", () => {
+    for (const by of ["franchise", "earth"] as const) {
+      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
+      const layout = computeLayout("recommended", grouping);
+      const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
+      const cards = computeGroupCards("recommended", layout, grouping, sagas).sort(
+        (a, b) => a.left - b.left,
+      );
+      const gaps = cards
+        .slice(1)
+        .map((card, i) => card.left - (cards[i].left + cards[i].width))
+        .map((gap) => Math.round(gap * 1000));
+      expect(new Set(gaps).size).toBe(1);
+    }
+  });
+
   it("line every group card up along one top edge", () => {
     for (const by of ["franchise", "earth"] as const) {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
