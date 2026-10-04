@@ -18,7 +18,7 @@ function PosterArt({ work, compact = false }: { work: WorkNode; compact?: boolea
   return (
     <div
       data-poster-fallback
-      className="@container absolute inset-0 overflow-hidden bg-gradient-to-b from-neutral-800 to-neutral-950 text-white"
+      className="@container absolute inset-0 overflow-hidden bg-linear-to-b from-neutral-800 to-neutral-950 text-white"
     >
       {/* A soft glow and a thin rule in the franchise color. */}
       <div
@@ -28,17 +28,14 @@ function PosterArt({ work, compact = false }: { work: WorkNode; compact?: boolea
         )}
       />
       <div
-        className={cn(
-          "absolute inset-x-0 top-0 h-[3px]",
-          FRANCHISE_META[work.franchise].colorClass,
-        )}
+        className={cn("absolute inset-x-0 top-0 h-0.75", FRANCHISE_META[work.franchise].colorClass)}
       />
       <div className="absolute inset-0 bg-[repeating-linear-gradient(135deg,transparent_0_6px,rgba(255,255,255,0.03)_6px_7px)]" />
       <div className="relative flex size-full flex-col items-center justify-between p-[8%] text-center">
         <Icon
           className={cn(
             "shrink-0 opacity-70",
-            compact ? "mt-auto mb-auto size-1/2" : "size-[18%] min-w-3",
+            compact ? "my-auto  size-1/2" : "size-[18%] min-w-3",
           )}
           aria-hidden
         />

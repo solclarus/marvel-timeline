@@ -46,7 +46,7 @@ export function WorkRow({
           "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none",
           selected
             ? "border-white/40 bg-white/10"
-            : "border-transparent bg-white/[0.05] hover:bg-white/[0.09]",
+            : "border-transparent bg-white/5 hover:bg-white/9",
           dimmed && "opacity-35",
         )}
       >
@@ -55,11 +55,11 @@ export function WorkRow({
             {number}
           </span>
         )}
-        <span className="relative block h-[72px] w-12 shrink-0 overflow-hidden rounded-thumb bg-muted">
+        <span className="relative block h-18 w-12 shrink-0 overflow-hidden rounded-thumb bg-muted">
           <Poster key={work.id} work={work} compact />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="line-clamp-2 text-sm leading-snug font-medium">{titleOf(work)}</span>
+          <span className="line-clamp-2 text-sm/snug font-medium">{titleOf(work)}</span>
           <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
             <MediumBadge work={work} />
             <span

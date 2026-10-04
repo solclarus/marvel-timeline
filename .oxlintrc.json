@@ -1,4 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "import", "jsx-a11y", "vitest"]
+  "plugins": ["react", "typescript", "import", "jsx-a11y", "vitest"],
+  "jsPlugins": ["eslint-plugin-better-tailwindcss"],
+  "settings": {
+    "better-tailwindcss": {
+      "entryPoint": "src/globals.css",
+      "rootFontSize": 16
+    }
+  },
+  "rules": {
+    "better-tailwindcss/enforce-canonical-classes": "warn"
+  }
 }

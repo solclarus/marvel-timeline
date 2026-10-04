@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         {title}
       </h3>
-      <div className="space-y-2 text-sm leading-relaxed">{children}</div>
+      <div className="space-y-2 text-sm/relaxed">{children}</div>
     </section>
   );
 }
