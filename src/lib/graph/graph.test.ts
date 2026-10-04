@@ -428,13 +428,24 @@ describe("phase bands", () => {
     }
   });
 
-  it("line every group card up along one top edge", () => {
+  it("line up the top edges of cards starting in the first row, padded evenly", () => {
     for (const by of ["franchise", "earth"] as const) {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
       const layout = computeLayout("recommended", grouping);
+      const { height } = canvasSize(layout);
       const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
-      const tops = computeGroupCards("recommended", layout, grouping, sagas).map((c) => c.top);
-      expect(new Set(tops).size).toBe(1);
+      const cards = computeGroupCards("recommended", layout, grouping, sagas);
+      const firstRow = cards.filter((card) =>
+        WORKS.some((w) => groupKeyOf(w, by) === card.key && WORK_GRAPHS.all.step.get(w.id) === 0),
+      );
+      expect(new Set(firstRow.map((c) => Math.round((c.top / 100) * height))).size).toBe(1);
+      // A card never reaches past its first poster by more than its padding.
+      for (const card of cards.filter((c) => c.key !== PHASE_GROUP[by])) {
+        const ys = WORKS.filter((w) => groupKeyOf(w, by) === card.key).map(
+          (w) => layout.positions.get(w.id)!.y,
+        );
+        expect(Math.round(((Math.min(...ys) - card.top) / 100) * height)).toBe(51 + 40);
+      }
     }
   });
 
