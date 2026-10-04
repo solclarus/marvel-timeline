@@ -1,0 +1,78 @@
+name: TMDB check
+
+# Weekly: compares release dates and posters with TMDB and checks whether
+# running times have changed, then keeps one open issue up to date with
+# anything to fix by hand (or closes it once everything matches).
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Mondays, 09:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: tmdb-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TMDB_TOKEN: ${{ secrets.TMDB_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      TITLE: "TMDB: data out of date"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Compare dates and posters
+        id: dates
+        run: |
+          set +e
+          pnpm --silent check:tmdb > dates.txt 2>&1
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          cat dates.txt
+      - name: Refetch running times
+        id: runtimes
+        run: |
+          pnpm --silent fetch:runtimes
+          git diff --stat -- src/data/runtimes.ts > runtimes.txt
+          git diff -- src/data/runtimes.ts >> runtimes.txt
+          echo "changed=$([ -s runtimes.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          cat runtimes.txt
+      - name: Report
+        run: |
+          existing=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number -q '.[0].number')
+          if [ "${{ steps.dates.outputs.status }}" = "0" ] && [ "${{ steps.runtimes.outputs.changed }}" = "false" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "Everything matches TMDB again ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+            fi
+            exit 0
+          fi
+          {
+            echo "The weekly TMDB check ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) found data to update."
+            echo
+            echo "## Dates and posters (\`pnpm check:tmdb\`)"
+            echo '```'
+            cat dates.txt
+            echo '```'
+            if [ "${{ steps.runtimes.outputs.changed }}" = "true" ]; then
+              echo
+              echo "## Running times changed — run \`pnpm fetch:runtimes\` and commit"
+              echo '```diff'
+              head -c 50000 runtimes.txt
+              echo '```'
+            fi
+          } > body.md
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file body.md
+          else
+            gh issue create --title "$TITLE" --body-file body.md
+          fi
