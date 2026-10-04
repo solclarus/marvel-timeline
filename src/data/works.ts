@@ -2669,8 +2669,10 @@ export const EDGES: WorkEdge[] = WORKS.flatMap((work) =>
   (work.dependsOn ?? []).map((dep) => ({ from: dep.id, to: work.id, kind: dep.kind })),
 );
 
-export function posterUrl(work: WorkNode) {
-  return `https://image.tmdb.org/t/p/w185${work.poster}`;
+// TMDB serves posters in fixed widths; w154 covers list thumbnails at 3x,
+// w185 the map's posters.
+export function posterUrl(work: WorkNode, width: "w154" | "w185" = "w185") {
+  return `https://image.tmdb.org/t/p/${width}${work.poster}`;
 }
 
 export function earthsOf(work: WorkNode): EarthId[] {

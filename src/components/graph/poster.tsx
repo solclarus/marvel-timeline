@@ -82,7 +82,7 @@ export function Poster({
         <Skeleton className="absolute inset-0 rounded-none bg-neutral-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" />
       )}
       <img
-        src={posterUrl(work)}
+        src={posterUrl(work, compact ? "w154" : "w185")}
         alt=""
         loading={loading}
         decoding="async"

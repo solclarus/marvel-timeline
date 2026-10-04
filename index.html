@@ -10,6 +10,8 @@
     />
     <meta name="theme-color" content="#141414" />
     <link rel="canonical" href="https://solclarus.github.io/marvel-timeline/" />
+    <!-- Posters come from TMDB's image CDN; connect while the app loads. -->
+    <link rel="preconnect" href="https://image.tmdb.org" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Marvel Timeline" />
@@ -31,7 +33,26 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
-    <div id="root"></div>
+    <!-- Painted before the app's scripts arrive; React replaces it. Inline
+         styles: the stylesheet may not have loaded yet either. -->
+    <div id="root">
+      <div
+        style="
+          display: flex;
+          height: 100vh;
+          align-items: center;
+          justify-content: center;
+          background: #262626;
+          color: rgba(255, 255, 255, 0.55);
+          font:
+            600 14px/1.4 system-ui,
+            sans-serif;
+          letter-spacing: 0.04em;
+        "
+      >
+        Marvel Timeline
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
