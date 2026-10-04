@@ -374,7 +374,7 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     step * ROW_PX +
     ROW_PX / 2 +
     sagaStarts.filter((start) => start <= step).length * SAGA_BREAK_PX;
-  const extraPx = SAGA_TOP_PX + sagaStarts.length * SAGA_BREAK_PX;
+  const extraPx = SAGA_TOP_PX + sagaStarts.length * SAGA_BREAK_PX + PHASE_CARD_DROP_PX;
   const heightPx = canvasHeight(maxStep + 1, extraPx);
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
@@ -386,7 +386,11 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     const step = stepMap.get(work.id) ?? 0;
     positions.set(work.id, {
       x: (subStart.get(sub)! + laneIndex) * laneWidth + laneWidth / 2,
-      y: (rowY(step) / heightPx) * 100,
+      y:
+        ((rowY(step) +
+          (groupKeyOf(work, grouping.by) === PHASE_GROUP[grouping.by] ? PHASE_CARD_DROP_PX : 0)) /
+          heightPx) *
+        100,
     });
   }
 
@@ -415,7 +419,11 @@ const SUBGROUP_GAP_PX = 32;
 // difference above the first saga and between sagas, which then sit one
 // card padding apart.
 const SAGA_REACH_PX = POSTER_PX.height / 2 + 2 * CARD_PAD_PX;
-const SAGA_TOP_PX = Math.max(0, SAGA_REACH_PX + CARD_PAD_PX - ROW_PX / 2);
+// The card holding the phases sits this much lower than its neighbors: its
+// sagas and phases add two paddings above its first posters, so its top
+// edge then lines up with theirs and every card keeps the same padding.
+const PHASE_CARD_DROP_PX = 2 * CARD_PAD_PX;
+const SAGA_TOP_PX = Math.max(0, SAGA_REACH_PX + CARD_PAD_PX - ROW_PX / 2 - PHASE_CARD_DROP_PX);
 const SAGA_BREAK_PX = Math.max(0, 2 * SAGA_REACH_PX + CARD_PAD_PX - ROW_PX);
 
 // The first row of each saga.
@@ -458,7 +466,7 @@ export function computeGroupCards(
   const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
   const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
 
-  const cards = visibleGroups(grouping).flatMap((group) => {
+  return visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
       .map((w) => layout.positions.get(w.id))
       .filter((pos) => pos !== undefined);
@@ -492,11 +500,6 @@ export function computeGroupCards(
       },
     ];
   });
-  if (mode !== "recommended" || cards.length === 0) return cards;
-  // Side by side, every card starts at the same top edge, however deep its
-  // own padding nests (the MCU card's sagas start a row down).
-  const top = Math.min(...cards.map((card) => card.top));
-  return cards.map((card) => ({ ...card, top, height: card.height + card.top - top }));
 }
 
 // The card under a point given in canvas percentages, if any.
