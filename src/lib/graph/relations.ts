@@ -36,8 +36,7 @@ export interface WorkGraph {
   outgoing: Map<string, string[]>;
   // Row in recommended mode: longest path from a root over every edge
   // (references too, so their lines point down like the rest), floored per
-  // MCU phase so phases stack as clean bands, with an empty row between
-  // sagas for their frames.
+  // MCU phase so phases stack as clean bands.
   step: Map<string, number>;
   maxStep: number;
 }
@@ -114,18 +113,15 @@ function buildSteps(works: WorkNode[], incoming: Map<string, string[]>) {
   }
 
   function floorOf(phase: number): number {
-    // Phase 1 starts a row down, leaving room above the first saga's frame.
-    if (phase <= 1) return 1;
+    if (phase <= 1) return 0;
     const cached = floors.get(phase);
     if (cached !== undefined) return cached;
     const previousPhaseWorks = works.filter((w) => w.phase === phase - 1);
-    const sagaGap = sagaOf(phase) === sagaOf(phase - 1) ? 0 : 1;
     const value =
       1 +
-      sagaGap +
       (previousPhaseWorks.length > 0
         ? Math.max(...previousPhaseWorks.map((w) => stepOf(w.id)))
-        : floorOf(phase - 1) - sagaGap);
+        : floorOf(phase - 1));
     floors.set(phase, value);
     return value;
   }

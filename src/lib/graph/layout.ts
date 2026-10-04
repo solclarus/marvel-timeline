@@ -365,9 +365,19 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     });
   });
 
+  // Rows are ROW_PX apart, plus room above the first saga's frame and a
+  // card padding between sagas: their frames nest two paddings past their
+  // posters, more than a row's spare space.
+  const sagaStarts = [...sagaStartSteps(graph).values()].sort((a, b) => a - b).slice(1);
+  const rowY = (step: number) =>
+    SAGA_TOP_PX +
+    step * ROW_PX +
+    ROW_PX / 2 +
+    sagaStarts.filter((start) => start <= step).length * SAGA_BREAK_PX;
+  const extraPx = SAGA_TOP_PX + sagaStarts.length * SAGA_BREAK_PX;
+  const heightPx = canvasHeight(maxStep + 1, extraPx);
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
-  const rowHeight = 100 / (maxStep + 1);
   for (const work of graph.works) {
     const sub = runOf(laneSubgroupOf(work, grouping));
     const laneMap = laneBySub.get(sub);
@@ -376,11 +386,11 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
     const step = stepMap.get(work.id) ?? 0;
     positions.set(work.id, {
       x: (subStart.get(sub)! + laneIndex) * laneWidth + laneWidth / 2,
-      y: step * rowHeight + rowHeight / 2,
+      y: (rowY(step) / heightPx) * 100,
     });
   }
 
-  return { positions, totalLanes: total, rowCount: maxStep + 1 };
+  return { positions, totalLanes: total, rowCount: maxStep + 1, headerPx: extraPx };
 }
 
 // Cells leave room around each poster for the cards' padding. A row is a
@@ -399,6 +409,26 @@ const GROUP_GAP_PX = 44;
 // Between franchises sharing an Earth: keeps a phase band clear of the
 // neighboring franchise's posters.
 const SUBGROUP_GAP_PX = 32;
+
+// A saga frame reaches two paddings past its posters (phase, then saga); a
+// row only spares (ROW_PX - poster) / 2 above and below. These make up the
+// difference above the first saga and between sagas, which then sit one
+// card padding apart.
+const SAGA_REACH_PX = POSTER_PX.height / 2 + 2 * CARD_PAD_PX;
+const SAGA_TOP_PX = Math.max(0, SAGA_REACH_PX + CARD_PAD_PX - ROW_PX / 2);
+const SAGA_BREAK_PX = Math.max(0, 2 * SAGA_REACH_PX + CARD_PAD_PX - ROW_PX);
+
+// The first row of each saga.
+function sagaStartSteps(graph: WorkGraph): Map<Saga, number> {
+  const starts = new Map<Saga, number>();
+  for (const work of graph.works) {
+    if (work.phase === undefined) continue;
+    const saga = sagaOf(work.phase);
+    const step = graph.step.get(work.id)!;
+    starts.set(saga, Math.min(starts.get(saga) ?? Infinity, step));
+  }
+  return starts;
+}
 
 // Extra lanes between a saga's last phased lane and the works beside it.
 const UNPHASED_CLEARANCE = Math.max(0, (POSTER_PX.width + 3 * CARD_PAD_PX - LANE_PX) / LANE_PX);
@@ -483,35 +513,24 @@ export function groupCardAt<T extends { left: number; top: number; width: number
   );
 }
 
-export function computePhaseBands(
-  mode: ViewMode,
-  layout: GraphLayout,
-  grouping: Grouping,
-  graph: WorkGraph = WORK_GRAPHS.all,
-) {
+export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (mode !== "recommended") return [];
-  const rowHeight = 100 / (graph.maxStep + 1);
   const { width, height } = canvasSize(layout);
   const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
   const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
-  const rowCenter = (step: number) => (step + 0.5) * rowHeight;
-  const byPhase = new Map<
-    number,
-    { minStep: number; maxStep: number; minX: number; maxX: number }
-  >();
+  const byPhase = new Map<number, { minY: number; maxY: number; minX: number; maxX: number }>();
   for (const work of WORKS) {
     if (work.phase === undefined || groupKeyOf(work, grouping.by) !== PHASE_GROUP[grouping.by]) {
       continue;
     }
     const pos = layout.positions.get(work.id);
     if (!pos) continue;
-    const step = graph.step.get(work.id) ?? 0;
     const entry = byPhase.get(work.phase);
     if (!entry) {
-      byPhase.set(work.phase, { minStep: step, maxStep: step, minX: pos.x, maxX: pos.x });
+      byPhase.set(work.phase, { minY: pos.y, maxY: pos.y, minX: pos.x, maxX: pos.x });
     } else {
-      entry.minStep = Math.min(entry.minStep, step);
-      entry.maxStep = Math.max(entry.maxStep, step);
+      entry.minY = Math.min(entry.minY, pos.y);
+      entry.maxY = Math.max(entry.maxY, pos.y);
       entry.minX = Math.min(entry.minX, pos.x);
       entry.maxX = Math.max(entry.maxX, pos.x);
     }
@@ -523,8 +542,8 @@ export function computePhaseBands(
     .map(([phase, entry]) => ({
       phase,
       saga: sagaOf(phase),
-      top: rowCenter(entry.minStep) - padY,
-      height: rowCenter(entry.maxStep) - rowCenter(entry.minStep) + 2 * padY,
+      top: entry.minY - padY,
+      height: entry.maxY - entry.minY + 2 * padY,
       left: entry.minX - padX,
       width: entry.maxX - entry.minX + 2 * padX,
       singleColumn: entry.maxX - entry.minX < 1e-6,
@@ -616,9 +635,11 @@ export function computeEdgeGeometry(
   flowAxisSpan: number,
   flowStepCount: number,
   nodeFlowSize: number,
+  headerPx = 0,
 ) {
   const nodeHalfSizePercent = (nodeFlowSize / 2 / flowAxisSpan) * 100;
-  const flowStepPercent = 100 / flowStepCount;
+  // Rows (or columns) span the canvas apart from any header or saga gaps.
+  const flowStepPercent = (100 / flowStepCount) * (1 - headerPx / flowAxisSpan);
   const tightestGapPercent = Math.max(0.1, flowStepPercent - 2 * nodeHalfSizePercent);
   const stubPercent = tightestGapPercent / 2;
   return { nodeHalfSizePercent, stubPercent };
