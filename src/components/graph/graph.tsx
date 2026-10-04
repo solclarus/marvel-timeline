@@ -5,7 +5,6 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
-import { ROUTES } from "@/data/routes";
 import { mediumOf, WORKS } from "@/data/works";
 import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
@@ -32,14 +31,12 @@ import {
   getRelatedDistances,
   WORK_BY_ID,
   graphForMedia,
-  WORK_GRAPHS,
   type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
-import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
-import { parseUrlState, withMedium, type Display, type ListFocus } from "@/lib/url-state";
+import { parseUrlState, withMedium } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
 import { attachDesktopInput, keepInView } from "./desktop-input";
@@ -53,8 +50,9 @@ import {
   type NodeState,
 } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
-import { ListView, type ListFocusView } from "./list-view";
+import { focusedList, ListView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
+import { DEVICE_DISPLAY, useDisplay } from "./use-display";
 import { useHoverFocus } from "./use-hover-focus";
 import { useSelectionFit } from "./use-selection-fit";
 import { useUrlSync } from "./use-url-sync";
@@ -70,9 +68,6 @@ const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
-// Phones start on the list; the map is hard to read that small.
-const DEVICE_DISPLAY: Display = window.matchMedia("(max-width: 640px)").matches ? "list" : "map";
-
 export function Graph() {
   const { t, groupLabel, titleOf, locale } = useI18n();
   const [initial] = useState(() => parseUrlState(window.location.search));
@@ -84,28 +79,7 @@ export function Graph() {
     visible: initial.visibleGroups,
   });
   const [media, setMedia] = useState<MediaFilter>(initial.media);
-  const [display, setDisplay] = useState<Display>(
-    initial.listFocus ? "list" : (initial.display ?? DEVICE_DISPLAY),
-  );
-  // The list narrowed to a watch-first path or a route; clearing it returns
-  // to whichever display was showing before.
-  const [listFocus, setListFocus] = useState<ListFocus | null>(initial.listFocus);
-  const [displayBeforeFocus, setDisplayBeforeFocus] = useState<Display | null>(null);
-  const openListFocus = (next: ListFocus) => {
-    if (!listFocus) setDisplayBeforeFocus(display);
-    setDisplay("list");
-    setListFocus(next);
-  };
-  const clearListFocus = () => {
-    setListFocus(null);
-    if (displayBeforeFocus) setDisplay(displayBeforeFocus);
-    setDisplayBeforeFocus(null);
-  };
-  const handleDisplayChange = (next: Display) => {
-    setListFocus(null);
-    setDisplayBeforeFocus(null);
-    setDisplay(next);
-  };
+  const { display, listFocus, openListFocus, clearListFocus, changeDisplay } = useDisplay(initial);
   const graph = graphForMedia(media);
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
@@ -386,31 +360,9 @@ export function Graph() {
     </TransformWrapper>
   );
 
-  const focusView = ((): ListFocusView | null => {
-    if (listFocus?.kind === "before") {
-      const work = WORK_BY_ID.get(listFocus.id);
-      if (!work) return null;
-      const steps = watchFirst(work.id, graph);
-      return {
-        title: t.watchBefore(titleOf(work)),
-        items: [...steps, { work }],
-        empty: steps.length === 0 ? t.nothingFirst : undefined,
-        onClear: clearListFocus,
-      };
-    }
-    if (listFocus?.kind === "route") {
-      const route = ROUTES.find((r) => r.id === listFocus.id);
-      if (!route) return null;
-      const ja = locale === "ja";
-      return {
-        title: ja ? route.titleJa : route.title,
-        summary: ja ? route.summaryJa : route.summary,
-        items: routeWorks(route, WORK_GRAPHS.all).map((work) => ({ work })),
-        onClear: clearListFocus,
-      };
-    }
-    return null;
-  })();
+  const focusView = listFocus
+    ? focusedList(listFocus, graph, { t, titleOf, locale }, clearListFocus)
+    : null;
 
   return (
     <>
@@ -440,7 +392,7 @@ export function Graph() {
 
       <CommandBar
         display={display}
-        onDisplayChange={handleDisplayChange}
+        onDisplayChange={changeDisplay}
         onRouteSelect={(id) => openListFocus({ kind: "route", id })}
         onSearchSelect={handleSearchSelect}
         mode={mode}
