@@ -38,7 +38,7 @@ Everything lives in `src/data/works.ts`: works, dependencies, Earths, release da
 - Running times are in `src/data/runtimes.ts`, generated from TMDB by `pnpm fetch:runtimes` (works without a full runtime yet are left out).
 - `releasePrecision: "month" | "year"` marks works announced only to the month or year; `poster: ""` shows stand-in art until TMDB has one.
 - `titleJa` is the Japanese title (TMDB's ja-JP listing, lightly cleaned up). `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
-- Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works that have drifted from TMDB. Both TMDB scripts also read `TMDB_TOKEN` from an ignored `.env.local`.
+- Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works that have drifted from TMDB. Both TMDB scripts also read `TMDB_TOKEN` from an ignored `.env.local`. A weekly workflow (`.github/workflows/tmdb-check.yml`, also runnable by hand) does both with the `TMDB_TOKEN` repository secret and keeps one issue open with anything to update.
 
 ## Scripts
 
