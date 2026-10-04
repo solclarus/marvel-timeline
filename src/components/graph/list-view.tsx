@@ -1,13 +1,16 @@
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { ROUTES } from "@/data/routes";
 import type { WorkNode } from "@/data/works";
 import type { Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import { listSections } from "@/lib/graph/list";
-import type { WorkGraph } from "@/lib/graph/relations";
+import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "@/lib/graph/relations";
+import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { totalRuntime } from "@/lib/runtime";
+import type { ListFocus } from "@/lib/url-state";
 import { cn } from "@/lib/utils";
 
 import { WorkRow, type RowTag } from "./work-row";
@@ -172,4 +175,35 @@ function FocusedList({
       </ol>
     </section>
   );
+}
+
+// The narrowed list for a watch-first path (the work's prerequisites, then
+// the work) or a route; null when its work or route doesn't exist.
+export function focusedList(
+  focus: ListFocus,
+  graph: WorkGraph,
+  { t, titleOf, locale }: Pick<ReturnType<typeof useI18n>, "t" | "titleOf" | "locale">,
+  onClear: () => void,
+): ListFocusView | null {
+  if (focus.kind === "before") {
+    const work = WORK_BY_ID.get(focus.id);
+    if (!work) return null;
+    const steps = watchFirst(work.id, graph);
+    return {
+      title: t.watchBefore(titleOf(work)),
+      items: [...steps, { work }],
+      empty: steps.length === 0 ? t.nothingFirst : undefined,
+      onClear,
+    };
+  }
+  const route = ROUTES.find((r) => r.id === focus.id);
+  if (!route) return null;
+  const ja = locale === "ja";
+  return {
+    title: ja ? route.titleJa : route.title,
+    summary: ja ? route.summaryJa : route.summary,
+    // Routes span every kind of work, whatever the filters.
+    items: routeWorks(route, WORK_GRAPHS.all).map((work) => ({ work })),
+    onClear,
+  };
 }
