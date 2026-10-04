@@ -9,7 +9,14 @@ import {
   type Grouping,
 } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
-import { sagaOf, WORK_BY_ID, WORK_GRAPHS, type Saga, type WorkGraph } from "./relations";
+import {
+  sagaOf,
+  sagaStartSteps,
+  WORK_BY_ID,
+  WORK_GRAPHS,
+  type Saga,
+  type WorkGraph,
+} from "./relations";
 
 export type ViewMode = "recommended" | "release" | "chronology";
 export type Axis = "x" | "y";
@@ -425,18 +432,6 @@ const SAGA_REACH_PX = POSTER_PX.height / 2 + 2 * CARD_PAD_PX;
 const PHASE_CARD_DROP_PX = 2 * CARD_PAD_PX;
 const SAGA_TOP_PX = Math.max(0, SAGA_REACH_PX + CARD_PAD_PX - ROW_PX / 2 - PHASE_CARD_DROP_PX);
 const SAGA_BREAK_PX = Math.max(0, 2 * SAGA_REACH_PX + CARD_PAD_PX - ROW_PX);
-
-// The first row of each saga.
-function sagaStartSteps(graph: WorkGraph): Map<Saga, number> {
-  const starts = new Map<Saga, number>();
-  for (const work of graph.works) {
-    if (work.phase === undefined) continue;
-    const saga = sagaOf(work.phase);
-    const step = graph.step.get(work.id)!;
-    starts.set(saga, Math.min(starts.get(saga) ?? Infinity, step));
-  }
-  return starts;
-}
 
 // Extra lanes between a saga's last phased lane and the works beside it.
 const UNPHASED_CLEARANCE = Math.max(0, (POSTER_PX.width + 3 * CARD_PAD_PX - LANE_PX) / LANE_PX);

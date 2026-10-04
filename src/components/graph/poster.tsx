@@ -10,7 +10,7 @@ import { MEDIUM_META } from "./medium-badge";
 // Stand-in art for a work with no poster yet (or one TMDB can't serve): a
 // dark card lit in its franchise's color, with its kind, title and year.
 // `compact` drops the text for thumbnails too small to read it.
-export function PosterArt({ work, compact = false }: { work: WorkNode; compact?: boolean }) {
+function PosterArt({ work, compact = false }: { work: WorkNode; compact?: boolean }) {
   const { titleOf } = useI18n();
   const Icon = MEDIUM_META[mediumOf(work)].icon;
   // "X-Men '97 — Season 3": the season on its own line.

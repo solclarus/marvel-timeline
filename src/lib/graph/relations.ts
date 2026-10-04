@@ -14,6 +14,7 @@ export type FocusMode = "chain" | "immediate";
 
 // The MCU's sagas, each a run of phases.
 export type Saga = "infinity" | "multiverse" | "mutant";
+export const SAGAS: readonly Saga[] = ["infinity", "multiverse", "mutant"];
 export function sagaOf(phase: number): Saga {
   return phase <= 3 ? "infinity" : phase <= 6 ? "multiverse" : "mutant";
 }
@@ -130,7 +131,7 @@ function buildSteps(works: WorkNode[], incoming: Map<string, string[]>) {
   return steps;
 }
 
-export function buildWorkGraph(include: (work: WorkNode) => boolean): WorkGraph {
+function buildWorkGraph(include: (work: WorkNode) => boolean): WorkGraph {
   const works = WORKS.filter(include);
   const included = new Set(works.map((w) => w.id));
   const edges = works.length === WORKS.length ? EDGES : bridgeEdges(included);
@@ -170,9 +171,7 @@ export function graphForMedia(media: MediaFilter): WorkGraph {
 
 // The full graph, for code that doesn't depend on the media filter.
 export const INCOMING = WORK_GRAPHS.all.incoming;
-export const OUTGOING = WORK_GRAPHS.all.outgoing;
 export const GLOBAL_STEP = WORK_GRAPHS.all.step;
-export const MAX_STEP = WORK_GRAPHS.all.maxStep;
 
 // Negative for ancestors, positive for descendants.
 export function getRelatedDistances(
@@ -230,4 +229,15 @@ export function computeEdgeVisibility(
     hasIncoming.add(edge.to);
   }
   return { hasIncoming, hasOutgoing };
+}
+
+// The first row of each saga.
+export function sagaStartSteps(graph: WorkGraph): Map<Saga, number> {
+  const starts = new Map<Saga, number>();
+  for (const work of graph.works) {
+    if (work.phase === undefined) continue;
+    const saga = sagaOf(work.phase);
+    starts.set(saga, Math.min(starts.get(saga) ?? Infinity, graph.step.get(work.id)!));
+  }
+  return starts;
 }
