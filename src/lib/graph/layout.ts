@@ -275,7 +275,9 @@ function placeUnphased(
     const band = sagas.filter(([, e]) => e.minStep <= step).at(-1)?.[1] ?? sagas[0]?.[1];
     const offset = usedInRow.get(step) ?? 0;
     usedInRow.set(step, offset + 1);
-    const laneIndex = (band?.maxLane ?? -1) + 1 + offset;
+    // Far enough out that the saga frame (two paddings past its posters)
+    // keeps a padding's clearance from this poster too.
+    const laneIndex = (band?.maxLane ?? -1) + 1 + UNPHASED_CLEARANCE + offset;
     laneMap.set(work.id, laneIndex);
     lanes = Math.max(lanes, laneIndex + 1);
   }
@@ -385,18 +387,21 @@ function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayou
 // poster plus two paddings plus one more, so cards in neighboring rows
 // (stacked phases, timeline rows) sit CARD_PAD_PX apart.
 const LANE_PX = 144;
-const ROW_PX = 186;
+const ROW_PX = 222;
 // The poster's size (see graph-node.tsx), which cards are padded around.
 const POSTER_PX = { width: 68, height: 102 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
 // four sides between its edge and what it holds.
-const CARD_PAD_PX = 28;
+const CARD_PAD_PX = 40;
 // Between neighboring cards' lane runs (a run holding phases also takes room
 // for its nested frames; see computeGitGraphLayout).
-const GROUP_GAP_PX = 56;
+const GROUP_GAP_PX = 44;
 // Between franchises sharing an Earth: keeps a phase band clear of the
 // neighboring franchise's posters.
 const SUBGROUP_GAP_PX = 32;
+
+// Extra lanes between a saga's last phased lane and the works beside it.
+const UNPHASED_CLEARANCE = Math.max(0, (POSTER_PX.width + 3 * CARD_PAD_PX - LANE_PX) / LANE_PX);
 
 const TIMELINE_HEADER_PX = 48;
 
