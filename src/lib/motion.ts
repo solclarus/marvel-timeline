@@ -1,6 +1,6 @@
 // The viewer's OS-level "reduce motion" setting, read at call time so it
 // follows changes without a reload.
-export function prefersReducedMotion(): boolean {
+function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );

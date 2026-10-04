@@ -206,13 +206,13 @@ export const HARD_EDGE_KINDS: readonly EdgeKind[] = [
 
 // Where `releaseDate` and `poster` come from: themoviedb.org/movie/<id> or
 // /tv/<id>/season/<season>.
-export interface TmdbRef {
+interface TmdbRef {
   type: "movie" | "tv";
   id: number;
   season?: number; // tv only: which season's poster and air date to use
 }
 
-export interface Dependency {
+interface Dependency {
   id: string;
   kind: EdgeKind;
 }

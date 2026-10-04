@@ -14,15 +14,13 @@ import { Poster } from "./poster";
 
 export type NodeState = "selected" | "ancestor" | "dimmed" | "neutral";
 
-export const NODE_STATE_STYLE: Record<
-  NodeState,
-  { opacity: number; scale: number; grayscale: boolean }
-> = {
-  selected: { opacity: 1, scale: 1.25, grayscale: false },
-  ancestor: { opacity: 1, scale: 1, grayscale: false },
-  neutral: { opacity: 1, scale: 1, grayscale: false },
-  dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
-};
+const NODE_STATE_STYLE: Record<NodeState, { opacity: number; scale: number; grayscale: boolean }> =
+  {
+    selected: { opacity: 1, scale: 1.25, grayscale: false },
+    ancestor: { opacity: 1, scale: 1, grayscale: false },
+    neutral: { opacity: 1, scale: 1, grayscale: false },
+    dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
+  };
 
 export const WIDTH = 68;
 export const HEIGHT = 102;
