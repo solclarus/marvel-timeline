@@ -92,13 +92,16 @@ export interface Box {
 
 // Fits `box` (unscaled content pixels) into the viewport less `insets` (the
 // bars and panels over it), centered there. Capped at `maxScale` so a work
-// with few relatives isn't blown up.
+// with few relatives isn't blown up. Where `minScale` keeps the box from
+// fitting, the view slides along it to keep `focus` in sight, as near the
+// middle as the box allows.
 export function fitBox(
   box: Box,
   viewport: Size,
   insets: Box,
   minScale: number,
   maxScale: number,
+  focus?: { x: number; y: number },
 ): TransformState {
   const width = Math.max(1, viewport.width - insets.left - insets.right);
   const height = Math.max(1, viewport.height - insets.top - insets.bottom);
@@ -110,8 +113,13 @@ export function fitBox(
       height / Math.max(1, box.bottom - box.top),
     ),
   );
-  const centerX = (box.left + box.right) / 2;
-  const centerY = (box.top + box.bottom) / 2;
+  const centerOn = (from: number, to: number, span: number, at: number | undefined) => {
+    const half = span / scale / 2;
+    if (at === undefined || to - from <= 2 * half) return (from + to) / 2;
+    return Math.min(to - half, Math.max(from + half, at));
+  };
+  const centerX = centerOn(box.left, box.right, width, focus?.x);
+  const centerY = centerOn(box.top, box.bottom, height, focus?.y);
   return {
     x: insets.left + width / 2 - centerX * scale,
     y: insets.top + height / 2 - centerY * scale,

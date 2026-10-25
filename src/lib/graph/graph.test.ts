@@ -352,6 +352,20 @@ describe("fitBox", () => {
     const huge = fitBox({ left: 0, top: 0, right: 1e6, bottom: 1e6 }, viewport, insets, 0.2, 0.8);
     expect(huge.scale).toBe(0.2);
   });
+
+  it("keeps the focus in sight when the box can't fit", () => {
+    const box = { left: 0, top: 0, right: 1000, bottom: 5000 };
+    // 520px tall at 0.5 shows 1040 content px: the box's middle (2500) would
+    // leave a focus at 4000 off screen, so the view centers on it.
+    const mid = fitBox(box, viewport, insets, 0.5, 1, { x: 500, y: 4000 });
+    expect(mid.scale).toBe(0.5);
+    expect(mid.y + 4000 * 0.5).toBeCloseTo(80 + 520 / 2);
+    // Near the box's end, the view stops at that end instead.
+    const end = fitBox(box, viewport, insets, 0.5, 1, { x: 500, y: 4900 });
+    expect(end.y + 5000 * 0.5).toBeCloseTo(80 + 520);
+    // An axis that fits stays centered on the box.
+    expect(mid.x + 500 * 0.5).toBeCloseTo(20 + 960 / 2);
+  });
 });
 
 describe("phase bands", () => {
