@@ -25,6 +25,9 @@ const en = {
   modeRelease: "RELEASE",
   modeChronology: "TIMELINE",
   upcoming: "Coming",
+  today: "Today",
+  // The release calendar's column for works announced only to the year.
+  yearOnly: "TBA",
   mediumMovie: "Films",
   mediumSeries: "Series",
   mediumAnimation: "Animation",
@@ -113,6 +116,8 @@ const ja: Messages = {
   modeRelease: "公開順",
   modeChronology: "時系列",
   upcoming: "公開予定",
+  today: "今日",
+  yearOnly: "未定",
   mediumMovie: "映画",
   mediumSeries: "ドラマ",
   mediumAnimation: "アニメ",

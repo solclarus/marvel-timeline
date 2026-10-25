@@ -7,12 +7,12 @@ import { computeActiveSet, edgesToDraw } from "./focus";
 import { GROUPS, groupKeyOf, isWorkVisible, PHASE_GROUP, regroup, type Grouping } from "./groups";
 import {
   canvasSize,
-  computeEraBands,
   computeGroupCards,
   computeLayout,
   computePhaseBands,
   computeSagaBands,
-  computeYearMarks,
+  computeTimelineBackdrop,
+  releaseMonth,
   timelineYear,
   type ViewMode,
 } from "./layout";
@@ -503,44 +503,6 @@ describe("phase bands", () => {
   });
 });
 
-describe("timeline rows", () => {
-  it("run from the group with the earliest work down", () => {
-    for (const by of ["franchise", "earth"] as const) {
-      const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
-      for (const media of [["movie", "series", "animation"], ["animation"]] as const) {
-        const graph = graphForMedia([...media]);
-        for (const mode of ["release", "chronology"] as const) {
-          const layout = computeLayout(mode, grouping, graph);
-          // Each row's leftmost work, top to bottom, gets later or stays.
-          const firstX = new Map<number, number>();
-          for (const w of graph.works) {
-            const { x, y } = layout.positions.get(w.id)!;
-            const row = Math.round(y * 1000);
-            firstX.set(row, Math.min(firstX.get(row) ?? Infinity, x));
-          }
-          const ordered = [...firstX.entries()].sort(([a], [b]) => a - b).map(([, x]) => x);
-          expect(ordered).toEqual([...ordered].sort((a, b) => a - b));
-        }
-      }
-    }
-  });
-
-  it("skip groups the media filter has emptied", () => {
-    const grouping: Grouping = {
-      by: "franchise",
-      visible: new Set(GROUPS.franchise.map((g) => g.key)),
-    };
-    const graph = graphForMedia(["animation"]);
-    const groupsWithWorks = new Set(graph.works.map((w) => groupKeyOf(w, "franchise")));
-    for (const mode of ["release", "chronology"] as const) {
-      const layout = computeLayout(mode, grouping, graph);
-      expect(layout.rowCount).toBe(groupsWithWorks.size);
-      const rows = new Set([...layout.positions.values()].map((p) => p.y.toFixed(3)));
-      expect(rows.size).toBe(groupsWithWorks.size);
-    }
-  });
-});
-
 describe("Earth grouping", () => {
   it("keeps another franchise on Earth-616 outside the MCU phase bands", () => {
     const grouping: Grouping = { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) };
@@ -622,75 +584,105 @@ describe("edgesToDraw", () => {
   });
 });
 
-describe("computeYearMarks", () => {
+describe("release calendar", () => {
   const grouping: Grouping = {
     by: "franchise",
     visible: new Set(GROUPS.franchise.map((g) => g.key)),
   };
+  const layout = computeLayout("release", grouping);
+  const grid = layout.timeline!;
+  const rowOf = (id: string) => {
+    const { y } = layout.positions.get(id)!;
+    return grid.rows.find((row) => y > row.top && y < row.bottom)!;
+  };
+  const monthOf = (id: string) => {
+    const { x } = layout.positions.get(id)!;
+    return grid.months.find((month) => x > month.left && x < month.right)!;
+  };
 
-  it("marks each year change within a decade, in order, and none in recommended mode", () => {
-    expect(
-      computeYearMarks("recommended", computeLayout("recommended", grouping), grouping),
-    ).toEqual([]);
-    const marks = computeYearMarks("release", computeLayout("release", grouping), grouping);
-    expect(marks.length).toBeGreaterThan(10);
-    const years = marks.map((m) => m.year);
-    expect(years).toEqual([...years].sort((a, b) => a - b));
-    expect(years.some((y) => y % 10 === 0)).toBe(false);
+  it("puts each work in its release year's row and month's column", () => {
+    for (const work of WORKS) {
+      expect(rowOf(work.id).year).toBe(timelineYear(work, "release"));
+      expect(monthOf(work.id).month).toBe(releaseMonth(work));
+    }
   });
-});
 
-describe("timeline layouts", () => {
-  const grouping: Grouping = {
-    by: "franchise",
-    visible: new Set(GROUPS.franchise.map((g) => g.key)),
-  };
+  it("keeps every month, in order, side by side, and rows only for years with works", () => {
+    expect(grid.months.slice(0, 12).map((m) => m.month)).toEqual([...Array(12).keys()]);
+    for (let i = 1; i < grid.months.length; i++) {
+      expect(grid.months[i].left).toBeCloseTo(grid.months[i - 1].right);
+    }
+    const years = [...new Set(WORKS.map((w) => timelineYear(w, "release")))].sort((a, b) => a - b);
+    expect(grid.rows.map((row) => row.year)).toEqual(years);
+  });
 
-  for (const mode of ["release", "chronology"] as const) {
-    it(`never runs a year backwards from left to right (${mode})`, () => {
-      const { positions } = computeLayout(mode, grouping);
-      const backwards = WORKS.flatMap((a) =>
-        WORKS.filter(
-          (b) =>
-            timelineYear(a, mode) < timelineYear(b, mode) &&
-            positions.get(a.id)!.x >= positions.get(b.id)!.x,
-        ).map((b) => `${a.id} → ${b.id}`),
-      );
-      expect(backwards).toEqual([]);
-    });
-  }
+  it("orders a month's works by date and never overlaps two", () => {
+    const seen = new Set<string>();
+    for (const work of WORKS) {
+      const { x, y } = layout.positions.get(work.id)!;
+      const key = `${x.toFixed(4)}|${y.toFixed(4)}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    const outOfOrder = WORKS.flatMap((a) =>
+      WORKS.filter(
+        (b) =>
+          rowOf(a.id) === rowOf(b.id) &&
+          monthOf(a.id) === monthOf(b.id) &&
+          a.releaseDate < b.releaseDate &&
+          layout.positions.get(a.id)!.x >= layout.positions.get(b.id)!.x,
+      ).map((b) => `${a.id} → ${b.id}`),
+    );
+    expect(outOfOrder).toEqual([]);
+  });
 
   it("colors decade bands through the rainbow, oldest to newest", () => {
-    const layout = computeLayout("release", grouping);
-    const hues = computeEraBands("release", layout, grouping).map((band) =>
+    const hues = computeTimelineBackdrop(layout)!.decades.map((band) =>
       Number(band.color.match(/^hsla\((\d+),/)![1]),
     );
     expect(hues[0]).toBe(0);
     expect(hues.at(-1)).toBe(270);
     expect(hues).toEqual([...hues].sort((a, b) => a - b));
   });
+
+  it("marks today between a month's released works and those to come", () => {
+    const work = WORKS.find((w) => !w.releasePrecision && w.releaseDate.slice(8) > "05")!;
+    const [year, month, day] = work.releaseDate.split("-").map(Number);
+    const before = computeTimelineBackdrop(layout, new Date(year, month - 1, day - 1))!.today!;
+    const after = computeTimelineBackdrop(layout, new Date(year, month - 1, day))!.today!;
+    const { x } = layout.positions.get(work.id)!;
+    expect(before.x).toBeLessThan(x);
+    expect(after.x).toBeGreaterThan(x);
+    expect(before.top).toBeCloseTo(rowOf(work.id).top);
+  });
 });
 
-describe("decade bands", () => {
-  const grouping: Grouping = {
-    by: "franchise",
-    visible: new Set(GROUPS.franchise.map((g) => g.key)),
-  };
+describe("chronology rows", () => {
+  const grouping: Grouping = { by: "franchise", visible: new Set(["mcu"]) };
+  const layout = computeLayout("chronology", grouping);
+  const mcu = WORKS.filter((w) => w.franchise === "mcu");
 
-  for (const mode of ["release", "chronology"] as const) {
-    it(`tile the canvas with no decade narrower than three columns (${mode})`, () => {
-      const layout = computeLayout(mode, grouping);
-      const bands = computeEraBands(mode, layout, grouping);
-      const column = 100 / layout.totalLanes;
-      expect(bands.every((band) => band.width >= 3 * column - 1e-9)).toBe(true);
-      const gaps = bands
-        .slice(1)
-        .map((band, i) => Math.abs(band.left - (bands[i].left + bands[i].width)));
-      expect(Math.max(0, ...gaps)).toBeLessThan(1e-9);
-      expect(bands[0].left).toBeCloseTo(0);
-      expect(bands.at(-1)!.left + bands.at(-1)!.width).toBeCloseTo(100);
-    });
-  }
+  it("runs years top to bottom and story order left to right, with no months", () => {
+    expect(layout.timeline!.months).toEqual([]);
+    const outOfOrder = mcu.flatMap((a) =>
+      mcu
+        .filter((b) => {
+          const pa = layout.positions.get(a.id)!;
+          const pb = layout.positions.get(b.id)!;
+          const [ya, yb] = [timelineYear(a, "chronology"), timelineYear(b, "chronology")];
+          return (
+            (ya < yb && pa.y >= pb.y) ||
+            (ya === yb && a.chronologyOrder < b.chronologyOrder && pa.x >= pb.x)
+          );
+        })
+        .map((b) => `${a.id} → ${b.id}`),
+    );
+    expect(outOfOrder).toEqual([]);
+  });
+
+  it("has no today mark", () => {
+    expect(computeTimelineBackdrop(layout)!.today).toBeNull();
+  });
 });
 
 describe("mergedPath", () => {

@@ -6,11 +6,16 @@ import { computeTimelineLayout } from "./timeline-layout";
 
 export * from "./backdrop";
 export { recommendedTimeRank } from "./git-graph-layout";
-export { canvasSize, type Axis, type GraphLayout, type Point, type ViewMode } from "./metrics";
-export { timelineSortKey, timelineYear } from "./timeline-layout";
+export {
+  canvasSize,
+  type Axis,
+  type GraphLayout,
+  type Point,
+  type TimelineGrid,
+  type ViewMode,
+} from "./metrics";
+export { releaseMonth, timelineSortKey, timelineYear } from "./timeline-layout";
 
-// Timelines place works by rank rather than date so a long gap doesn't
-// crush everything else.
 export function computeLayout(
   mode: ViewMode,
   grouping: Grouping,

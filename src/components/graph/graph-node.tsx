@@ -37,6 +37,8 @@ interface Props {
   axis: Axis;
   hasIncoming: boolean;
   hasOutgoing: boolean;
+  // Timelines: the work's group color, as a bar under the poster.
+  markClass?: string;
 }
 
 const NUB_CLASS = {
@@ -65,6 +67,7 @@ export function GraphNode({
   axis,
   hasIncoming,
   hasOutgoing,
+  markClass,
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
@@ -116,6 +119,12 @@ export function GraphNode({
         <Poster work={work} />
       </div>
       {hasOutgoing && <span aria-hidden className={nubClass.outgoing} />}
+      {markClass && (
+        <span
+          aria-hidden
+          className={`absolute -bottom-2 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full ${markClass}`}
+        />
+      )}
     </TooltipTrigger>
   );
 }
