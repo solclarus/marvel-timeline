@@ -29,18 +29,16 @@ export interface GroupMeta {
 const FRANCHISE_ORDER: Franchise[] = [
   "legacy",
   "x-men",
-  "fox-tv",
   "mcu",
   "defenders",
   "marvel-tv",
   "spider-man-legacy",
   "ssu",
   "spider-verse",
-  "animation",
 ];
 // Starts from 616, the Sacred Timeline, then goes outward by how directly
 // each Earth meets it: its variants, Earths that cross into it, Earths
-// reached only through those, and finally Earths with no tie at all.
+// reached only through those.
 // Earths 838, 65, and 42 are left out: no work is set there, they're only
 // crossed into.
 const EARTH_ORDER: EarthId[] = [
@@ -57,16 +55,6 @@ const EARTH_ORDER: EarthId[] = [
   "26320", // via Deadpool & Wolverine's Void
   "701306",
   "121698",
-  "TRN1832", // Spider-Noir: no ties
-  "400083", // single legacy films: no ties
-  "15866",
-  "121347",
-  "58627",
-  "58732",
-  "47281",
-  "17040", // Fox's X-Men TV: no ties
-  "17372",
-  "92131", // X-Men '97: no ties
 ];
 
 export const GROUPS: Record<GroupBy, GroupMeta[]> = {

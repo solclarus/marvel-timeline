@@ -45,7 +45,7 @@ describe("listSections", () => {
 
   it("follows the media filter", () => {
     const list = ids("release", graphForMedia(["animation"]));
-    expect(list).toContain("x-men-97-s1");
+    expect(list).toContain("what-if-s1");
     expect(list).not.toContain("iron-man");
   });
 });

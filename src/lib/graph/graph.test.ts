@@ -41,10 +41,31 @@ const MODES: ViewMode[] = ["recommended", "release", "chronology"];
 
 describe("works data", () => {
   it("gives phases to MCU works only", () => {
-    // A phase holds a work to the MCU's rows; works outside it (X-Men '97
-    // continues the 1992 series on its own Earth) stand apart.
+    // A phase holds a work to the MCU's rows.
     const outside = WORKS.filter((w) => w.phase !== undefined && w.franchise !== "mcu");
     expect(outside.map((w) => w.id)).toEqual([]);
+  });
+
+  it("ties every work outside the MCU to it, as NOT-ON-THE-MAP.md asks", () => {
+    // MCU canon (Marvel Studios and Marvel Television) is on the map as is;
+    // anything else must reach it through lines, references included.
+    const canon = (w: (typeof WORKS)[number]) =>
+      w.franchise === "mcu" || w.franchise === "marvel-tv";
+    const neighbors = new Map(WORKS.map((w) => [w.id, [] as string[]]));
+    for (const edge of EDGES) {
+      neighbors.get(edge.from)!.push(edge.to);
+      neighbors.get(edge.to)!.push(edge.from);
+    }
+    const reached = new Set(WORKS.filter(canon).map((w) => w.id));
+    const queue = [...reached];
+    while (queue.length > 0) {
+      for (const next of neighbors.get(queue.shift()!)!) {
+        if (reached.has(next)) continue;
+        reached.add(next);
+        queue.push(next);
+      }
+    }
+    expect(WORKS.filter((w) => !reached.has(w.id)).map((w) => w.id)).toEqual([]);
   });
 
   it("has unique ids", () => {
@@ -104,10 +125,6 @@ describe("GLOBAL_STEP", () => {
       const intruders = mcu.filter((w) => w.phase === phase && GLOBAL_STEP.get(w.id)! <= floor);
       expect(intruders.map((w) => w.id)).toEqual([]);
     }
-  });
-
-  it("starts a franchise outside the MCU at the top when it builds on nothing", () => {
-    expect(GLOBAL_STEP.get("x-men-97-s1")).toBe(0);
   });
 });
 

@@ -1,6 +1,6 @@
 # Marvel Timeline
 
-An interactive map of Marvel viewing order across the MCU, Netflix's Defenders Saga, Fox X-Men, the pre-MCU films Deadpool & Wolverine brings back, legacy Spider-Man, the SSU, the Spider-Verse films, and X-Men '97. Pick a work to see what it builds on.
+An interactive map of Marvel viewing order across the MCU, Netflix's Defenders Saga, Fox X-Men, the pre-MCU films Deadpool & Wolverine brings back, legacy Spider-Man, the SSU, and the Spider-Verse films. Pick a work to see what it builds on. A work outside the MCU is on the map only when it ties into it; [NOT-ON-THE-MAP.md](NOT-ON-THE-MAP.md) has the rules and the works left off.
 
 Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-timeline/.
 
@@ -29,7 +29,7 @@ pnpm dev
 
 ## Data
 
-Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand.
+Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand. What goes in follows [NOT-ON-THE-MAP.md](NOT-ON-THE-MAP.md), which also lists the works left off and what would bring each in; `pnpm test` checks that every work outside the MCU connects to it.
 
 - `dependsOn` lists what a work builds on; `reference` edges are drawn but don't count as prerequisites.
 - `animated: true` marks animated films and series, which the media filter treats as animation rather than films or series.
