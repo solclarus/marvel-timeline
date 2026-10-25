@@ -8,6 +8,7 @@ import {
 import { mediumOf, WORKS } from "@/data/works";
 import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
+  GROUPS,
   groupKeyOf,
   isWorkVisible,
   regroup,
@@ -17,12 +18,11 @@ import {
 import {
   canvasSize,
   computeEdgeGeometry,
-  computeEraBands,
   computeGroupCards,
   computeLayout,
   computePhaseBands,
   computeSagaBands,
-  computeYearMarks,
+  computeTimelineBackdrop,
   type Axis,
   type ViewMode,
 } from "@/lib/graph/layout";
@@ -51,6 +51,7 @@ import {
 import { GroupHoverChip } from "./group-hover-chip";
 import { focusedList, ListView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
+import { TimelineLabels } from "./timeline-labels";
 import { DEVICE_DISPLAY, useDisplay } from "./use-display";
 import { useHoverFocus } from "./use-hover-focus";
 import { useSelectionFit } from "./use-selection-fit";
@@ -90,8 +91,7 @@ export function Graph() {
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const sagaBands = computeSagaBands(layout, phaseBands);
   const groupCards = computeGroupCards(mode, layout, grouping, sagaBands);
-  const eraBands = computeEraBands(mode, layout, grouping);
-  const yearMarks = computeYearMarks(mode, layout, grouping);
+  const timeline = computeTimelineBackdrop(layout);
 
   const focus = useHoverFocus({
     groupCards,
@@ -169,6 +169,31 @@ export function Graph() {
     canvas,
     node: NODE_SIZE,
     scale: FIT_SCALE,
+  });
+
+  // Timelines open on their first year, as wide as fits the screen (within
+  // 40–80%), so the calendar reads from its top-left.
+  const showTimelineStart = (ref: ReactZoomPanPinchRef, animationTime: number) => {
+    const wrapper = ref.instance.wrapperComponent;
+    if (!wrapper) return;
+    const scale = Math.min(0.8, Math.max(0.4, (wrapper.clientWidth - 160) / canvas.width));
+    const x = Math.max(72, (wrapper.clientWidth - canvas.width * scale) / 2);
+    ref.setTransform(x, 40, scale, animationTime);
+  };
+  // Switching into a timeline starts it over the same way; a selection is
+  // fitted instead.
+  const lastModeRef = useRef(mode);
+  useEffect(() => {
+    if (lastModeRef.current === mode) return;
+    lastModeRef.current = mode;
+    const ref = transformRef.current;
+    if (!ref || mode === "recommended" || selectedId) return;
+    // Two frames, so the library's ResizeObserver (which cancels in-flight
+    // animations on resize) has already seen the new canvas.
+    let raf = requestAnimationFrame(() => {
+      raf = requestAnimationFrame(() => showTimelineStart(ref, motionMs(300)));
+    });
+    return () => cancelAnimationFrame(raf);
   });
 
   // Tabbing onto a poster outside the viewport pans it to the center: the
@@ -262,9 +287,11 @@ export function Graph() {
         transformRef.current = ref;
         attachDesktopInput(ref, { minScale: MIN_ZOOM, maxScale: MAX_ZOOM });
         // A linked work is fitted by the selection fit; otherwise start at
-        // the Avengers.
+        // the Avengers, or a timeline's first year.
         if (initial.selectedId) return;
-        if (AVENGERS_ID && document.getElementById(AVENGERS_ID)) {
+        if (mode !== "recommended") {
+          showTimelineStart(ref, 0);
+        } else if (AVENGERS_ID && document.getElementById(AVENGERS_ID)) {
           ref.zoomToElement(AVENGERS_ID, { scale: INITIAL_ZOOM }, 0);
         } else {
           ref.fitToView({ animationTime: 0 });
@@ -294,8 +321,7 @@ export function Graph() {
                 groupCards={groupCards}
                 phaseBands={phaseBands}
                 sagaBands={sagaBands}
-                eraBands={eraBands}
-                yearMarks={yearMarks}
+                timeline={timeline}
                 focusedCardKey={focus.focusedCard?.key}
                 pinnedId={focus.pinnedId}
                 onTogglePinned={focus.togglePinned}
@@ -327,12 +353,19 @@ export function Graph() {
                     axis={axis}
                     hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
                     hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
+                    markClass={
+                      layout.timeline
+                        ? GROUPS[grouping.by].find((g) => g.key === groupKeyOf(work, grouping.by))
+                            ?.colorClass
+                        : undefined
+                    }
                   />
                 );
               })}
             </div>
           </TransformComponent>
 
+          {layout.timeline && <TimelineLabels grid={layout.timeline} canvas={canvas} />}
           <PosterTooltip />
           {focus.hoverChipAt && (focus.focusedPhase || focus.focusedCard) && (
             <GroupHoverChip

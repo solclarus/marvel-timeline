@@ -1,10 +1,9 @@
 import type { GroupBy } from "@/lib/graph/groups";
 import type {
-  computeEraBands,
   computeGroupCards,
   computePhaseBands,
   computeSagaBands,
-  computeYearMarks,
+  computeTimelineBackdrop,
 } from "@/lib/graph/layout";
 import { useI18n } from "@/lib/i18n";
 
@@ -15,8 +14,7 @@ interface Props {
   groupCards: ReturnType<typeof computeGroupCards>;
   phaseBands: ReturnType<typeof computePhaseBands>;
   sagaBands: ReturnType<typeof computeSagaBands>;
-  eraBands: ReturnType<typeof computeEraBands>;
-  yearMarks: ReturnType<typeof computeYearMarks>;
+  timeline: ReturnType<typeof computeTimelineBackdrop>;
   focusedCardKey: string | undefined;
   pinnedId: string | null;
   onTogglePinned: (id: string) => void;
@@ -29,14 +27,15 @@ const box = (b: { top?: number; height?: number; left: number; width: number }) 
 });
 
 // Everything drawn behind the edges and posters: franchise/Earth cards, MCU
-// saga frames and phase bands, and (in timeline modes) decade bands, each with its label.
+// saga frames and phase bands, and (in timeline modes) the decade bands,
+// year rows, month columns and today's mark. The timelines' year and month
+// labels float over the map instead (see TimelineLabels).
 export function MapBackdrop({
   groupBy,
   groupCards,
   phaseBands,
   sagaBands,
-  eraBands,
-  yearMarks,
+  timeline,
   focusedCardKey,
   pinnedId,
   onTogglePinned,
@@ -85,30 +84,53 @@ export function MapBackdrop({
           </BorderLabel>
         </div>
       ))}
-      {eraBands.map((band) => (
+      {timeline?.decades.map((band, i) => (
         <div
           key={band.key}
-          className="absolute inset-y-0 border-r border-dashed last:border-r-0"
-          style={{ ...box(band), backgroundColor: band.color, borderColor: band.borderColor }}
-        >
-          {/* In the header strip above the rows, clear of the group labels. */}
-          <div className="absolute inset-x-0 top-5">
-            <BorderLabel dot={{ color: band.borderColor }}>{t.decade(band.decade)}</BorderLabel>
-          </div>
-        </div>
+          className={`absolute inset-x-0 border-dashed ${i > 0 ? "border-t" : ""}`}
+          style={{
+            top: `${band.top}%`,
+            height: `${band.bottom - band.top}%`,
+            backgroundColor: band.color,
+            borderColor: band.borderColor,
+          }}
+        />
       ))}
-      {yearMarks.map((mark) => (
+      {/* Every other month a shade lighter, like a wall calendar's columns. */}
+      {timeline?.months.map(
+        (month, i) =>
+          i % 2 === 1 && (
+            <div
+              key={month.month}
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 bg-white/4"
+              style={{ left: `${month.left}%`, width: `${month.right - month.left}%` }}
+            />
+          ),
+      )}
+      {timeline?.rows.slice(1).map((row) => (
         <div
-          key={mark.key}
+          key={row.year}
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 w-px bg-white/10"
-          style={{ left: `${mark.x}%` }}
+          className="pointer-events-none absolute inset-x-0 h-px bg-white/8"
+          style={{ top: `${row.top}%` }}
+        />
+      ))}
+      {timeline?.today && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute w-0.5 -translate-x-1/2 rounded-full bg-sky-400"
+          style={{
+            left: `${timeline.today.x}%`,
+            top: `${timeline.today.top}%`,
+            height: `${timeline.today.bottom - timeline.today.top}%`,
+          }}
         >
-          <span className="absolute top-1 left-1 text-[10px] font-medium text-white/40 tabular-nums">
-            {mark.year}
+          <span className="absolute top-1 left-1.5 rounded-full bg-sky-400 px-1.5 text-[10px] font-semibold text-neutral-900">
+            {t.today}
           </span>
         </div>
-      ))}
+      )}
     </>
   );
 }

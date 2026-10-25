@@ -10,7 +10,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Watch first**: tap the detail card to narrow the list to everything to watch before the selected work, in order, with the total running time; the card's ✕ (or Escape) goes back.
 - **Routes** (bottom bar): short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga), shown the same way.
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; either can switch.
-- **View mode** (bottom bar): recommended order, release date, or in-story chronology.
+- **View mode** (bottom bar): recommended order, release date, or in-story chronology. Release date is a calendar, a row per year and a column per month (as wide as its busiest year needs), with a line at today; the chronology gives each in-story year a row, in story order. Year and month labels stay on screen as the map pans, and a colored bar under each poster shows its franchise or Earth.
 - **Settings** (bottom bar), in two parts:
   - **Filter**: the map opens on the MCU alone; tap a group chip (or **Show all**) to bring in the other franchises. Films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
   - **Display**: language.

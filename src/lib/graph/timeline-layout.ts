@@ -1,13 +1,7 @@
 import type { WorkNode } from "@/data/works";
 
-import { groupKeyOf, isWorkVisible, visibleGroups, type Grouping } from "./groups";
-import {
-  canvasHeight,
-  TIMELINE_HEADER_PX,
-  type GraphLayout,
-  type Point,
-  type ViewMode,
-} from "./metrics";
+import { isWorkVisible, type Grouping } from "./groups";
+import { TIMELINE_PX, type GraphLayout, type Point, type ViewMode } from "./metrics";
 import type { WorkGraph } from "./relations";
 
 // The year a timeline places a work at: its release year, or for the
@@ -25,140 +19,95 @@ export function timelineSortKey(work: WorkNode, mode: Exclude<ViewMode, "recomme
   return `${timelineYear(work, mode)}|${order}`;
 }
 
-// Every decade gets at least this many columns, so a decade with one or two
-// works still makes a band wide enough to read beside its neighbors.
-const MIN_DECADE_COLUMNS = 3;
-
-// Lays consecutive slots (one per work, or per year) into columns, padding
-// any decade narrower than MIN_DECADE_COLUMNS evenly on both sides. Returns
-// each slot's first column and the total.
-function placeSlots(slots: Array<{ key: string; decade: number; width: number }>) {
-  const start = new Map<string, number>();
-  const decadeColumns = new Map<number, { from: number; to: number }>();
-  let column = 0;
-  let i = 0;
-  while (i < slots.length) {
-    const decade = slots[i].decade;
-    let j = i;
-    let width = 0;
-    while (j < slots.length && slots[j].decade === decade) width += slots[j++].width;
-    const pad = Math.max(0, MIN_DECADE_COLUMNS - width);
-    const from = column;
-    column += Math.floor(pad / 2);
-    for (; i < j; i++) {
-      start.set(slots[i].key, column);
-      column += slots[i].width;
-    }
-    column += pad - Math.floor(pad / 2);
-    decadeColumns.set(decade, { from, to: column });
-  }
-  return { start, columns: column, decadeColumns };
+// The release calendar's column for a work: its month (0–11), or 12 when
+// only the year is announced.
+export function releaseMonth(work: WorkNode): number {
+  return work.releasePrecision === "year" ? 12 : Number(work.releaseDate.slice(5, 7)) - 1;
 }
 
-function toDecadeSpans(decadeColumns: Map<number, { from: number; to: number }>, columns: number) {
-  return new Map(
-    [...decadeColumns].map(([decade, { from, to }]) => [
-      decade,
-      { left: (from / columns) * 100, right: (to / columns) * 100 },
-    ]),
-  );
-}
-
+// Timelines read top to bottom, a row per year that has works. Release
+// order is a calendar: months line up down the rows, each as wide as its
+// busiest year needs, so works keep their place in the year without months
+// of empty space. In-story dates are known only to the year, so the
+// chronology just lines each year's works up in story order.
 export function computeTimelineLayout(
   mode: Exclude<ViewMode, "recommended">,
   grouping: Grouping,
   graph: WorkGraph,
 ): GraphLayout {
-  const worksInScope = graph.works.filter((w) => isWorkVisible(w, grouping));
-  // Rows run from the group with the earliest work in view down to the
-  // latest, so the timeline reads top-left to bottom-right; a group the
-  // filters have emptied gets no row. Ties keep the usual group order.
-  const earliest = new Map<string, string>();
-  for (const work of worksInScope) {
-    const key = groupKeyOf(work, grouping.by);
-    const sortKey = timelineSortKey(work, mode);
-    const current = earliest.get(key);
-    if (current === undefined || sortKey < current) earliest.set(key, sortKey);
-  }
-  const bands = visibleGroups(grouping)
-    .map((group) => group.key)
-    .filter((band) => earliest.has(band))
-    .sort((a, b) => earliest.get(a)!.localeCompare(earliest.get(b)!));
-  const rows = Math.max(1, bands.length);
-  const height = canvasHeight(rows, TIMELINE_HEADER_PX);
-  const headerPercent = (TIMELINE_HEADER_PX / height) * 100;
-  const rowHeight = (100 - headerPercent) / rows;
-  const rowY = (row: number) => headerPercent + row * rowHeight + rowHeight / 2;
-  const rowOf = (work: WorkNode) => Math.max(0, bands.indexOf(groupKeyOf(work, grouping.by)));
-  const decadeOf = (year: number) => Math.floor(year / 10) * 10;
-  // Columns sit at their centers, so padding at either end stays inside.
-  const xOf = (column: number, columns: number) => ((column + 0.5) / Math.max(1, columns)) * 100;
+  const works = graph.works
+    .filter((w) => isWorkVisible(w, grouping))
+    .sort((a, b) => timelineSortKey(a, mode).localeCompare(timelineSortKey(b, mode)));
+  const years = [...new Set(works.map((w) => timelineYear(w, mode)))].sort((a, b) => a - b);
+  const columnOf = mode === "release" ? releaseMonth : () => 0;
 
-  // Release dates already run in one order across every row: one column per
-  // work, by date.
-  if (mode === "release") {
-    const sorted = [...worksInScope].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
-    const { start, columns, decadeColumns } = placeSlots(
-      sorted.map((work) => ({
-        key: work.id,
-        decade: decadeOf(timelineYear(work, mode)),
-        width: 1,
-      })),
-    );
-    const positions = new Map<string, Point>();
-    for (const work of sorted) {
-      positions.set(work.id, {
-        x: xOf(start.get(work.id)!, columns),
-        y: rowY(rowOf(work)),
-      });
-    }
-    return {
-      positions,
-      totalLanes: Math.max(1, columns),
-      rowCount: rows,
-      headerPx: TIMELINE_HEADER_PX,
-      decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
-    };
+  // Works per year and column, in timeline order.
+  const cells = new Map<string, WorkNode[]>();
+  for (const work of works) {
+    const key = `${timelineYear(work, mode)}|${columnOf(work)}`;
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key)!.push(work);
   }
+  const widest = (column: number) =>
+    Math.max(0, ...years.map((year) => cells.get(`${year}|${column}`)?.length ?? 0));
+  // Every month keeps a column, so the calendar reads as one even when a
+  // filter empties a month; the year-only column shows only when used.
+  const spans =
+    mode === "release"
+      ? [...Array.from({ length: 12 }, (_, month) => month), ...(widest(12) > 0 ? [12] : [])].map(
+          (month) => ({ month, columns: Math.max(1, widest(month)) }),
+        )
+      : [{ month: 0, columns: Math.max(1, widest(0)) }];
+  const columns = spans.reduce((sum, span) => sum + span.columns, 0);
 
-  // The chronology's order is curated per franchise, so it can't be one
-  // sequence across rows. Instead every row shares a year axis: each year
-  // gets as many columns as its busiest row needs (empty years take none),
-  // and a row's works within a year keep their chronology order.
-  const byRowYear = new Map<string, WorkNode[]>();
-  for (const work of worksInScope) {
-    const key = `${rowOf(work)}|${timelineYear(work, mode)}`;
-    if (!byRowYear.has(key)) byRowYear.set(key, []);
-    byRowYear.get(key)!.push(work);
+  const width = TIMELINE_PX.gutter + columns * TIMELINE_PX.column + TIMELINE_PX.end;
+  const height = TIMELINE_PX.header + Math.max(1, years.length) * TIMELINE_PX.row + TIMELINE_PX.end;
+  const xAt = (px: number) => (px / width) * 100;
+  const yAt = (px: number) => (px / height) * 100;
+
+  const firstColumn = new Map<number, number>();
+  let column = 0;
+  for (const span of spans) {
+    firstColumn.set(span.month, column);
+    column += span.columns;
   }
-  const years = [...new Set(worksInScope.map((w) => timelineYear(w, mode)))].sort((a, b) => a - b);
-  const { start, columns, decadeColumns } = placeSlots(
-    years.map((year) => {
-      let widest = 0;
-      for (let row = 0; row < rows; row++) {
-        widest = Math.max(widest, byRowYear.get(`${row}|${year}`)?.length ?? 0);
-      }
-      return { key: String(year), decade: decadeOf(year), width: widest };
-    }),
-  );
 
   const positions = new Map<string, Point>();
-  for (const [key, works] of byRowYear) {
-    const [row, year] = key.split("|").map(Number);
-    works
-      .sort((a, b) => a.chronologyOrder - b.chronologyOrder)
-      .forEach((work, i) => {
+  years.forEach((year, row) => {
+    for (const span of spans) {
+      cells.get(`${year}|${span.month}`)?.forEach((work, i) => {
         positions.set(work.id, {
-          x: xOf(start.get(String(year))! + i, columns),
-          y: rowY(row),
+          x: xAt(
+            TIMELINE_PX.gutter + (firstColumn.get(span.month)! + i + 0.5) * TIMELINE_PX.column,
+          ),
+          y: yAt(TIMELINE_PX.header + (row + 0.5) * TIMELINE_PX.row),
         });
       });
-  }
+    }
+  });
+
   return {
     positions,
-    totalLanes: Math.max(1, columns),
-    rowCount: rows,
-    headerPx: TIMELINE_HEADER_PX,
-    decadeSpans: toDecadeSpans(decadeColumns, Math.max(1, columns)),
+    totalLanes: columns,
+    rowCount: years.length,
+    size: { width, height },
+    timeline: {
+      rows: years.map((year, row) => ({
+        year,
+        top: yAt(TIMELINE_PX.header + row * TIMELINE_PX.row),
+        bottom: yAt(TIMELINE_PX.header + (row + 1) * TIMELINE_PX.row),
+      })),
+      months:
+        mode === "release"
+          ? spans.map((span) => ({
+              month: span.month,
+              left: xAt(TIMELINE_PX.gutter + firstColumn.get(span.month)! * TIMELINE_PX.column),
+              right: xAt(
+                TIMELINE_PX.gutter +
+                  (firstColumn.get(span.month)! + span.columns) * TIMELINE_PX.column,
+              ),
+            }))
+          : [],
+    },
   };
 }

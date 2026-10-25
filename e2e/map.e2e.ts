@@ -107,6 +107,20 @@ test("switching works keeps the detail panel in place", async ({ page }) => {
   await expect(panel).toHaveText("Iron Man 2");
 });
 
+test("release order is a calendar with year and month labels", async ({ page }) => {
+  await page.goto("./?view=map&mode=release");
+  const ironMan = page.locator('[id="iron-man"]');
+  const avengers = page.locator('[id="avengers"]');
+  await expect(ironMan).toBeInViewport();
+  await expect(page.getByText("Apr", { exact: true })).toBeVisible();
+  await expect(page.getByText("2008", { exact: true })).toBeVisible();
+  // Both opened in April: the same column, a row per year.
+  const a = (await ironMan.boundingBox())!;
+  const b = (await avengers.boundingBox())!;
+  expect(Math.abs(a.x - b.x)).toBeLessThan(1);
+  expect(b.y).toBeGreaterThan(a.y);
+});
+
 test("timelines light only the selection, with no lines", async ({ page }) => {
   await page.goto("./?mode=release&work=iron-man-2");
   await expect(page.locator('button[aria-label="Iron Man 2"]')).toBeAttached();

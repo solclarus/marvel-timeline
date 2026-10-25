@@ -14,11 +14,19 @@ export interface GraphLayout {
   positions: Map<string, Point>;
   totalLanes: number;
   rowCount: number;
-  // Timelines: a strip above the rows, in pixels, for the decade labels and
-  // year numbers, so they never sit on the first row's group labels.
+  // Recommended order: room above the first row for the saga frames.
   headerPx?: number;
-  // Timelines: each decade's horizontal extent, in canvas percentages.
-  decadeSpans?: Map<number, { left: number; right: number }>;
+  // Timelines size their own canvas (see TIMELINE_PX) and record their grid.
+  size?: { width: number; height: number };
+  timeline?: TimelineGrid;
+}
+
+// A timeline's grid, in canvas percentages: one row per year that has
+// works, and (release order only) the months as columns, January first.
+// Month 12 holds works announced only to the year.
+export interface TimelineGrid {
+  rows: Array<{ year: number; top: number; bottom: number }>;
+  months: Array<{ month: number; left: number; right: number }>;
 }
 
 // Cells leave room around each poster for the cards' padding. A row is a
@@ -59,13 +67,17 @@ export const UNPHASED_CLEARANCE = Math.max(
   (POSTER_PX.width + 3 * CARD_PAD_PX - LANE_PX) / LANE_PX,
 );
 
-export const TIMELINE_HEADER_PX = 48;
+// Timelines pack posters closer than the recommended map: no lines run
+// between them. The gutter and header keep the first column and row clear of
+// the year and month labels.
+export const TIMELINE_PX = { column: 92, row: 150, gutter: 72, header: 44, end: 24 };
 
 export function canvasHeight(rowCount: number, headerPx = 0) {
   return Math.max(500, rowCount * ROW_PX + headerPx);
 }
 
 export function canvasSize(layout: GraphLayout) {
+  if (layout.size) return layout.size;
   return {
     width: Math.max(500, layout.totalLanes * LANE_PX),
     height: canvasHeight(layout.rowCount, layout.headerPx),

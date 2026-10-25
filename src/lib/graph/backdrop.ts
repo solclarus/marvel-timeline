@@ -1,22 +1,23 @@
-import { WORKS } from "@/data/works";
+import { isUpcoming, WORKS } from "@/data/works";
 
-import { groupKeyOf, isWorkVisible, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
+import { groupKeyOf, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
 import {
   canvasSize,
   CARD_PAD_PX,
   POSTER_PX,
+  TIMELINE_PX,
   type GraphLayout,
   type Point,
   type ViewMode,
 } from "./metrics";
-import { sagaOf, type Saga } from "./relations";
-import { timelineYear } from "./timeline-layout";
+import { sagaOf, WORK_BY_ID, type Saga } from "./relations";
+import { releaseMonth, timelineYear } from "./timeline-layout";
 
 // The cards and bands drawn behind the map: franchise/Earth cards, MCU saga
-// frames and phase bands, and the timelines' decade bands and year marks.
+// frames and phase bands, and the timelines' decade bands and months.
 
 // Decade bands step through the rainbow, red (oldest) to violet (newest),
-// so the backdrop itself reads as time moving left to right. Each band is
+// so the backdrop itself reads as time moving down. Each band is
 // one flat, soft color; `step` runs 0..1 across the decades on screen.
 function decadeTint(step: number) {
   const hue = Math.round(step * 270);
@@ -34,13 +35,15 @@ function decadeTint(step: number) {
 const PHASE_COLOR = { color: "rgba(96,165,250,0.09)", borderColor: "rgba(96,165,250,0.45)" };
 
 // One outlined card per franchise or Earth, hugging its works like the
-// phase bands do.
+// phase bands do. Timelines mix the groups within each year, so they have
+// none; a mark under each poster tells the groups apart there.
 export function computeGroupCards(
   mode: ViewMode,
   layout: GraphLayout,
   grouping: Grouping,
   sagaBands: ReturnType<typeof computeSagaBands> = [],
 ) {
+  if (mode !== "recommended") return [];
   const { width, height } = canvasSize(layout);
   const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
   const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
@@ -156,59 +159,45 @@ export function computeSagaBands(
   });
 }
 
-// Visible works in left-to-right order with the year a timeline sorts them
-// by: release year, or the in-story year (falling back to release) for the
-// chronology.
-function datedWorks(
-  mode: Exclude<ViewMode, "recommended">,
-  layout: GraphLayout,
-  grouping: Grouping,
-) {
-  return WORKS.filter((w) => isWorkVisible(w, grouping))
-    .map((work) => {
-      const pos = layout.positions.get(work.id);
-      const year = timelineYear(work, mode);
-      return pos ? { pos, year, decade: Math.floor(year / 10) * 10 } : null;
-    })
-    .filter((e) => e !== null)
-    .sort((a, b) => a.pos.x - b.pos.x);
-}
+// Behind a timeline: a band per decade, tinted through the rainbow so the
+// backdrop reads as time moving down; and, in release order, the months as
+// columns and where today falls, between the month's released works and
+// those still to come.
+export function computeTimelineBackdrop(layout: GraphLayout, today = new Date()) {
+  const grid = layout.timeline;
+  if (!grid) return null;
+  const decades: Array<{ decade: number; top: number; bottom: number }> = [];
+  for (const row of grid.rows) {
+    const decade = Math.floor(row.year / 10) * 10;
+    const last = decades.at(-1);
+    if (last?.decade === decade) last.bottom = row.bottom;
+    else decades.push({ decade, top: row.top, bottom: row.bottom });
+  }
 
-// A faint line wherever the year changes between neighboring works, labeled
-// with the year that starts there. Works sit by rank, not date, so the lines
-// aren't evenly spaced. Decade changes are left to the decade bands' edges.
-export function computeYearMarks(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
-  if (mode === "recommended") return [];
-  const dated = datedWorks(mode, layout, grouping);
-  return dated.flatMap((current, i) => {
-    const previous = dated[i - 1];
-    if (!previous || previous.year === current.year || previous.decade !== current.decade) {
-      return [];
-    }
-    return [
-      { key: `${current.year}-${i}`, year: current.year, x: (previous.pos.x + current.pos.x) / 2 },
-    ];
-  });
-}
+  let todayMark: { x: number; top: number; bottom: number } | null = null;
+  const row = grid.rows.find((r) => r.year === today.getFullYear());
+  const month = grid.months.find((m) => m.month === today.getMonth());
+  if (row && month) {
+    const column = (TIMELINE_PX.column / canvasSize(layout).width) * 100;
+    const released = [...layout.positions.keys()]
+      .map((id) => WORK_BY_ID.get(id)!)
+      .filter(
+        (w) =>
+          timelineYear(w, "release") === row.year &&
+          releaseMonth(w) === month.month &&
+          !isUpcoming(w, today),
+      ).length;
+    todayMark = { x: month.left + released * column, top: row.top, bottom: row.bottom };
+  }
 
-export function computeEraBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
-  if (mode === "recommended") return [];
-  const dated = datedWorks(mode, layout, grouping);
-  if (dated.length === 0) return [];
-  // Timelines run in year order, so each decade is one contiguous span; the
-  // layout records it, padding included.
-  const decades = [...new Set(dated.map((d) => d.decade))].sort((a, b) => a - b);
-  return decades.flatMap((decade, i) => {
-    const span = layout.decadeSpans?.get(decade);
-    if (!span) return [];
-    return [
-      {
-        key: String(decade),
-        decade,
-        left: span.left,
-        width: span.right - span.left,
-        ...decadeTint(decades.length > 1 ? i / (decades.length - 1) : 1),
-      },
-    ];
-  });
+  return {
+    decades: decades.map((band, i) => ({
+      ...band,
+      key: String(band.decade),
+      ...decadeTint(decades.length > 1 ? i / (decades.length - 1) : 1),
+    })),
+    months: grid.months,
+    rows: grid.rows,
+    today: todayMark,
+  };
 }
