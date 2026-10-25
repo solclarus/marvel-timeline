@@ -420,6 +420,7 @@ export function Graph() {
       )}
       <DetailPanel
         selectedId={selectedId}
+        graph={graph}
         // One close for both: the card's ✕ also leaves a narrowed list.
         onClear={() => {
           setSelectedId(null);
