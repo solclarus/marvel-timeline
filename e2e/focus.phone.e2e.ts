@@ -4,7 +4,7 @@ import { opacityOf } from "./helpers";
 
 test("tapping a phase label pins and releases its focus", async ({ page }) => {
   // Select a Phase 1 work to bring the band into view, then clear it.
-  await page.goto("./?view=map&work=iron-man&focus=immediate");
+  await page.goto("./?view=map&work=iron-man");
   await page.locator("[data-slot=detail-title]").first().waitFor();
   // Escape before the fit lands would cancel it.
   await expect(page.locator('[id="iron-man"]')).toBeInViewport();

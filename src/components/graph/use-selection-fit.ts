@@ -2,24 +2,23 @@ import { useEffect, useRef } from "react";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 
 import type { GraphLayout } from "@/lib/graph/layout";
-import { getRelatedDistances, type FocusMode, type WorkGraph } from "@/lib/graph/relations";
+import { getRelatedDistances, type WorkGraph } from "@/lib/graph/relations";
 import { fitBox } from "@/lib/graph/wheel-zoom";
 import { motionMs } from "@/lib/motion";
 
 const PAD = 24;
 const ANIMATION_MS = 450;
 
-// Selecting a work zooms the map so it (with `withRelatives`, it and its
-// relatives) fits in the area the detail panel (top) and command bar
-// (bottom) leave uncovered. It refits only
-// when `fitKey` changes, i.e. when what's shown changes: the map re-renders
+// Selecting a work zooms the map so it (with `withRelatives`, it and the
+// works just before and after it) fits in the area the detail panel (top)
+// and command bar (bottom) leave uncovered. It refits only when `fitKey`
+// changes, i.e. when what's shown changes: the map re-renders
 // on every zoom step, and refitting on those would undo the viewer's own
 // zooming. The first fit (a shared link) jumps; later ones animate.
 export function useSelectionFit({
   transformRef,
   fitKey,
   selectedId,
-  focusMode,
   withRelatives,
   graph,
   layout,
@@ -30,7 +29,6 @@ export function useSelectionFit({
   transformRef: React.RefObject<ReactZoomPanPinchRef | null>;
   fitKey: string | null;
   selectedId: string | null;
-  focusMode: FocusMode;
   withRelatives: boolean;
   graph: WorkGraph;
   layout: GraphLayout;
@@ -46,7 +44,7 @@ export function useSelectionFit({
     lastFitKeyRef.current = fitKey;
     if (!selectedId) return;
     const ids = withRelatives
-      ? [selectedId, ...getRelatedDistances(selectedId, focusMode, graph).keys()]
+      ? [selectedId, ...getRelatedDistances(selectedId, "immediate", graph).keys()]
       : [selectedId];
     const points = ids.map((id) => layout.positions.get(id)).filter((pos) => pos !== undefined);
     if (points.length === 0) return;
@@ -86,16 +84,5 @@ export function useSelectionFit({
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [
-    transformRef,
-    fitKey,
-    selectedId,
-    focusMode,
-    withRelatives,
-    graph,
-    layout,
-    canvas,
-    node,
-    scale,
-  ]);
+  }, [transformRef, fitKey, selectedId, withRelatives, graph, layout, canvas, node, scale]);
 }

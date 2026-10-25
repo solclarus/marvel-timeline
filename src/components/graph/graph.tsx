@@ -31,7 +31,6 @@ import {
   getRelatedDistances,
   WORK_BY_ID,
   graphForMedia,
-  type FocusMode,
   type MediaFilter,
 } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
@@ -73,7 +72,6 @@ export function Graph() {
   const [initial] = useState(() => parseUrlState(window.location.search));
   const [mode, setMode] = useState<ViewMode>(initial.mode);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [focusMode, setFocusMode] = useState<FocusMode>(initial.focusMode);
   const [grouping, setGrouping] = useState<Grouping>({
     by: initial.groupBy,
     visible: initial.visibleGroups,
@@ -101,8 +99,11 @@ export function Graph() {
     onPin: () => setSelectedId(null),
   });
 
+  // The map ties a selection to the works just before and after it; the
+  // whole chain lit up at once was too much to read. The list, a watch
+  // order, marks the whole chain.
   const distances = selectedId
-    ? getRelatedDistances(selectedId, focusMode, graph)
+    ? getRelatedDistances(selectedId, display === "map" ? "immediate" : "chain", graph)
     : new Map<string, number>();
   const activeSet = computeActiveSet({
     selectedId,
@@ -141,7 +142,6 @@ export function Graph() {
   useUrlSync({
     mode,
     selectedId,
-    focusMode,
     groupBy: grouping.by,
     visibleGroups: grouping.visible,
     media,
@@ -154,7 +154,6 @@ export function Graph() {
     fitKey: selectedId
       ? [
           selectedId,
-          focusMode,
           media,
           mode,
           display,
@@ -163,7 +162,6 @@ export function Graph() {
         ].join("|")
       : null,
     selectedId,
-    focusMode,
     withRelatives: showRelatives,
     graph,
     layout,
@@ -408,8 +406,6 @@ export function Graph() {
         grouping={grouping}
         onVisibleGroupsChange={handleVisibleGroupsChange}
         onGroupByChange={handleGroupByChange}
-        focusMode={focusMode}
-        onFocusModeChange={setFocusMode}
       />
     </>
   );

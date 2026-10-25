@@ -13,7 +13,6 @@ describe("url state", () => {
     const state: UrlState = {
       mode: "chronology",
       selectedId: "logan",
-      focusMode: "immediate",
       groupBy: "franchise",
       visibleGroups: new Set(["mcu", "x-men"]),
       media: ["movie", "animation"],
@@ -22,7 +21,7 @@ describe("url state", () => {
     };
     const search = serializeUrlState(state);
     expect(search).toBe(
-      "?work=logan&view=list&list=before%3Alogan&mode=chronology&focus=immediate&media=movie%2Canimation&show=x-men%2Cmcu",
+      "?work=logan&view=list&list=before%3Alogan&mode=chronology&media=movie%2Canimation&show=x-men%2Cmcu",
     );
     expect(parseUrlState(search)).toEqual(state);
   });
