@@ -12,7 +12,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; either can switch.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology.
 - **Settings** (bottom bar), in two parts:
-  - **Filter**: films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
+  - **Filter**: the map opens on the MCU alone; tap a group chip (or **Show all**) to bring in the other franchises. Films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
   - **Display**: highlight all related works or direct ones only; language.
 - **Sagas**: in recommended order the MCU phases sit inside saga frames (Infinity: 1–3, Multiverse: 4–6, Mutant: 7 on); works outside the phases, like the One-Shots, sit just outside their saga.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.

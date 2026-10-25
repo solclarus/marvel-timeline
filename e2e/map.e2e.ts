@@ -4,7 +4,10 @@ import { opacityOf, pinch, trackErrors, zoomLabel } from "./helpers";
 
 test("loads every work without errors", async ({ page }) => {
   const noErrors = trackErrors(page);
-  await page.goto("./");
+  // The MCU shows alone by default; this asks for every franchise.
+  await page.goto(
+    "./?show=legacy,x-men,fox-tv,mcu,defenders,marvel-tv,spider-man-legacy,ssu,spider-verse,animation",
+  );
   await expect(page.locator('button[aria-label="Iron Man"]')).toBeVisible();
   expect(await page.locator("[data-slot=tooltip-trigger]").count()).toBeGreaterThan(100);
   noErrors();
@@ -136,7 +139,8 @@ test("settings switch with buttons and filter groups with chips", async ({ page 
     "true",
   );
   await panel.getByRole("button", { name: "Show all" }).click();
-  await expect(page).not.toHaveURL(/show=/);
+  await expect(panel.getByRole("button", { name: "Show all" })).toBeDisabled();
+  await expect(page).toHaveURL(/show=616%2C/);
 
   await panel.getByRole("button", { name: "Animation", exact: true }).click();
   await expect(page).toHaveURL(/media=movie%2Cseries(&|$)/);

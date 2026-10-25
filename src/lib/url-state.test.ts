@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GROUPS } from "./graph/groups";
+import { DEFAULT_VISIBLE_GROUPS, GROUPS } from "./graph/groups";
 import { DEFAULT_URL_STATE, parseUrlState, serializeUrlState, type UrlState } from "./url-state";
 
 describe("url state", () => {
@@ -33,10 +33,13 @@ describe("url state", () => {
     ).toEqual(DEFAULT_URL_STATE);
   });
 
-  it("shows every group by default", () => {
-    expect([...parseUrlState("").visibleGroups]).toEqual(
-      GROUPS.franchise.map((group) => group.key),
-    );
+  it("shows the MCU alone by default, and keeps every group when asked", () => {
+    expect([...parseUrlState("").visibleGroups]).toEqual(["mcu"]);
+    const all = {
+      ...DEFAULT_URL_STATE,
+      visibleGroups: new Set(GROUPS.franchise.map((g) => g.key)),
+    };
+    expect(parseUrlState(serializeUrlState(all)).visibleGroups).toEqual(all.visibleGroups);
   });
 
   it("shows the franchise of a linked work", () => {
@@ -52,7 +55,9 @@ describe("url state", () => {
   });
 
   it("ignores franchise keys when grouping by Earth", () => {
-    expect(parseUrlState("?group=earth&show=mcu").visibleGroups.size).toBe(GROUPS.earth.length);
+    expect([...parseUrlState("?group=earth&show=mcu").visibleGroups]).toEqual(
+      DEFAULT_VISIBLE_GROUPS.earth,
+    );
   });
 
   it("adds the linked work's kind to the media filter", () => {

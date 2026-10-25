@@ -5,6 +5,7 @@ import {
   type EarthId,
   type Franchise,
   type WorkNode,
+  WORKS,
 } from "@/data/works";
 
 // What the map's bands (lanes or rows) and the legend's toggles are split by.
@@ -73,10 +74,14 @@ export const GROUPS: Record<GroupBy, GroupMeta[]> = {
   earth: EARTH_ORDER.map((key) => ({ key, ...EARTH_META[key] })),
 };
 
-// Everything starts visible.
+// The map opens on the MCU alone, since every franchise at once is too
+// much to take in; the rest are a tap away in the filter. By Earth, that's
+// the Earths the MCU's works call home.
 export const DEFAULT_VISIBLE_GROUPS: Record<GroupBy, string[]> = {
-  franchise: FRANCHISE_ORDER,
-  earth: EARTH_ORDER,
+  franchise: ["mcu"],
+  earth: EARTH_ORDER.filter((key) =>
+    WORKS.some((w) => w.franchise === "mcu" && earthsOf(w)[0] === key),
+  ),
 };
 
 // The band MCU phase backgrounds are drawn around.

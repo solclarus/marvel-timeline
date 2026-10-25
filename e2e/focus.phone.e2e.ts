@@ -6,6 +6,8 @@ test("tapping a phase label pins and releases its focus", async ({ page }) => {
   // Select a Phase 1 work to bring the band into view, then clear it.
   await page.goto("./?view=map&work=iron-man&focus=immediate");
   await page.locator("[data-slot=detail-title]").first().waitFor();
+  // Escape before the fit lands would cancel it.
+  await expect(page.locator('[id="iron-man"]')).toBeInViewport();
   await page.keyboard.press("Escape");
   const label = page.getByRole("button", { name: "Phase 1" });
   await expect(label).toBeInViewport();
