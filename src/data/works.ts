@@ -3,12 +3,10 @@ export type Franchise =
   | "defenders"
   | "marvel-tv"
   | "x-men"
-  | "fox-tv"
   | "legacy"
   | "spider-man-legacy"
   | "ssu"
-  | "spider-verse"
-  | "animation";
+  | "spider-verse";
 // Earth designations as the films and series use them. "multiverse" is for
 // works that span too many Earths to list. Where each number is stated:
 // - 616: Doctor Strange in the Multiverse of Madness, Deadpool & Wolverine
@@ -24,12 +22,7 @@ export type Franchise =
 // Pre-MCU and animated worlds use the Marvel Database's numbers, which the
 // films never state: 26320 (Blade trilogy), 701306 (Daredevil 2003 / Elektra),
 // 121698 (Fantastic Four 2005 / 2007), 86445 (Your Friendly Neighborhood
-// Spider-Man), 92131 (X-Men '97, after X-Men: The Animated Series), 89521
-// (the zombie world of What If S1 and Marvel Zombies), 400083 (Hulk 2003),
-// 15866 (Fantastic Four 2015), 121347 (Ghost Rider films), 58627 / 58732 /
-// 47281 (the 1989, 2004, and 2008 Punisher films), 17040 (Legion), 17372 (The
-// Gifted). TRN1832 (Spider-Noir) is the wiki's temporary number; swap it once
-// Marvel assigns one.
+// Spider-Man), 89521 (the zombie world of What If S1 and Marvel Zombies).
 export type EarthId =
   | "616"
   | "838"
@@ -45,17 +38,7 @@ export type EarthId =
   | "701306"
   | "121698"
   | "86445"
-  | "92131"
   | "89521"
-  | "400083"
-  | "15866"
-  | "121347"
-  | "58627"
-  | "58732"
-  | "47281"
-  | "17040"
-  | "17372"
-  | "TRN1832"
   | "multiverse";
 
 // `cardClass` colors the outline of the card around an Earth's works; the
@@ -132,60 +115,10 @@ export const EARTH_META: Record<EarthId, { label: string; colorClass: string; ca
       colorClass: "bg-lime-600",
       cardClass: "border-lime-600/70",
     },
-    "92131": {
-      label: "Earth-92131",
-      colorClass: "bg-yellow-500",
-      cardClass: "border-yellow-500/70",
-    },
     "89521": {
       label: "Earth-89521",
       colorClass: "bg-green-700",
       cardClass: "border-green-700/70",
-    },
-    "400083": {
-      label: "Earth-400083",
-      colorClass: "bg-emerald-500",
-      cardClass: "border-emerald-500/70",
-    },
-    "15866": {
-      label: "Earth-15866",
-      colorClass: "bg-slate-400",
-      cardClass: "border-slate-400/70",
-    },
-    "121347": {
-      label: "Earth-121347",
-      colorClass: "bg-orange-600",
-      cardClass: "border-orange-600/70",
-    },
-    "58627": {
-      label: "Earth-58627",
-      colorClass: "bg-zinc-400",
-      cardClass: "border-zinc-400/70",
-    },
-    "58732": {
-      label: "Earth-58732",
-      colorClass: "bg-zinc-600",
-      cardClass: "border-zinc-600/70",
-    },
-    "47281": {
-      label: "Earth-47281",
-      colorClass: "bg-neutral-500",
-      cardClass: "border-neutral-500/70",
-    },
-    "17040": {
-      label: "Earth-17040",
-      colorClass: "bg-fuchsia-700",
-      cardClass: "border-fuchsia-700/70",
-    },
-    "17372": {
-      label: "Earth-17372",
-      colorClass: "bg-indigo-700",
-      cardClass: "border-indigo-700/70",
-    },
-    TRN1832: {
-      label: "Earth-TRN1832",
-      colorClass: "bg-stone-400",
-      cardClass: "border-stone-400/70",
     },
     multiverse: {
       label: "Multiverse",
@@ -296,23 +229,11 @@ export const FRANCHISE_META: Record<
     cardClass: "border-emerald-600/70",
     earth: "1610",
   },
-  animation: {
-    label: "Marvel Animation",
-    colorClass: "bg-sky-500",
-    cardClass: "border-sky-500/70",
-    earth: "92131",
-  },
   "marvel-tv": {
     label: "Marvel Television",
     colorClass: "bg-sky-700",
     cardClass: "border-sky-700/70",
     earth: "616",
-  },
-  "fox-tv": {
-    label: "X-Men TV (Fox)",
-    colorClass: "bg-indigo-400",
-    cardClass: "border-indigo-400/70",
-    earth: "17040",
   },
   "x-men": {
     label: "X-Men (Fox)",
@@ -2142,49 +2063,7 @@ export const WORKS: WorkNode[] = [
     releaseDate: "2027-06-17",
     poster: "/9KAe39xqyZnv9J4W3DRGdQqX82h.jpg",
   },
-  // --- Marvel Animation (outside the MCU) ---
-  // Continues X-Men: The Animated Series (1992), which isn't on the map.
-  {
-    id: "x-men-97-s1",
-    title: "X-Men '97 — Season 1",
-    titleJa: "X-MEN '97 — シーズン1",
-    franchise: "animation",
-    animated: true,
-    chronologyOrder: 90,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 138502, season: 1 },
-    releaseDate: "2024-03-20",
-    poster: "/383PV0WolYYQvTriH0NfvMUA28R.jpg",
-  },
   // --- Continuing animated seasons ---
-  {
-    id: "x-men-97-s2",
-    title: "X-Men '97 — Season 2",
-    titleJa: "X-MEN '97 — シーズン2",
-    franchise: "animation",
-    animated: true,
-    dependsOn: [{ id: "x-men-97-s1", kind: "direct-sequel" }],
-    chronologyOrder: 90.5,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 138502, season: 2 },
-    releaseDate: "2026-07-01",
-    poster: "/2HKBc5UiFw8JrruHq8S1Y7TnlW0.jpg",
-  },
-  // Only "2027" is announced and TMDB has no season yet: no poster.
-  {
-    id: "x-men-97-s3",
-    title: "X-Men '97 — Season 3",
-    titleJa: "X-MEN '97 — シーズン3",
-    franchise: "animation",
-    animated: true,
-    dependsOn: [{ id: "x-men-97-s2", kind: "direct-sequel" }],
-    chronologyOrder: 90.6,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 138502, season: 3 },
-    releaseDate: "2027-01-01",
-    releasePrecision: "year",
-    poster: "",
-  },
   // Only "January 2027" is announced and TMDB has no season yet: no poster.
   {
     id: "your-friendly-neighborhood-spider-man-s2",
@@ -2421,176 +2300,6 @@ export const WORKS: WorkNode[] = [
     tmdb: { type: "tv", id: 88987, season: 1 },
     releaseDate: "2020-10-16",
     poster: "/8fPIcaRIZgsoBcgA5yAm3GNz61M.jpg",
-  },
-  // --- More legacy films (each its own world) ---
-  {
-    id: "hulk-2003",
-    title: "Hulk",
-    titleJa: "ハルク",
-    franchise: "legacy",
-    earths: ["400083"],
-    chronologyOrder: 86.1,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 1927 },
-    releaseDate: "2003-06-19",
-    poster: "/UllIft2jLSBaay3zQyMV4GNdfy.jpg",
-  },
-  {
-    id: "ghost-rider",
-    title: "Ghost Rider",
-    titleJa: "ゴーストライダー",
-    franchise: "legacy",
-    earths: ["121347"],
-    thread: "ghost-rider",
-    chronologyOrder: 86.2,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 1250 },
-    releaseDate: "2007-01-15",
-    poster: "/4quwR1VwZouD0YF9AaD72kQAjxH.jpg",
-  },
-  {
-    id: "ghost-rider-spirit-of-vengeance",
-    title: "Ghost Rider: Spirit of Vengeance",
-    titleJa: "ゴーストライダー2",
-    franchise: "legacy",
-    earths: ["121347"],
-    thread: "ghost-rider",
-    dependsOn: [{ id: "ghost-rider", kind: "direct-sequel" }],
-    chronologyOrder: 86.3,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 71676 },
-    releaseDate: "2011-12-10",
-    poster: "/xEoBT6lYfQNpSpTm8gJMTrQytiw.jpg",
-  },
-  {
-    id: "fantastic-four-2015",
-    title: "Fantastic Four (2015)",
-    titleJa: "ファンタスティック・フォー（2015）",
-    franchise: "legacy",
-    earths: ["15866"],
-    chronologyOrder: 86.4,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 166424 },
-    releaseDate: "2015-08-05",
-    poster: "/cDroz5qSlP8xZ6tOpeYoPkBvKyL.jpg",
-  },
-  {
-    id: "punisher-1989",
-    title: "The Punisher (1989)",
-    titleJa: "パニッシャー（1989）",
-    franchise: "legacy",
-    earths: ["58627"],
-    chronologyOrder: 86.5,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 8867 },
-    releaseDate: "1989-10-05",
-    poster: "/tA0O0hYyHX7Hl2Fl8VEtGtfBtjI.jpg",
-  },
-  {
-    id: "punisher-2004",
-    title: "The Punisher (2004)",
-    titleJa: "パニッシャー（2004）",
-    franchise: "legacy",
-    earths: ["58732"],
-    chronologyOrder: 86.6,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 7220 },
-    releaseDate: "2004-04-15",
-    poster: "/7rmA1HwYp2GKM85BL0cVwCaosGr.jpg",
-  },
-  {
-    id: "punisher-war-zone",
-    title: "Punisher: War Zone",
-    titleJa: "パニッシャー：ウォー・ゾーン",
-    franchise: "legacy",
-    earths: ["47281"],
-    chronologyOrder: 86.7,
-    recommendedOrder: null,
-    tmdb: { type: "movie", id: 13056 },
-    releaseDate: "2008-12-05",
-    poster: "/oOvKJgYUIpfswGHAdW6159bPbvM.jpg",
-  },
-  // --- X-Men TV (Fox) ---
-  {
-    id: "legion-s1",
-    title: "Legion — Season 1",
-    titleJa: "レギオン — シーズン1",
-    franchise: "fox-tv",
-    earths: ["17040"],
-    thread: "legion",
-    chronologyOrder: 93.1,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 67195, season: 1 },
-    releaseDate: "2017-02-08",
-    poster: "/au5hsZ20QzOVXSOWgx7umAhHC6A.jpg",
-  },
-  {
-    id: "legion-s2",
-    title: "Legion — Season 2",
-    titleJa: "レギオン — シーズン2",
-    franchise: "fox-tv",
-    earths: ["17040"],
-    thread: "legion",
-    dependsOn: [{ id: "legion-s1", kind: "direct-sequel" }],
-    chronologyOrder: 93.2,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 67195, season: 2 },
-    releaseDate: "2018-04-03",
-    poster: "/wMPFWmM7VLu2AwBzpF3JiWTnTkt.jpg",
-  },
-  {
-    id: "legion-s3",
-    title: "Legion — Season 3",
-    titleJa: "レギオン — シーズン3",
-    franchise: "fox-tv",
-    earths: ["17040"],
-    thread: "legion",
-    dependsOn: [{ id: "legion-s2", kind: "direct-sequel" }],
-    chronologyOrder: 93.3,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 67195, season: 3 },
-    releaseDate: "2019-06-24",
-    poster: "/4THIqrWWYdsxy6zkfzzYvWnXR6Z.jpg",
-  },
-  {
-    id: "the-gifted-s1",
-    title: "The Gifted — Season 1",
-    titleJa: "ギフテッド 新世代X-MEN誕生 — シーズン1",
-    franchise: "fox-tv",
-    earths: ["17372"],
-    thread: "gifted",
-    chronologyOrder: 93.6,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 69629, season: 1 },
-    releaseDate: "2017-10-02",
-    poster: "/nYkGYVzn4Df3V5fZS9xYyKZn551.jpg",
-  },
-  {
-    id: "the-gifted-s2",
-    title: "The Gifted — Season 2",
-    titleJa: "ギフテッド 新世代X-MEN誕生 — シーズン2",
-    franchise: "fox-tv",
-    earths: ["17372"],
-    thread: "gifted",
-    dependsOn: [{ id: "the-gifted-s1", kind: "direct-sequel" }],
-    chronologyOrder: 93.7,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 69629, season: 2 },
-    releaseDate: "2018-09-25",
-    poster: "/bUL8MBcB4OeVA2YkA3q1AMbpJL1.jpg",
-  },
-  // Sony's live-action Noir series, in a world of its own.
-  {
-    id: "spider-noir",
-    title: "Spider-Noir",
-    titleJa: "スパイダー・ノワール",
-    franchise: "ssu",
-    earths: ["TRN1832"],
-    chronologyOrder: 75.5,
-    recommendedOrder: null,
-    tmdb: { type: "tv", id: 220102, season: 1 },
-    releaseDate: "2026-05-25",
-    poster: "/oD8WSVqz84ZRfelkr7JPeJwR9Iv.jpg",
   },
   // --- Marvel One-Shots (short films) ---
   // Outside the phases, as Marvel lists them; the map lays them out beside the

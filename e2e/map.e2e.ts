@@ -6,7 +6,7 @@ test("loads every work without errors", async ({ page }) => {
   const noErrors = trackErrors(page);
   // The MCU shows alone by default; this asks for every franchise.
   await page.goto(
-    "./?show=legacy,x-men,fox-tv,mcu,defenders,marvel-tv,spider-man-legacy,ssu,spider-verse,animation",
+    "./?show=legacy,x-men,mcu,defenders,marvel-tv,spider-man-legacy,ssu,spider-verse",
   );
   await expect(page.locator('button[aria-label="Iron Man"]')).toBeVisible();
   expect(await page.locator("[data-slot=tooltip-trigger]").count()).toBeGreaterThan(100);
