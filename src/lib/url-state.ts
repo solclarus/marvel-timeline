@@ -8,14 +8,13 @@ import {
   type GroupBy,
 } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
-import { WORK_BY_ID, type FocusMode, type MediaFilter } from "@/lib/graph/relations";
+import { WORK_BY_ID, type MediaFilter } from "@/lib/graph/relations";
 
 // Everything a shared link restores. Zoom and pan are left out: they depend
 // on the viewer's screen.
 export interface UrlState {
   mode: ViewMode;
   selectedId: string | null;
-  focusMode: FocusMode;
   groupBy: GroupBy;
   visibleGroups: Set<string>;
   media: MediaFilter;
@@ -32,12 +31,10 @@ const DISPLAYS: readonly Display[] = ["map", "list"];
 
 const GROUP_BYS: readonly GroupBy[] = ["franchise", "earth"];
 const VIEW_MODES: readonly ViewMode[] = ["recommended", "release", "chronology"];
-const FOCUS_MODES: readonly FocusMode[] = ["chain", "immediate"];
 
 export const DEFAULT_URL_STATE: UrlState = {
   mode: "recommended",
   selectedId: null,
-  focusMode: "chain",
   groupBy: "franchise",
   visibleGroups: new Set(DEFAULT_VISIBLE_GROUPS.franchise),
   media: MEDIA,
@@ -82,7 +79,6 @@ export function parseUrlState(search: string): UrlState {
   return {
     mode: pick(params.get("mode"), VIEW_MODES, DEFAULT_URL_STATE.mode),
     selectedId: selected?.id ?? null,
-    focusMode: pick(params.get("focus"), FOCUS_MODES, DEFAULT_URL_STATE.focusMode),
     groupBy,
     visibleGroups,
     media,
@@ -106,7 +102,6 @@ export function serializeUrlState(state: UrlState): string {
   if (state.display) params.set("view", state.display);
   if (state.listFocus) params.set("list", `${state.listFocus.kind}:${state.listFocus.id}`);
   if (state.mode !== DEFAULT_URL_STATE.mode) params.set("mode", state.mode);
-  if (state.focusMode !== DEFAULT_URL_STATE.focusMode) params.set("focus", state.focusMode);
 
   if (state.groupBy !== DEFAULT_URL_STATE.groupBy) params.set("group", state.groupBy);
   if (state.media.length < MEDIA.length) params.set("media", state.media.join(","));

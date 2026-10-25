@@ -8,7 +8,6 @@ import { serializeUrlState, type UrlState } from "@/lib/url-state";
 export function useUrlSync({
   mode,
   selectedId,
-  focusMode,
   groupBy,
   visibleGroups,
   media,
@@ -19,7 +18,6 @@ export function useUrlSync({
     const search = serializeUrlState({
       mode,
       selectedId,
-      focusMode,
       groupBy,
       visibleGroups,
       media,
@@ -28,5 +26,5 @@ export function useUrlSync({
     });
     const { pathname, hash } = window.location;
     window.history.replaceState(window.history.state, "", `${pathname}${search}${hash}`);
-  }, [mode, selectedId, focusMode, groupBy, visibleGroups, media, display, listFocus]);
+  }, [mode, selectedId, groupBy, visibleGroups, media, display, listFocus]);
 }

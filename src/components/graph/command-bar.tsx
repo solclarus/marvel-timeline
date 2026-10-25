@@ -3,7 +3,7 @@ import { List, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
-import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
+import type { MediaFilter } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 import type { Display } from "@/lib/url-state";
 
@@ -26,8 +26,6 @@ interface Props {
   grouping: Grouping;
   onVisibleGroupsChange: (visible: Set<string>) => void;
   onGroupByChange: (by: GroupBy) => void;
-  focusMode: FocusMode;
-  onFocusModeChange: (mode: FocusMode) => void;
 }
 
 // Every map-wide control in one bar: search, view mode, and the settings
@@ -45,8 +43,6 @@ export function CommandBar({
   grouping,
   onVisibleGroupsChange,
   onGroupByChange,
-  focusMode,
-  onFocusModeChange,
 }: Props) {
   const { t } = useI18n();
   return (
@@ -71,8 +67,6 @@ export function CommandBar({
           grouping={grouping}
           onVisibleChange={onVisibleGroupsChange}
           onGroupByChange={onGroupByChange}
-          focusMode={focusMode}
-          onFocusModeChange={onFocusModeChange}
         />
         <AboutDialog />
       </FabBar>

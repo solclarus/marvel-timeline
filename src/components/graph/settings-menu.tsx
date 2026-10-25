@@ -1,21 +1,13 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import {
-  Earth,
-  GitBranch,
-  Library,
-  ListFilter,
-  Settings2,
-  SlidersHorizontal,
-  Waypoints,
-} from "lucide-react";
+import { Earth, Library, ListFilter, Settings2, SlidersHorizontal } from "lucide-react";
 import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MEDIA, type Medium } from "@/data/works";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
-import type { FocusMode, MediaFilter } from "@/lib/graph/relations";
+import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -28,8 +20,6 @@ interface Props {
   grouping: Grouping;
   onVisibleChange: (visible: Set<string>) => void;
   onGroupByChange: (by: GroupBy) => void;
-  focusMode: FocusMode;
-  onFocusModeChange: (mode: FocusMode) => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -261,8 +251,6 @@ export function SettingsMenu({
   grouping,
   onVisibleChange,
   onGroupByChange,
-  focusMode,
-  onFocusModeChange,
 }: Props) {
   const { t, locale, setLocale } = useI18n();
   // The bar no longer shows the filters, so the button flags when one is on.
@@ -305,15 +293,6 @@ export function SettingsMenu({
           <GroupChips grouping={grouping} onVisibleChange={onVisibleChange} />
         </Section>
         <Section title={t.displaySection} icon={Settings2}>
-          <Segmented<FocusMode>
-            label={t.highlight}
-            value={focusMode}
-            onChange={onFocusModeChange}
-            options={[
-              { value: "chain", label: t.allRelated, icon: Waypoints },
-              { value: "immediate", label: t.directOnly, icon: GitBranch },
-            ]}
-          />
           <Segmented<Locale>
             label={t.language}
             value={locale}
