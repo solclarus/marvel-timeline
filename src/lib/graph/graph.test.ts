@@ -40,6 +40,13 @@ const ALL: Grouping[] = (["franchise", "earth"] as const).map((by) => ({
 const MODES: ViewMode[] = ["recommended", "release", "chronology"];
 
 describe("works data", () => {
+  it("gives phases to MCU works only", () => {
+    // A phase holds a work to the MCU's rows; works outside it (X-Men '97
+    // continues the 1992 series on its own Earth) stand apart.
+    const outside = WORKS.filter((w) => w.phase !== undefined && w.franchise !== "mcu");
+    expect(outside.map((w) => w.id)).toEqual([]);
+  });
+
   it("has unique ids", () => {
     expect(new Set(WORKS.map((w) => w.id)).size).toBe(WORKS.length);
   });
@@ -88,14 +95,19 @@ describe("GLOBAL_STEP", () => {
   });
 
   it("stacks MCU phases as non-overlapping bands", () => {
-    const phases = [...new Set(WORKS.map((w) => w.phase).filter((p) => p !== undefined))];
+    const mcu = WORKS.filter((w) => w.franchise === "mcu");
+    const phases = [...new Set(mcu.map((w) => w.phase).filter((p) => p !== undefined))];
     for (const phase of phases) {
-      const previous = WORKS.filter((w) => w.phase === phase - 1);
+      const previous = mcu.filter((w) => w.phase === phase - 1);
       if (previous.length === 0) continue;
       const floor = Math.max(...previous.map((w) => GLOBAL_STEP.get(w.id)!));
-      const intruders = WORKS.filter((w) => w.phase === phase && GLOBAL_STEP.get(w.id)! <= floor);
+      const intruders = mcu.filter((w) => w.phase === phase && GLOBAL_STEP.get(w.id)! <= floor);
       expect(intruders.map((w) => w.id)).toEqual([]);
     }
+  });
+
+  it("starts a franchise outside the MCU at the top when it builds on nothing", () => {
+    expect(GLOBAL_STEP.get("x-men-97-s1")).toBe(0);
   });
 });
 
