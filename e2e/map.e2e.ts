@@ -104,13 +104,14 @@ test("switching works keeps the detail panel in place", async ({ page }) => {
   await expect(panel).toHaveText("Iron Man 2");
 });
 
-test("timelines draw lines only for a selection", async ({ page }) => {
-  await page.goto("./?mode=release");
-  await expect(page.locator('button[aria-label="Iron Man"]')).toBeAttached();
+test("timelines light only the selection, with no lines", async ({ page }) => {
+  await page.goto("./?mode=release&work=iron-man-2");
+  await expect(page.locator('button[aria-label="Iron Man 2"]')).toBeAttached();
   const lines = page.locator("svg path[stroke-linecap=round]");
   await expect(lines).toHaveCount(0);
-  await page.goto("./?mode=release&work=iron-man-2");
-  await expect.poll(() => lines.count()).toBeGreaterThan(0);
+  // Iron Man 2 builds on Iron Man, yet only the selection stays lit.
+  await expect.poll(() => opacityOf(page, "iron-man")).toBeLessThan(1);
+  await expect.poll(() => opacityOf(page, "iron-man-2")).toBe(1);
   await page.goto("./?work=iron-man-2");
   // Recommended mode keeps every line.
   await expect.poll(() => lines.count()).toBeGreaterThan(100);

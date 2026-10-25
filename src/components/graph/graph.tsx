@@ -112,12 +112,17 @@ export function Graph() {
     grouping,
     graph,
   });
+  // Timelines place works by date rather than by what they build on, so
+  // relatives there are scattered across the map: a selection lights only
+  // itself. The list still marks them.
+  const showRelatives = mode === "recommended";
+  const mapActiveSet = selectedId && !showRelatives ? new Set([selectedId]) : activeSet;
   const nodeState = (id: string): NodeState =>
-    !activeSet
+    !mapActiveSet
       ? "neutral"
       : id === selectedId
         ? "selected"
-        : activeSet.has(id)
+        : mapActiveSet.has(id)
           ? "ancestor"
           : "dimmed";
 
@@ -159,6 +164,7 @@ export function Graph() {
       : null,
     selectedId,
     focusMode,
+    withRelatives: showRelatives,
     graph,
     layout,
     canvas,
@@ -223,9 +229,9 @@ export function Graph() {
 
   const visibleWorks = graph.works.filter((w) => isWorkVisible(w, grouping));
   const visibleIds = new Set(visibleWorks.map((w) => w.id));
-  const edges = edgesToDraw(mode, graph.edges, selectedId, activeSet);
+  const edges = edgesToDraw(mode, graph.edges);
   // Nubs follow the drawn edges, so none show where lines are hidden.
-  const edgeVisibility = computeEdgeVisibility(visibleIds, activeSet, { ...graph, edges });
+  const edgeVisibility = computeEdgeVisibility(visibleIds, mapActiveSet, { ...graph, edges });
 
   const axis: Axis = mode === "recommended" ? "y" : "x";
   const geometry = computeEdgeGeometry(
@@ -298,7 +304,7 @@ export function Graph() {
               <GraphEdges
                 edges={edges}
                 positions={layout.positions}
-                activeSet={activeSet}
+                activeSet={mapActiveSet}
                 distances={distances}
                 visibleIds={visibleIds}
                 axis={axis}
@@ -315,7 +321,7 @@ export function Graph() {
                     y={pos.y}
                     state={nodeState(work.id)}
                     delay={
-                      activeSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
+                      mapActiveSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
                     }
                     onSelect={handleSelect}
                     onKeyboardFocus={handleKeyboardFocus}
