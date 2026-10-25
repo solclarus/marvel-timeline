@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { FRANCHISE_META, mediumOf, posterUrl, type WorkNode } from "@/data/works";
@@ -75,6 +75,13 @@ export function Poster({
   const [status, setStatus] = useState<"loading" | "loaded" | "failed">(
     work.poster ? "loading" : "failed",
   );
+  // An image the browser already has shows at once, with no skeleton or
+  // fade: the detail card's poster flies out of the map's copy.
+  const imgRef = useRef<HTMLImageElement>(null);
+  useLayoutEffect(() => {
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth > 0) setStatus("loaded");
+  }, []);
   if (status === "failed") return <PosterArt work={work} compact={compact} />;
   return (
     <>
@@ -82,6 +89,7 @@ export function Poster({
         <Skeleton className="absolute inset-0 rounded-none bg-neutral-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" />
       )}
       <img
+        ref={imgRef}
         src={posterUrl(work, compact ? "w154" : "w185")}
         alt=""
         loading={loading}
