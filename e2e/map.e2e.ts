@@ -159,13 +159,15 @@ test("settings switch with buttons and filter groups with chips", async ({ page 
   await expect(page.getByRole("button", { name: "View settings (filtered)" })).toBeVisible();
 });
 
-test("a route narrows the list to its works", async ({ page }) => {
+test("a route's card lists its works, and picking one shows it", async ({ page }) => {
   await page.goto("./?media=movie");
   await page.getByRole("button", { name: "Routes" }).click();
   await page.getByRole("button", { name: /The Defenders Saga/ }).click();
   await expect(page).toHaveURL(/list=route%3Adefenders/);
-  await expect(page.locator("main li")).toHaveCount(14);
-  await page.locator("#list-the-defenders button").click();
+  await expect(page.getByRole("list", { name: "The Defenders Saga" }).locator("li")).toHaveCount(
+    14,
+  );
+  await page.locator("#card-the-defenders button").click();
   // A series picked while films only are shown brings series back.
   await expect(page).toHaveURL(/work=the-defenders/);
   await expect(page).toHaveURL(/media=movie%2Cseries/);

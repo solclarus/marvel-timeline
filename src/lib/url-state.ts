@@ -66,7 +66,9 @@ function pick<T extends string>(value: string | null, allowed: readonly T[], fal
 // still opens.
 export function parseUrlState(search: string): UrlState {
   const params = new URLSearchParams(search);
-  const work = params.get("work");
+  const listFocus = parseListFocus(params.get("list"));
+  // An open watch-first list is its work's card, even without `work`.
+  const work = params.get("work") ?? (listFocus?.kind === "before" ? listFocus.id : null);
   const selected = work ? WORK_BY_ID.get(work) : undefined;
 
   const groupBy = pick(params.get("group"), GROUP_BYS, DEFAULT_URL_STATE.groupBy);
@@ -85,7 +87,7 @@ export function parseUrlState(search: string): UrlState {
     display: (DISPLAYS as readonly string[]).includes(params.get("view") ?? "")
       ? (params.get("view") as Display)
       : null,
-    listFocus: parseListFocus(params.get("list")),
+    listFocus,
   };
 }
 
