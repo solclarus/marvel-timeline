@@ -61,8 +61,9 @@ const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 1.5;
 const INITIAL_ZOOM = 0.6;
 // Fitting a selection never zooms past 100%, so a work with few relatives
-// isn't blown up.
-const FIT_SCALE = { min: MIN_ZOOM, max: 1 };
+// isn't blown up, nor below 50%, so a work many build on stays readable
+// (the fit then keeps the selection in sight rather than every relative).
+const FIT_SCALE = { min: 0.5, max: 1 };
 const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;

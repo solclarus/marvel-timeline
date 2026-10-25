@@ -56,6 +56,12 @@ export function useSelectionFit({
       top: Math.min(...ys) - node.height / 2 - PAD,
       bottom: Math.max(...ys) + node.height / 2 + PAD,
     };
+    // A fit too big to show keeps the selection in sight.
+    const selected = layout.positions.get(selectedId);
+    const focus = selected && {
+      x: (selected.x / 100) * canvas.width,
+      y: (selected.y / 100) * canvas.height,
+    };
     const animationTime = hasFittedRef.current ? motionMs(ANIMATION_MS) : 0;
     hasFittedRef.current = true;
 
@@ -79,6 +85,7 @@ export function useSelectionFit({
           },
           scale.min,
           scale.max,
+          focus,
         );
         transformRef.current?.setTransform(next.x, next.y, next.scale, animationTime);
       });
