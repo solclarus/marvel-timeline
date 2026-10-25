@@ -56,7 +56,8 @@ const en = {
   listBefore: "Before",
   listAfter: "After",
   watchBefore: (title: string) => `Before ${title}`,
-  backToFullList: "Back to the full list",
+  backTo: (title: string) => `Back to ${title}`,
+  hideWatchFirst: "Hide what to watch first",
   // Map
   phase: (n: number) => `Phase ${n}`,
   saga: (saga: Saga) =>
@@ -145,7 +146,8 @@ const ja: Messages = {
   listBefore: "先に観る",
   listAfter: "この後",
   watchBefore: (title) => `${title}の前に観る作品`,
-  backToFullList: "全体のリストに戻る",
+  backTo: (title) => `${title}に戻る`,
+  hideWatchFirst: "先に観る作品を閉じる",
   phase: (n) => `フェーズ${n}`,
   saga: (saga) =>
     ({

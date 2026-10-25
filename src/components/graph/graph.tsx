@@ -5,6 +5,7 @@ import {
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
+import { ROUTES } from "@/data/routes";
 import { mediumOf, WORKS } from "@/data/works";
 import { computeActiveSet, edgesToDraw } from "@/lib/graph/focus";
 import {
@@ -30,9 +31,11 @@ import {
   computeEdgeVisibility,
   getRelatedDistances,
   WORK_BY_ID,
+  WORK_GRAPHS,
   graphForMedia,
   type MediaFilter,
 } from "@/lib/graph/relations";
+import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
 import { parseUrlState, withMedium } from "@/lib/url-state";
@@ -49,9 +52,10 @@ import {
   type NodeState,
 } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
-import { focusedList, ListView } from "./list-view";
+import { ListView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
 import { TimelineLabels } from "./timeline-labels";
+import { useCard } from "./use-card";
 import { DEVICE_DISPLAY, useDisplay } from "./use-display";
 import { useHoverFocus } from "./use-hover-focus";
 import { useSelectionFit } from "./use-selection-fit";
@@ -70,16 +74,17 @@ const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
 export function Graph() {
-  const { t, groupLabel, titleOf, locale } = useI18n();
+  const { t, groupLabel } = useI18n();
   const [initial] = useState(() => parseUrlState(window.location.search));
   const [mode, setMode] = useState<ViewMode>(initial.mode);
-  const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
   const [grouping, setGrouping] = useState<Grouping>({
     by: initial.groupBy,
     visible: initial.visibleGroups,
   });
   const [media, setMedia] = useState<MediaFilter>(initial.media);
-  const { display, listFocus, openListFocus, clearListFocus, changeDisplay } = useDisplay(initial);
+  const [display, setDisplay] = useDisplay(initial.display);
+  const card = useCard(initial);
+  const { selectedId } = card;
   const graph = graphForMedia(media);
   const [zoomPercent, setZoomPercent] = useState(INITIAL_ZOOM);
   const transformRef = useRef<ReactZoomPanPinchRef | null>(null);
@@ -97,7 +102,7 @@ export function Graph() {
     groupCards,
     phaseBands,
     selectedId,
-    onPin: () => setSelectedId(null),
+    onPin: () => card.select(null),
   });
 
   // The map ties a selection to the works just before and after it; the
@@ -106,19 +111,32 @@ export function Graph() {
   const distances = selectedId
     ? getRelatedDistances(selectedId, display === "map" ? "immediate" : "chain", graph)
     : new Map<string, number>();
-  const activeSet = computeActiveSet({
-    selectedId,
-    distances,
-    focusedPhase: focus.focusedPhase?.phase,
-    focusedGroup: focus.focusedCard?.key,
-    grouping,
-    graph,
-  });
+  // While the card lists works (a watch-first path or a route), those are
+  // what light up behind it.
+  const listed =
+    card.current?.kind === "route"
+      ? routeWorks(
+          ROUTES.find((r) => r.id === card.current!.id)!,
+          WORK_GRAPHS.all,
+        )
+      : card.current?.open
+        ? watchFirst(card.current.id, graph).map((step) => step.work)
+        : null;
+  const activeSet = listed
+    ? new Set([...listed.map((w) => w.id), ...(selectedId ? [selectedId] : [])])
+    : computeActiveSet({
+        selectedId,
+        distances,
+        focusedPhase: focus.focusedPhase?.phase,
+        focusedGroup: focus.focusedCard?.key,
+        grouping,
+        graph,
+      });
   // Timelines place works by date rather than by what they build on, so
   // relatives there are scattered across the map: a selection lights only
   // itself. The list still marks them.
   const showRelatives = mode === "recommended";
-  const mapActiveSet = selectedId && !showRelatives ? new Set([selectedId]) : activeSet;
+  const mapActiveSet = selectedId && !listed && !showRelatives ? new Set([selectedId]) : activeSet;
   const nodeState = (id: string): NodeState =>
     !mapActiveSet
       ? "neutral"
@@ -130,11 +148,9 @@ export function Graph() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // A dialog takes Escape for itself; the selection stays. A narrowed
-      // list widens back first.
+      // A dialog takes Escape for itself; the card stays.
       if (event.key !== "Escape" || document.querySelector("[data-slot=dialog-content]")) return;
-      if (listFocus) clearListFocus();
-      else setSelectedId(null);
+      card.escape();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -146,8 +162,8 @@ export function Graph() {
     groupBy: grouping.by,
     visibleGroups: grouping.visible,
     media,
-    display: display === DEVICE_DISPLAY || listFocus ? null : display,
-    listFocus,
+    display: display === DEVICE_DISPLAY ? null : display,
+    listFocus: card.listFocus,
   });
 
   useSelectionFit({
@@ -218,7 +234,7 @@ export function Graph() {
   };
 
   const handleSelect = (id: string) => {
-    setSelectedId((current) => (current === id ? null : id));
+    card.select(selectedId === id ? null : id);
   };
 
   const handleVisibleGroupsChange = (visible: Set<string>) => {
@@ -235,20 +251,23 @@ export function Graph() {
     setMedia(next);
     // A selection whose kind is filtered out leaves the map.
     const selected = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
-    if (selected && !next.includes(mediumOf(selected))) setSelectedId(null);
+    if (selected && !next.includes(mediumOf(selected))) card.select(null);
   };
 
-  // A search pick may be filtered out: show its media and group, then select
-  // it (which fits the view to it).
-  const handleSearchSelect = (id: string) => {
+  // A pick from search or the card's list may be filtered out: show its
+  // media and group first, so selecting it fits the view to it.
+  const reveal = (id: string) => {
     const work = WORK_BY_ID.get(id);
-    if (!work) return;
+    if (!work) return false;
     setMedia((current) => withMedium(current, mediumOf(work)));
     const key = groupKeyOf(work, grouping.by);
     if (!grouping.visible.has(key)) {
       setGrouping((current) => ({ ...current, visible: new Set([...current.visible, key]) }));
     }
-    setSelectedId(id);
+    return true;
+  };
+  const handleSearchSelect = (id: string) => {
+    if (reveal(id)) card.select(id);
   };
 
   const visibleWorks = graph.works.filter((w) => isWorkVisible(w, grouping));
@@ -288,7 +307,7 @@ export function Graph() {
         attachDesktopInput(ref, { minScale: MIN_ZOOM, maxScale: MAX_ZOOM });
         // A linked work is fitted by the selection fit; otherwise start at
         // the Avengers, or a timeline's first year.
-        if (initial.selectedId) return;
+        if (selectedId) return;
         if (mode !== "recommended") {
           showTimelineStart(ref, 0);
         } else if (AVENGERS_ID && document.getElementById(AVENGERS_ID)) {
@@ -310,7 +329,7 @@ export function Graph() {
               style={{ width: canvas.width, height: canvas.height }}
               role="presentation"
               onClick={() => {
-                setSelectedId(null);
+                card.select(null);
                 focus.clearPinned();
               }}
               onPointerMove={focus.onPointerMove}
@@ -398,10 +417,6 @@ export function Graph() {
     </TransformWrapper>
   );
 
-  const focusView = listFocus
-    ? focusedList(listFocus, graph, { t, titleOf, locale }, clearListFocus)
-    : null;
-
   return (
     <>
       {display === "map" ? (
@@ -412,27 +427,26 @@ export function Graph() {
           grouping={grouping}
           graph={graph}
           selectedId={selectedId}
-          activeSet={selectedId ? activeSet : null}
+          activeSet={selectedId || listed ? activeSet : null}
           distances={distances}
-          onSelect={focusView ? handleSearchSelect : handleSelect}
-          focus={focusView}
+          onSelect={handleSelect}
+          cardShown={card.current !== null}
         />
       )}
       <DetailPanel
-        selectedId={selectedId}
+        view={card.current}
+        previous={card.previous}
         graph={graph}
-        // One close for both: the card's ✕ also leaves a narrowed list.
-        onClear={() => {
-          setSelectedId(null);
-          if (listFocus) clearListFocus();
-        }}
-        onOpen={() => selectedId && openListFocus({ kind: "before", id: selectedId })}
+        onClose={card.close}
+        onBack={card.back}
+        onToggle={card.toggleOpen}
+        onPick={(id) => reveal(id) && card.pick(id)}
       />
 
       <CommandBar
         display={display}
-        onDisplayChange={changeDisplay}
-        onRouteSelect={(id) => openListFocus({ kind: "route", id })}
+        onDisplayChange={setDisplay}
+        onRouteSelect={card.openRoute}
         onSearchSelect={handleSearchSelect}
         mode={mode}
         onModeChange={setMode}
