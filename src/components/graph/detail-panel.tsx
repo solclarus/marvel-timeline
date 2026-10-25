@@ -1,11 +1,13 @@
 import { ChevronRight, ListOrdered, X } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
+import { useLayoutEffect, useRef } from "react";
 
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl } from "@/data/works";
 import { WORK_BY_ID, type WorkGraph } from "@/lib/graph/relations";
 import { watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
+import { motionMs } from "@/lib/motion";
 import { runtimeOf } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +36,48 @@ const ITEM: Variants = {
   hidden: { opacity: 0, y: 6, filter: "blur(4px)" },
   shown: { opacity: 1, y: 0, filter: "blur(0px)", transition: FLOAT },
 };
-const POSTER: Variants = {
-  hidden: { opacity: 0, scale: 0.92, rotate: -2 },
-  shown: { opacity: 1, scale: 1, rotate: 0, transition: FLOAT },
-};
+
+// A little past the target, then back: the poster lands with a bounce.
+const LANDING = "cubic-bezier(0.3, 1.25, 0.4, 1)";
+
+// Flies the card's poster out of the selected poster on the map, so the
+// card reads as opening from it. With no poster on screen to leave from
+// (a search pick far away, or the list), it pops in where it is instead.
+function useFlightFromMap(id: string | undefined) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const target = ref.current;
+    if (!id || !target) return;
+    const from = document.getElementById(id)?.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    const onScreen =
+      from &&
+      from.width > 4 &&
+      from.bottom > 0 &&
+      from.right > 0 &&
+      from.top < window.innerHeight &&
+      from.left < window.innerWidth;
+    const keyframes = onScreen
+      ? [
+          {
+            transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${
+              from.top + from.height / 2 - (to.top + to.height / 2)
+            }px) scale(${from.width / to.width})`,
+          },
+          { transform: "none" },
+        ]
+      : [
+          { transform: "scale(0.9) rotate(-2deg)", opacity: 0 },
+          { transform: "none", opacity: 1 },
+        ];
+    const animation = target.animate(keyframes, {
+      duration: motionMs(onScreen ? 650 : 360),
+      easing: LANDING,
+    });
+    return () => animation.cancel();
+  }, [id]);
+  return ref;
+}
 
 // The card for the selection, washed in its poster's colors; tapping it
 // lists what to watch first.
@@ -46,6 +86,7 @@ export function DetailPanel({ selectedId, graph, onClear, onOpen }: Props) {
   const work = selectedId ? WORK_BY_ID.get(selectedId) : undefined;
   const runtime = work && runtimeOf(work);
   const before = work ? watchFirst(work.id, graph).length : 0;
+  const posterRef = useFlightFromMap(work?.id);
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
@@ -56,8 +97,8 @@ export function DetailPanel({ selectedId, graph, onClear, onOpen }: Props) {
           {work && (
             <m.div
               key="detail-panel"
-              initial={{ opacity: 0, y: -16, scale: 0.96, filter: "blur(8px)" }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              initial={{ y: -16, scale: 0.96 }}
+              animate={{ y: 0, scale: 1 }}
               exit={{
                 opacity: 0,
                 y: -10,
@@ -65,38 +106,47 @@ export function DetailPanel({ selectedId, graph, onClear, onOpen }: Props) {
                 filter: "blur(4px)",
                 transition: { duration: 0.18, ease: "easeIn" },
               }}
-              transition={{ ...FLOAT, opacity: { duration: 0.35 }, filter: { duration: 0.4 } }}
-              className="pointer-events-auto relative flex items-start gap-3 overflow-hidden rounded-surface border border-white/10 bg-card/90 px-4 py-3 shadow-2xl shadow-black/40 backdrop-blur-xl"
+              transition={FLOAT}
+              className="pointer-events-auto relative flex items-start gap-3 px-4 py-3"
             >
-              {/* The poster, blurred to a wash of its colors; it crossfades
-                  as the selection changes. */}
-              <AnimatePresence initial={false}>
-                <m.div
-                  key={work.id}
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0"
-                  initial={{ opacity: 0, scale: 1.08 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  {work.poster ? (
-                    <img
-                      src={posterUrl(work, "w154")}
-                      alt=""
-                      className="absolute inset-y-0 left-0 h-full w-2/3 scale-125 object-cover opacity-60 blur-2xl saturate-150"
-                    />
-                  ) : (
-                    <div
-                      className={cn(
-                        "absolute -top-1/2 left-0 size-64 rounded-full opacity-25 blur-3xl",
-                        FRANCHISE_META[work.franchise].colorClass,
-                      )}
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-linear-to-r from-card/10 via-card/50 to-card/85" />
-                </m.div>
-              </AnimatePresence>
+              {/* The card's surface fades in out of a blur on its own, so the
+                  poster flying in from the map is in full view the whole way.
+                  It holds the poster blurred to a wash of its colors, which
+                  crossfades as the selection changes. */}
+              <m.div
+                aria-hidden
+                initial={{ opacity: 0, filter: "blur(8px)" }}
+                animate={{ opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="pointer-events-none absolute inset-0 overflow-hidden rounded-surface border border-white/10 bg-card/90 shadow-2xl shadow-black/40 backdrop-blur-xl"
+              >
+                <AnimatePresence initial={false}>
+                  <m.div
+                    key={work.id}
+                    className="absolute inset-0"
+                    initial={{ opacity: 0, scale: 1.08 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  >
+                    {work.poster ? (
+                      <img
+                        src={posterUrl(work, "w154")}
+                        alt=""
+                        className="absolute inset-y-0 left-0 h-full w-2/3 scale-125 object-cover opacity-60 blur-2xl saturate-150"
+                      />
+                    ) : (
+                      <div
+                        className={cn(
+                          "absolute -top-1/2 left-0 size-64 rounded-full opacity-25 blur-3xl",
+                          FRANCHISE_META[work.franchise].colorClass,
+                        )}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-r from-card/10 via-card/50 to-card/85" />
+                  </m.div>
+                </AnimatePresence>
+              </m.div>
 
               <m.button
                 type="button"
@@ -108,12 +158,12 @@ export function DetailPanel({ selectedId, graph, onClear, onOpen }: Props) {
                 aria-label={t.showDetails(titleOf(work))}
                 className="group relative -m-1 flex min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-item p-1 text-left focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none sm:gap-4"
               >
-                <m.span
-                  variants={POSTER}
-                  className="relative block h-20 w-14 shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/50 ring-white/15 transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-28 sm:w-[4.7rem]"
+                <span
+                  ref={posterRef}
+                  className="relative z-10 block h-20 w-14 shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/50 ring-white/15 transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-28 sm:w-[4.7rem]"
                 >
                   <Poster key={work.id} work={work} loading="eager" />
-                </m.span>
+                </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-1 sm:gap-1.5">
                   <m.span
                     variants={ITEM}
@@ -179,14 +229,17 @@ export function DetailPanel({ selectedId, graph, onClear, onOpen }: Props) {
                   </m.span>
                 </span>
               </m.button>
-              <button
+              <m.button
                 type="button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.15 }}
                 onClick={onClear}
                 className="relative shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
                 aria-label={t.clearSelection}
               >
                 <X className="size-4" />
-              </button>
+              </m.button>
             </m.div>
           )}
         </AnimatePresence>
