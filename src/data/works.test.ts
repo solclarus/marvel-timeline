@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { NOT_ON_THE_MAP } from "./not-on-the-map";
 import { isUpcoming, WORKS } from "./works";
 
 describe("isUpcoming", () => {
@@ -15,5 +16,13 @@ describe("isUpcoming", () => {
     for (const w of WORKS.filter((w) => w.releasePrecision)) {
       expect(w.releaseDate).toMatch(w.releasePrecision === "year" ? /-01-01$/ : /-01$/);
     }
+  });
+});
+
+describe("NOT_ON_THE_MAP", () => {
+  it("lists no work that's on the map", () => {
+    const onMap = new Set(WORKS.flatMap((w) => [w.title, w.titleJa]));
+    const both = NOT_ON_THE_MAP.flatMap((w) => [w.title, w.titleJa]).filter((t) => onMap.has(t));
+    expect(both).toEqual([]);
   });
 });

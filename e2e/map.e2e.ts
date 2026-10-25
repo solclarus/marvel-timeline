@@ -77,6 +77,15 @@ test("About shows the TMDB notice", async ({ page }) => {
   await expect(dialog).toHaveCount(0);
 });
 
+test("About lists the works left off the map", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "About" }).click();
+  const dialog = page.locator("[data-slot=dialog-content]");
+  await dialog.getByRole("button", { name: /Show the \d+ left off/ }).click();
+  await expect(dialog).toContainText("X-Men '97");
+  await expect(dialog).toContainText("Was on the map");
+});
+
 test("a poster TMDB can't serve falls back to stand-in art", async ({ page }) => {
   await page.route("https://image.tmdb.org/**", (route) => route.fulfill({ status: 404 }));
   await page.goto("./?work=iron-man");
