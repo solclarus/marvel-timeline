@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
+import type { OffMapReason } from "@/data/not-on-the-map";
 import {
   EARTH_META,
   FRANCHISE_META,
@@ -97,6 +98,18 @@ const en = {
   aboutData: "Data",
   aboutDataBody:
     "Release dates and posters come from TMDB. Connections between works and Earth designations are compiled by hand; Earth numbers not stated on screen follow the Marvel Database.",
+  aboutOffMap: "Not on the map",
+  aboutOffMapBody:
+    "A work outside the MCU is on the map only when a line ties it in, and announced works wait for a title and a year. These are left off for now, each with what would bring it in.",
+  offMapShow: (n: number) => `Show the ${n} left off`,
+  offMapHide: "Hide the list",
+  offMapReason: {
+    unlinked: "No line to the MCU",
+    undated: "No title or year yet",
+    unconfirmed: "Not yet confirmed",
+    extra: "Extras",
+  } as Record<OffMapReason, string>,
+  offMapRemoved: "Was on the map",
   aboutRights: "Rights",
   aboutRightsBody:
     "This is a fan project, not affiliated with or endorsed by Marvel, Disney, Sony Pictures, Netflix, or 20th Century Studios. Titles, characters, and logos are trademarks of their owners; posters are © their respective studios and are shown via TMDB to identify each work.",
@@ -185,6 +198,18 @@ const ja: Messages = {
   aboutData: "データ",
   aboutDataBody:
     "公開日とポスターは TMDB から取得しています。作品同士のつながりとアース番号は手作業でまとめたもので、作中で明示されていないアース番号は Marvel Database に従っています。",
+  aboutOffMap: "マップにない作品",
+  aboutOffMapBody:
+    "MCU 以外の作品は、MCU とつながる場合だけ載せています。発表済みの作品は、タイトルと公開年が決まってから載せます。いま載せていない作品と、載せる条件の一覧です。",
+  offMapShow: (n) => `${n}件を表示`,
+  offMapHide: "一覧を閉じる",
+  offMapReason: {
+    unlinked: "MCU とつながらない",
+    undated: "タイトル・公開年が未定",
+    unconfirmed: "公式に未確認",
+    extra: "補足的な短編",
+  },
+  offMapRemoved: "以前は掲載",
   aboutRights: "権利表記",
   aboutRightsBody:
     "本サイトはファンによる非公式プロジェクトで、Marvel、Disney、Sony Pictures、Netflix、20th Century Studios とは関係がなく、承認も受けていません。作品名・キャラクター・ロゴは各権利者の商標です。ポスターの著作権は各スタジオに帰属し、作品を識別するために TMDB 経由で表示しています。",

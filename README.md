@@ -1,6 +1,6 @@
 # Marvel Timeline
 
-An interactive map of Marvel viewing order across the MCU, Netflix's Defenders Saga, Fox X-Men, the pre-MCU films Deadpool & Wolverine brings back, legacy Spider-Man, the SSU, and the Spider-Verse films. Pick a work to see what it builds on. A work outside the MCU is on the map only when it ties into it; [NOT-ON-THE-MAP.md](NOT-ON-THE-MAP.md) has the rules and the works left off.
+An interactive map of Marvel viewing order across the MCU, Netflix's Defenders Saga, Fox X-Men, the pre-MCU films Deadpool & Wolverine brings back, legacy Spider-Man, the SSU, and the Spider-Verse films. Pick a work to see what it builds on. A work outside the MCU is on the map only when it ties into it; About lists the works left off.
 
 Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-timeline/.
 
@@ -29,8 +29,15 @@ pnpm dev
 
 ## Data
 
-Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand. What goes in follows [NOT-ON-THE-MAP.md](NOT-ON-THE-MAP.md), which also lists the works left off and what would bring each in; `pnpm test` checks that every work outside the MCU connects to it.
+Everything lives in `src/data/works.ts`: works, dependencies, Earths, release dates, and TMDB poster paths, edited by hand.
 
+- **What goes on the map** answers what to watch before what, not everything Marvel made:
+  1. MCU canon (Marvel Studios and Marvel Television) always, even a work that stands alone.
+  2. Anything else only when a line reaches the MCU: a sequel, prequel, crossover or reference (Deadpool & Wolverine's Blade films and Elektra, No Way Home's earlier Spider-Men). Two steps away doesn't count. `pnpm test` checks this.
+  3. A series that's on keeps its main line (the Fox X-Men films), not spin-offs in another medium.
+  4. Announced works once they have an official title and at least a year.
+  5. No shorts or extras (web series), unless a work on the map builds on one.
+- `src/data/not-on-the-map.ts` lists the works left off and what would bring each in; About shows it. When a new work ties one in, move it to `works.ts` with the tie in `dependsOn` and run `pnpm fetch:runtimes`. Works taken off the map keep their full entries in git history (`git show 59762a9:src/data/works.ts`).
 - `dependsOn` lists what a work builds on; `reference` edges are drawn but don't count as prerequisites.
 - `animated: true` marks animated films and series, which the media filter treats as animation rather than films or series.
 - Routes live in `src/data/routes.ts`: a list of works, or a goal whose direct prerequisites are taken; the app orders them.

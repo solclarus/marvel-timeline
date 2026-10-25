@@ -46,7 +46,7 @@ describe("works data", () => {
     expect(outside.map((w) => w.id)).toEqual([]);
   });
 
-  it("ties every work outside the MCU to it, as NOT-ON-THE-MAP.md asks", () => {
+  it("ties every work outside the MCU to it", () => {
     // MCU canon (Marvel Studios and Marvel Television) is on the map as is;
     // anything else must reach it through lines, references included.
     const canon = (w: (typeof WORKS)[number]) =>
