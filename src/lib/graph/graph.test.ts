@@ -599,33 +599,12 @@ describe("edgesToDraw", () => {
   const edges = WORK_GRAPHS.all.edges;
 
   it("draws every edge in recommended mode", () => {
-    expect(edgesToDraw("recommended", edges, null, null)).toBe(edges);
+    expect(edgesToDraw("recommended", edges)).toBe(edges);
   });
 
-  it("lights a selection's references and draws them in timelines", () => {
-    const reference = edges.find((e) => e.kind === "reference")!;
-    const active = computeActiveSet({
-      selectedId: reference.to,
-      distances: new Map(),
-      focusedPhase: undefined,
-      focusedGroup: undefined,
-      grouping: { by: "franchise", visible: new Set(GROUPS.franchise.map((g) => g.key)) },
-      graph: WORK_GRAPHS.all,
-    });
-    expect(active!.has(reference.from)).toBe(true);
-    expect(edgesToDraw("release", edges, reference.to, active)).toContain(reference);
-  });
-
-  it("draws nothing in timelines until something is selected", () => {
-    expect(edgesToDraw("release", edges, null, null)).toEqual([]);
-    expect(edgesToDraw("chronology", edges, null, new Set(["iron-man"]))).toEqual([]);
-  });
-
-  it("draws only a selection's ties in timelines", () => {
-    const active = new Set(["iron-man", "iron-man-2", "avengers"]);
-    const drawn = edgesToDraw("release", edges, "iron-man", active);
-    expect(drawn.length).toBeGreaterThan(0);
-    expect(drawn.every((e) => active.has(e.from) && active.has(e.to))).toBe(true);
+  it("draws nothing in timelines", () => {
+    expect(edgesToDraw("release", edges)).toEqual([]);
+    expect(edgesToDraw("chronology", edges)).toEqual([]);
   });
 });
 

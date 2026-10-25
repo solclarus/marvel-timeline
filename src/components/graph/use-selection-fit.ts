@@ -9,8 +9,9 @@ import { motionMs } from "@/lib/motion";
 const PAD = 24;
 const ANIMATION_MS = 450;
 
-// Selecting a work zooms the map so it and its relatives fit in the area the
-// detail panel (top) and command bar (bottom) leave uncovered. It refits only
+// Selecting a work zooms the map so it (with `withRelatives`, it and its
+// relatives) fits in the area the detail panel (top) and command bar
+// (bottom) leave uncovered. It refits only
 // when `fitKey` changes, i.e. when what's shown changes: the map re-renders
 // on every zoom step, and refitting on those would undo the viewer's own
 // zooming. The first fit (a shared link) jumps; later ones animate.
@@ -19,6 +20,7 @@ export function useSelectionFit({
   fitKey,
   selectedId,
   focusMode,
+  withRelatives,
   graph,
   layout,
   canvas,
@@ -29,6 +31,7 @@ export function useSelectionFit({
   fitKey: string | null;
   selectedId: string | null;
   focusMode: FocusMode;
+  withRelatives: boolean;
   graph: WorkGraph;
   layout: GraphLayout;
   canvas: { width: number; height: number };
@@ -42,7 +45,9 @@ export function useSelectionFit({
     if (fitKey === lastFitKeyRef.current) return;
     lastFitKeyRef.current = fitKey;
     if (!selectedId) return;
-    const ids = [selectedId, ...getRelatedDistances(selectedId, focusMode, graph).keys()];
+    const ids = withRelatives
+      ? [selectedId, ...getRelatedDistances(selectedId, focusMode, graph).keys()]
+      : [selectedId];
     const points = ids.map((id) => layout.positions.get(id)).filter((pos) => pos !== undefined);
     if (points.length === 0) return;
     const xs = points.map((pos) => (pos.x / 100) * canvas.width);
@@ -81,5 +86,16 @@ export function useSelectionFit({
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [transformRef, fitKey, selectedId, focusMode, graph, layout, canvas, node, scale]);
+  }, [
+    transformRef,
+    fitKey,
+    selectedId,
+    focusMode,
+    withRelatives,
+    graph,
+    layout,
+    canvas,
+    node,
+    scale,
+  ]);
 }

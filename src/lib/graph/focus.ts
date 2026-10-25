@@ -53,15 +53,7 @@ function referencesOf(id: string, edges: WorkEdge[]): string[] {
 
 // Edges to draw. Recommended mode is laid out by these dependencies, so it
 // shows them all. Release and timeline modes order works by date, where
-// long lines across the rows say little; they only show a selection's own
-// ties.
-export function edgesToDraw(
-  mode: ViewMode,
-  edges: WorkEdge[],
-  selectedId: string | null,
-  activeSet: Set<string> | null,
-): WorkEdge[] {
-  if (mode === "recommended") return edges;
-  if (!selectedId || !activeSet) return [];
-  return edges.filter((edge) => activeSet.has(edge.from) && activeSet.has(edge.to));
+// lines across the rows say little, so they draw none.
+export function edgesToDraw(mode: ViewMode, edges: WorkEdge[]): WorkEdge[] {
+  return mode === "recommended" ? edges : [];
 }
