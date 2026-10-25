@@ -72,6 +72,7 @@ const en = {
   watchFirst: "Watch first",
   watchFirstCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}, in order`,
   nothingFirst: "Nothing to watch first — you can start here.",
+  startHere: "Start here",
   directTag: "Direct",
   duration: (minutes: number) => {
     const h = Math.floor(minutes / 60);
@@ -159,6 +160,7 @@ const ja: Messages = {
   watchFirst: "先に観る作品",
   watchFirstCount: (n) => `観る順に ${n} 作品`,
   nothingFirst: "先に観る作品はありません。ここから観られます。",
+  startHere: "ここから観られます",
   directTag: "直接",
   duration: (minutes) => {
     const h = Math.floor(minutes / 60);
