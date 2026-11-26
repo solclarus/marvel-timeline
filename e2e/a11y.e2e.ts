@@ -21,17 +21,17 @@ test("a poster reached by Tab is brought into view and selectable with Enter", a
   await expect(page).toHaveURL(new RegExp(`work=${id}`));
 });
 
-test("reduced motion selects a poster without animating its scale", async ({ page }) => {
+test("reduced motion dims the other posters without animating their scale", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   const ironMan = page.locator('button[aria-label="Iron Man"]');
   await expect(ironMan).toBeVisible();
-  // Record the poster's scale every frame from the click on: with motion it
-  // springs through in-between values, without it jumps from 1 to 1.25.
+  // Record an unrelated poster's scale every frame from the click on: with
+  // motion it eases through in-between values, without it jumps from 1 to 0.85.
   const scales = page.evaluate(
     () =>
       new Promise<number[]>((resolve) => {
-        const el = document.getElementById("iron-man")!;
+        const el = document.getElementById("guardians-of-the-galaxy")!;
         const seen: number[] = [];
         const start = performance.now();
         const sample = () => {
@@ -43,10 +43,9 @@ test("reduced motion selects a poster without animating its scale", async ({ pag
         requestAnimationFrame(sample);
       }),
   );
-  // A DOM click, not a mouse one: the pointer resting on the poster would add
-  // its hover scale on top.
+  // A DOM click, not a mouse one, so no hover scale joins in.
   await ironMan.evaluate((el) => (el as HTMLElement).click());
   const seen = await scales;
-  expect(seen.at(-1)).toBe(1.25);
-  expect(seen.filter((scale) => scale > 1.001 && scale < 1.249)).toEqual([]);
+  expect(seen.at(-1)).toBe(0.85);
+  expect(seen.filter((scale) => scale > 0.851 && scale < 0.999)).toEqual([]);
 });
