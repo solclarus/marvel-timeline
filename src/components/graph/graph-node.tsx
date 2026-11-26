@@ -17,7 +17,7 @@ export type NodeState = "selected" | "ancestor" | "dimmed" | "neutral";
 
 const NODE_STATE_STYLE: Record<NodeState, { opacity: number; scale: number; grayscale: boolean }> =
   {
-    selected: { opacity: 1, scale: 1.25, grayscale: false },
+    selected: { opacity: 1, scale: 1, grayscale: false },
     ancestor: { opacity: 1, scale: 1, grayscale: false },
     neutral: { opacity: 1, scale: 1, grayscale: false },
     dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
@@ -93,7 +93,7 @@ export function GraphNode({
           onFocus={(e) => {
             if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
           }}
-          className="absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
+          className={`absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 ${state === "selected" ? "ring-2 ring-marquee ring-offset-2 ring-offset-neutral-800" : ""}`}
           aria-pressed={state === "selected"}
           style={{
             left: 0,

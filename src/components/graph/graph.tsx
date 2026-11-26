@@ -61,10 +61,12 @@ import { ZoomFab } from "./zoom-fab";
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 1.5;
 const INITIAL_ZOOM = 0.6;
-// Fitting a selection never zooms past 100%, so a work with few relatives
-// isn't blown up, nor below 50%, so a work many build on stays readable
-// (the fit then keeps the selection in sight rather than every relative).
-const FIT_SCALE = { min: 0.5, max: 1 };
+// Fitting a selection never zooms past 100% (70% on a phone), so a work
+// with few relatives isn't blown up, nor below 50% (30%), so a work many
+// build on stays readable (the fit then keeps the selection in sight rather
+// than every relative). A phone fits more of the map at once, since its
+// screen holds so few posters.
+const FIT_SCALE = { desktop: { min: 0.5, max: 1 }, phone: { min: 0.3, max: 0.7 } };
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 

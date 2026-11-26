@@ -34,7 +34,7 @@ export function useSelectionFit({
   layout: GraphLayout;
   canvas: { width: number; height: number };
   node: { width: number; height: number };
-  scale: { min: number; max: number };
+  scale: Record<"desktop" | "phone", { min: number; max: number }>;
 }) {
   const lastFitKeyRef = useRef<string | null>(null);
   const hasFittedRef = useRef(false);
@@ -71,6 +71,7 @@ export function useSelectionFit({
         if (!wrapper) return;
         const viewport = { width: wrapper.clientWidth, height: wrapper.clientHeight };
         const phone = viewport.width < 640;
+        const { min, max } = scale[phone ? "phone" : "desktop"];
         const next = fitBox(
           box,
           viewport,
@@ -81,8 +82,8 @@ export function useSelectionFit({
             // The desktop zoom controls sit on the right.
             right: viewport.width >= 768 ? 96 : 24,
           },
-          scale.min,
-          scale.max,
+          min,
+          max,
           focus,
         );
         transformRef.current?.setTransform(next.x, next.y, next.scale, animationTime);
