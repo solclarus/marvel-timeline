@@ -5,17 +5,8 @@ import type { EdgeKind, WorkEdge } from "@/data/works";
 import { elbowPath, elbowPieces, mergedPath, type EdgePiece } from "@/lib/graph/edge-path";
 import type { Axis, Point } from "@/lib/graph/layout";
 
-// Every kind but "reference" means "watch this first", so they share one
-// look; references are drawn dashed since they aren't prerequisites.
-export type EdgeStyle = "prerequisite" | "reference";
-
-const STYLE_OF_KIND: Record<EdgeKind, EdgeStyle> = {
-  "direct-sequel": "prerequisite",
-  "spin-off": "prerequisite",
-  "leads-into": "prerequisite",
-  crossover: "prerequisite",
-  reference: "reference",
-};
+// Prerequisites are drawn solid; references dashed, since they aren't.
+export type EdgeStyle = EdgeKind;
 
 export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
   prerequisite: { stroke: "#d4a017", width: 3.5 },
@@ -105,7 +96,7 @@ export function GraphEdges({
     );
     const key = edgeKey(edge);
     const pieces = elbowPieces(from, to, radiusPx, stubPx, axis);
-    const style = STYLE_OF_KIND[edge.kind];
+    const style = edge.kind;
     const isHovered = hoveredEdge === key;
     const isActive = activeSet !== null && activeSet.has(edge.from) && activeSet.has(edge.to);
     const dim = activeSet !== null && !isActive;
