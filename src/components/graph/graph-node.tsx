@@ -84,6 +84,7 @@ export function GraphNode({
         <m.button
           type="button"
           id={work.id}
+          data-work-id={work.id}
           onClick={(e) => {
             e.stopPropagation();
             onSelect(work.id);

@@ -67,6 +67,23 @@ test("hovering a franchise card focuses it", async ({ page }) => {
   expect(await opacityOf(page, "x-men")).toBe(1);
 });
 
+test("hovering a poster focuses its relatives, not its phase", async ({ page }) => {
+  await page.goto("./?work=hawkeye");
+  await page.waitForTimeout(600);
+  await page.keyboard.press("Escape");
+  // The closing card would cover the poster.
+  await expect(page.locator("[data-slot=detail-title]")).toHaveCount(0);
+  const poster = page.locator('[id="hawkeye"]');
+  await poster.hover();
+  // Moon Knight shares Hawkeye's phase band but no line.
+  await expect.poll(() => opacityOf(page, "moon-knight")).toBeLessThan(0.5);
+  for (const id of ["hawkeye", "black-widow", "echo"]) {
+    expect(await opacityOf(page, id)).toBe(1);
+  }
+  // Hovering doesn't select.
+  await expect(poster).toHaveAttribute("aria-pressed", "false");
+});
+
 test("About shows the TMDB notice", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: "About" }).click();
