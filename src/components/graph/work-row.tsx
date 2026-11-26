@@ -9,13 +9,14 @@ import { Poster } from "./poster";
 export type RowTag = { label: string; tone: "before" | "after" | "plain" };
 
 const TAG_TONE: Record<RowTag["tone"], string> = {
-  before: "border-amber-400/40 text-amber-200",
-  after: "border-sky-400/40 text-sky-200",
-  plain: "border-white/20 text-muted-foreground",
+  before: "border-marquee/40 text-marquee",
+  after: "border-white/20 text-foreground/80",
+  plain: "border-white/10 text-muted-foreground",
 };
 
-// One work as a card-like row: poster, title, kind, franchise, phase, year,
-// running time and Earths. Shared by the list view and the watch lists.
+// One work as a card-like row: poster, title, then kind, franchise, phase,
+// year, running time and any Earths besides the franchise's own. Shared by
+// the list view and the watch lists.
 // `number` adds a step number on the left; `tag` a pill on the right.
 export function WorkRow({
   work,
@@ -36,6 +37,7 @@ export function WorkRow({
 }) {
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const runtime = runtimeOf(work);
+  const earths = earthsOf(work);
   return (
     <li id={id}>
       <button
@@ -43,7 +45,7 @@ export function WorkRow({
         onClick={() => onSelect(work.id)}
         aria-pressed={selected}
         className={cn(
-          "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none",
+          "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none",
           selected
             ? "border-white/40 bg-white/10"
             : "border-transparent bg-white/5 hover:bg-white/9",
@@ -60,7 +62,7 @@ export function WorkRow({
         </span>
         <span className="min-w-0 flex-1">
           <span className="line-clamp-2 text-sm/snug font-medium">{titleOf(work)}</span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
+          <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
             <MediumBadge work={work} />
             <span
               className={`size-1.5 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
@@ -69,20 +71,20 @@ export function WorkRow({
             {work.phase !== undefined && <span>· {t.phase(work.phase)}</span>}
             <span className="tabular-nums">· {work.releaseDate.slice(0, 4)}</span>
             {runtime && <span className="tabular-nums">· {t.duration(runtime.minutes)}</span>}
-          </span>
-          <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted-foreground/80">
-            {earthsOf(work).map((earth) => (
-              <span key={earth} className="flex items-center gap-1">
-                <span className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`} />
-                {earthLabel(earth)}
-              </span>
-            ))}
+            {/* Earths only when they aren't the franchise's own. */}
+            {(earths.length > 1 || earths[0] !== FRANCHISE_META[work.franchise].earth) &&
+              earths.map((earth) => (
+                <span key={earth} className="flex items-center gap-1">
+                  · <span className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`} />
+                  {earthLabel(earth)}
+                </span>
+              ))}
           </span>
         </span>
         {tag && (
           <span
             className={cn(
-              "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap",
+              "shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
               TAG_TONE[tag.tone],
             )}
           >

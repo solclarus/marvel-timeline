@@ -119,14 +119,14 @@ export function MapBackdrop({
       {timeline?.today && (
         <div
           aria-hidden
-          className="pointer-events-none absolute w-0.5 -translate-x-1/2 rounded-full bg-sky-400"
+          className="pointer-events-none absolute w-0.5 -translate-x-1/2 rounded-full bg-foreground"
           style={{
             left: `${timeline.today.x}%`,
             top: `${timeline.today.top}%`,
             height: `${timeline.today.bottom - timeline.today.top}%`,
           }}
         >
-          <span className="absolute top-1 left-1.5 rounded-full bg-sky-400 px-1.5 text-[10px] font-semibold text-neutral-900">
+          <span className="absolute top-1 left-1.5 rounded-full bg-foreground px-1.5 text-xs font-medium text-background">
             {t.today}
           </span>
         </div>

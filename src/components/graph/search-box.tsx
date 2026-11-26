@@ -120,8 +120,8 @@ export function SearchBox({ onSelect }: Props) {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{titleOf(work)}</span>
-                    <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <MediumBadge work={work} className="text-[9px]" />
+                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                      <MediumBadge work={work} />
                       <span
                         className={`size-1.5 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
                       />

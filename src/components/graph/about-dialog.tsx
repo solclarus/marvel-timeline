@@ -18,9 +18,7 @@ const REPO_URL = "https://github.com/solclarus/marvel-timeline";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-1.5">
-      <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-        {title}
-      </h3>
+      <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
       <div className="space-y-2 text-sm/relaxed">{children}</div>
     </section>
   );
@@ -110,7 +108,7 @@ function OffMapList() {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2.5 text-xs hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
+        className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2.5 text-xs hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
       >
         {open ? t.offMapHide : t.offMapShow(NOT_ON_THE_MAP.length)}
         <ChevronDown
@@ -139,7 +137,7 @@ function OffMapList() {
                           </span>
                         )}
                         {work.removed && (
-                          <span className="ml-1.5 rounded-full border border-white/15 px-1.5 py-px text-[10px] whitespace-nowrap text-muted-foreground">
+                          <span className="ml-1.5 whitespace-nowrap text-muted-foreground">
                             {t.offMapRemoved}
                           </span>
                         )}

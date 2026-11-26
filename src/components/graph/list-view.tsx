@@ -68,7 +68,7 @@ export function ListView({
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         {sections.map((section) => (
           <section key={section.kind === "saga" ? section.saga : section.decade}>
-            <h2 className="mb-2 flex items-baseline justify-between px-2 text-xs font-semibold tracking-wide text-muted-foreground">
+            <h2 className="mb-2 flex items-baseline justify-between px-2 text-xs font-medium text-muted-foreground">
               {section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
               <span className="font-normal tabular-nums">{t.workCount(section.works.length)}</span>
             </h2>

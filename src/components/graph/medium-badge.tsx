@@ -13,14 +13,14 @@ export const MEDIUM_META: Record<
   animation: { label: "mediumAnimation", icon: Sparkles },
 };
 
-// Film, series or animation, as a small pill.
+// Film, series or animation, as an icon and its name.
 export function MediumBadge({ work, className }: { work: WorkNode; className?: string }) {
   const { t } = useI18n();
   const { label, icon: Icon } = MEDIUM_META[mediumOf(work)];
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-full whitespace-nowrap border border-white/15 px-1.5 py-px text-[10px]/4  font-medium text-foreground/80",
+        "inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-foreground/80",
         className,
       )}
     >

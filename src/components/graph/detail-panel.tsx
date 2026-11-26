@@ -221,7 +221,7 @@ function PosterWash({ work }: { work: WorkNode }) {
           <img
             src={posterUrl(work, "w154")}
             alt=""
-            className="absolute top-0 left-0 h-40 w-2/3 scale-125 object-cover opacity-60 blur-2xl saturate-150"
+            className="absolute top-0 left-0 h-40 w-2/3 scale-125 object-cover opacity-50 blur-2xl saturate-125"
           />
         ) : (
           <div
@@ -310,9 +310,9 @@ function WorkHeader({
               onClick={onToggle}
               aria-expanded={open}
               aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2 text-xs text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none aria-expanded:border-sky-400/40 aria-expanded:bg-sky-400/10"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2 text-xs text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
             >
-              <ListOrdered className="size-3.5 text-sky-300" aria-hidden />
+              <ListOrdered className="size-3.5 text-marquee" aria-hidden />
               {t.watchFirst}
               <span className="text-muted-foreground tabular-nums">
                 {t.watchFirstCount(before)}
@@ -351,7 +351,7 @@ function RouteHeader({ route }: { route: (typeof ROUTES)[number] }) {
     >
       <m.span
         variants={ITEM}
-        className="flex size-11 shrink-0 items-center justify-center rounded-item bg-sky-400/15 text-sky-300 ring-1 ring-sky-400/30"
+        className="flex size-11 shrink-0 items-center justify-center rounded-item bg-marquee/15 text-marquee ring-1 ring-marquee/30"
       >
         <Signpost className="size-5" aria-hidden />
       </m.span>
