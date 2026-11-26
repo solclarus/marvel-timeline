@@ -24,9 +24,11 @@ import {
   computePhaseBands,
   computeSagaBands,
   computeTimelineBackdrop,
+  pointToPx,
   type Axis,
   type ViewMode,
 } from "@/lib/graph/layout";
+import { POSTER_PX } from "@/lib/graph/metrics";
 import {
   computeEdgeVisibility,
   getRelatedDistances,
@@ -44,13 +46,7 @@ import { CommandBar } from "./command-bar";
 import { attachDesktopInput, keepInView } from "./desktop-input";
 import { DetailPanel } from "./detail-panel";
 import { GraphEdges } from "./graph-edges";
-import {
-  GraphNode,
-  HEIGHT as NODE_HEIGHT,
-  PosterTooltip,
-  WIDTH as NODE_WIDTH,
-  type NodeState,
-} from "./graph-node";
+import { GraphNode, PosterTooltip, type NodeState } from "./graph-node";
 import { GroupHoverChip } from "./group-hover-chip";
 import { ListView } from "./list-view";
 import { MapBackdrop } from "./map-backdrop";
@@ -69,7 +65,6 @@ const INITIAL_ZOOM = 0.6;
 // isn't blown up, nor below 50%, so a work many build on stays readable
 // (the fit then keeps the selection in sight rather than every relative).
 const FIT_SCALE = { min: 0.5, max: 1 };
-const NODE_SIZE = { width: NODE_WIDTH, height: NODE_HEIGHT };
 
 const AVENGERS_ID = WORKS.find((w) => w.thread === "avengers")?.id;
 
@@ -112,12 +107,6 @@ export function Graph() {
     onPin: () => card.select(null),
   });
 
-  // The map ties a selection to the works just before and after it; the
-  // whole chain lit up at once was too much to read. The list, a watch
-  // order, marks the whole chain.
-  const distances = selectedId
-    ? getRelatedDistances(selectedId, display === "map" ? "immediate" : "chain", graph)
-    : new Map<string, number>();
   // While the card lists works (a watch-first path or a route), those are
   // what light up behind it.
   const listed =
@@ -129,16 +118,20 @@ export function Graph() {
       : card.current?.open
         ? watchFirst(card.current.id, graph).map((step) => step.work)
         : null;
-  // A hovered poster previews what selecting it would light.
-  const hoveredWorkId = !selectedId && !listed ? focus.focusedWorkId : null;
-  const mapDistances = hoveredWorkId
-    ? getRelatedDistances(hoveredWorkId, "immediate", graph)
-    : distances;
+  // The selection, else a hovered poster: hovering previews what selecting
+  // would light.
+  const focusId = selectedId ?? (listed ? null : focus.focusedWorkId);
+  // The map ties it to the works just before and after it; the whole chain
+  // lit up at once was too much to read. The list, a watch order, marks the
+  // whole chain.
+  const distances = focusId
+    ? getRelatedDistances(focusId, display === "map" ? "immediate" : "chain", graph)
+    : new Map<string, number>();
   const activeSet = listed
     ? new Set([...listed.map((w) => w.id), ...(selectedId ? [selectedId] : [])])
     : computeActiveSet({
-        selectedId: selectedId ?? hoveredWorkId,
-        distances: mapDistances,
+        selectedId: focusId,
+        distances,
         focusedPhase: focus.focusedPhase?.phase,
         focusedGroup: focus.focusedCard?.key,
         grouping,
@@ -191,7 +184,7 @@ export function Graph() {
     graph,
     layout,
     canvas,
-    node: NODE_SIZE,
+    node: POSTER_PX,
     scale: FIT_SCALE,
   });
 
@@ -288,7 +281,7 @@ export function Graph() {
   const geometry = computeEdgeGeometry(
     axis === "y" ? canvas.height : canvas.width,
     axis === "y" ? layout.rowCount : layout.totalLanes,
-    axis === "y" ? NODE_HEIGHT : NODE_WIDTH,
+    axis === "y" ? POSTER_PX.height : POSTER_PX.width,
     axis === "y" ? (layout.headerPx ?? 0) : 0,
   );
 
@@ -357,7 +350,7 @@ export function Graph() {
                 edges={edges}
                 positions={layout.positions}
                 activeSet={mapActiveSet}
-                distances={mapDistances}
+                distances={distances}
                 visibleIds={visibleIds}
                 axis={axis}
                 {...geometry}
@@ -369,13 +362,10 @@ export function Graph() {
                   <GraphNode
                     key={work.id}
                     work={work}
-                    x={(pos.x / 100) * canvas.width}
-                    y={(pos.y / 100) * canvas.height}
+                    {...pointToPx(pos, canvas)}
                     state={nodeState(work.id)}
                     delay={
-                      mapActiveSet?.has(work.id)
-                        ? Math.abs(mapDistances.get(work.id) ?? 0) * 0.06
-                        : 0
+                      mapActiveSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
                     }
                     onSelect={handleSelect}
                     onKeyboardFocus={handleKeyboardFocus}

@@ -5,13 +5,13 @@ import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MEDIA, type Medium } from "@/data/works";
+import { MEDIA, type EdgeKind, type Medium } from "@/data/works";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
 import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-import { EDGE_STYLE, type EdgeStyle } from "./graph-edges";
+import { EDGE_STYLE } from "./graph-edges";
 import { MEDIUM_META } from "./medium-badge";
 
 interface Props {
@@ -50,12 +50,12 @@ function Section({
 type MessageKey = { [K in keyof Messages]: Messages[K] extends string ? K : never }[keyof Messages];
 
 // What each of the map's line styles means.
-const EDGE_LEGEND: Array<{ style: EdgeStyle; label: MessageKey; detail?: MessageKey }> = [
+const EDGE_LEGEND: Array<{ style: EdgeKind; label: MessageKey; detail?: MessageKey }> = [
   { style: "prerequisite", label: "linePrerequisite", detail: "linePrerequisiteDetail" },
   { style: "reference", label: "lineReference", detail: "lineReferenceDetail" },
 ];
 
-function LineSample({ style }: { style: EdgeStyle }) {
+function LineSample({ style }: { style: EdgeKind }) {
   const { stroke, width, dash } = EDGE_STYLE[style];
   return (
     <svg width="24" height="8" aria-hidden className="shrink-0">

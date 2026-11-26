@@ -30,7 +30,7 @@ export interface TimelineGrid {
 }
 
 // Every size here is a multiple of 4.
-// The poster's size (see graph-node.tsx), which cards are padded around.
+// The poster's size, which cards are padded around.
 export const POSTER_PX = { width: 80, height: 120 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
 // four sides between its edge and what it holds.
@@ -72,6 +72,11 @@ export const UNPHASED_CLEARANCE = Math.max(
 // between them. The gutter and header keep the first column and row clear of
 // the year and month labels.
 export const TIMELINE_PX = { column: 100, row: 164, gutter: 72, header: 44, end: 24 };
+
+// A layout position (canvas percentages) in canvas pixels.
+export function pointToPx(p: Point, canvas: { width: number; height: number }): Point {
+  return { x: (p.x / 100) * canvas.width, y: (p.y / 100) * canvas.height };
+}
 
 export function canvasHeight(rowCount: number, headerPx = 0) {
   return Math.max(500, rowCount * ROW_PX + headerPx);

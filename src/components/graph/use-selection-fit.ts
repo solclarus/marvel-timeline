@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 
-import type { GraphLayout } from "@/lib/graph/layout";
+import { pointToPx, type GraphLayout } from "@/lib/graph/layout";
 import { getRelatedDistances, type WorkGraph } from "@/lib/graph/relations";
 import { fitBox } from "@/lib/graph/wheel-zoom";
 import { motionMs } from "@/lib/motion";
@@ -48,8 +48,9 @@ export function useSelectionFit({
       : [selectedId];
     const points = ids.map((id) => layout.positions.get(id)).filter((pos) => pos !== undefined);
     if (points.length === 0) return;
-    const xs = points.map((pos) => (pos.x / 100) * canvas.width);
-    const ys = points.map((pos) => (pos.y / 100) * canvas.height);
+    const px = points.map((pos) => pointToPx(pos, canvas));
+    const xs = px.map((p) => p.x);
+    const ys = px.map((p) => p.y);
     const box = {
       left: Math.min(...xs) - node.width / 2 - PAD,
       right: Math.max(...xs) + node.width / 2 + PAD,
@@ -58,10 +59,7 @@ export function useSelectionFit({
     };
     // A fit too big to show keeps the selection in sight.
     const selected = layout.positions.get(selectedId);
-    const focus = selected && {
-      x: (selected.x / 100) * canvas.width,
-      y: (selected.y / 100) * canvas.height,
-    };
+    const focus = selected && pointToPx(selected, canvas);
     const animationTime = hasFittedRef.current ? motionMs(ANIMATION_MS) : 0;
     hasFittedRef.current = true;
 

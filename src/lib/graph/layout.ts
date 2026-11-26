@@ -8,6 +8,7 @@ export * from "./backdrop";
 export { recommendedTimeRank } from "./git-graph-layout";
 export {
   canvasSize,
+  pointToPx,
   type Axis,
   type GraphLayout,
   type Point,

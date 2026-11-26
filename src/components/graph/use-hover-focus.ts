@@ -35,12 +35,26 @@ export function useHoverFocus({
     return () => window.clearTimeout(timer);
   }, [pending]);
 
-  // A hover is stale once the pointer moves on.
-  const hoverId = hovered !== null && hovered === pending?.id ? hovered : null;
+  // A settled hover holds until the next target settles, so crossing a
+  // poster's edge changes the map once rather than clearing it in between;
+  // it clears once the pointer is over nothing.
+  const hoverId = pending ? hovered : null;
   const focusedId = selectedId ? null : (hoverId ?? pinnedId);
   const focusedPhase = phaseBands.find((band) => `phase:${band.phase}` === focusedId);
   const focusedCard = groupCards.find((card) => `group:${card.key}` === focusedId);
   const focusedWorkId = focusedId?.startsWith("work:") ? focusedId.slice("work:".length) : null;
+
+  // What the pointer rests on: a poster, else a phase band, else a card.
+  const targetAt = (target: Element, point: { x: number; y: number }) => {
+    const work = workHover
+      ? target.closest<HTMLElement>("[data-work-id]")?.dataset.workId
+      : undefined;
+    if (work) return `work:${work}`;
+    const phase = groupCardAt(phaseBands, point);
+    if (phase) return `phase:${phase.phase}`;
+    const card = groupCardAt(groupCards, point);
+    return card ? `group:${card.key}` : null;
+  };
 
   const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
     if (event.pointerType !== "mouse") return;
@@ -49,18 +63,8 @@ export function useHoverFocus({
       x: ((event.clientX - rect.left) / rect.width) * 100,
       y: ((event.clientY - rect.top) / rect.height) * 100,
     };
-    const work = workHover
-      ? (event.target as Element).closest<HTMLElement>("[data-work-id]")?.dataset.workId
-      : undefined;
-    const phase = work ? undefined : groupCardAt(phaseBands, point);
-    const card = work || phase ? undefined : groupCardAt(groupCards, point);
-    const id = work
-      ? `work:${work}`
-      : phase
-        ? `phase:${phase.phase}`
-        : card
-          ? `group:${card.key}`
-          : null;
+    const id = targetAt(event.target as Element, point);
+    if (id === null) setHovered(null);
     // Same target: keep the state as is, so moving within it doesn't re-render.
     setPending((current) =>
       (current?.id ?? null) === id
@@ -86,6 +90,9 @@ export function useHoverFocus({
     },
     clearPinned: () => setPinnedId(null),
     onPointerMove,
-    onPointerLeave: () => setPending(null),
+    onPointerLeave: () => {
+      setPending(null);
+      setHovered(null);
+    },
   };
 }
