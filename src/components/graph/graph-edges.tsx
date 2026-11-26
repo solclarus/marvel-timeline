@@ -23,7 +23,7 @@ export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash
 };
 
 const HOVER_DELAY_MS = 250;
-const CORNER_RADIUS_PX = 14;
+const CORNER_RADIUS_PX = 12;
 
 interface Props {
   edges: WorkEdge[];

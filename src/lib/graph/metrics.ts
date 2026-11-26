@@ -29,16 +29,17 @@ export interface TimelineGrid {
   months: Array<{ month: number; left: number; right: number }>;
 }
 
-// Cells leave room around each poster for the cards' padding. A row is a
-// poster plus two paddings plus one more, so cards in neighboring rows
-// (stacked phases, timeline rows) sit CARD_PAD_PX apart.
-export const LANE_PX = 144;
-export const ROW_PX = 222;
+// Every size here is a multiple of 4.
 // The poster's size (see graph-node.tsx), which cards are padded around.
 export const POSTER_PX = { width: 80, height: 120 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
 // four sides between its edge and what it holds.
-export const CARD_PAD_PX = 34;
+export const CARD_PAD_PX = 28;
+// Cells leave room around each poster for the cards' padding. A row is a
+// poster plus two paddings plus one more, so cards in neighboring rows
+// (stacked phases, timeline rows) sit CARD_PAD_PX apart.
+export const LANE_PX = 144;
+export const ROW_PX = POSTER_PX.height + 3 * CARD_PAD_PX;
 // Between neighboring cards' lane runs (a run holding phases also takes room
 // for its nested frames; see computeGitGraphLayout).
 export const GROUP_GAP_PX = 44;
