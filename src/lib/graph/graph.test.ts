@@ -16,6 +16,7 @@ import {
   timelineYear,
   type ViewMode,
 } from "./layout";
+import { CARD_PAD_PX, POSTER_PX } from "./metrics";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -487,7 +488,9 @@ describe("phase bands", () => {
         const ys = WORKS.filter((w) => groupKeyOf(w, by) === card.key).map(
           (w) => layout.positions.get(w.id)!.y,
         );
-        expect(Math.round(((Math.min(...ys) - card.top) / 100) * height)).toBe(51 + 40);
+        expect(Math.round(((Math.min(...ys) - card.top) / 100) * height)).toBe(
+          POSTER_PX.height / 2 + CARD_PAD_PX,
+        );
       }
     }
   });
@@ -503,7 +506,7 @@ describe("phase bands", () => {
     const gaps = sagas
       .slice(1)
       .map((saga, i) => ((saga.top - (sagas[i].top + sagas[i].height)) / 100) * height);
-    expect(gaps.map(Math.round)).toEqual([40, 40]);
+    expect(gaps.map(Math.round)).toEqual([CARD_PAD_PX, CARD_PAD_PX]);
     expect(sagas[0].top).toBeGreaterThanOrEqual(0);
   });
 
