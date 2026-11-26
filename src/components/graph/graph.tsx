@@ -98,10 +98,17 @@ export function Graph() {
   const groupCards = computeGroupCards(mode, layout, grouping, sagaBands);
   const timeline = computeTimelineBackdrop(layout);
 
+  // Timelines place works by date rather than by what they build on, so
+  // relatives there are scattered across the map: a selection lights only
+  // itself, and hovering a poster focuses its card instead. The list still
+  // marks them.
+  const showRelatives = mode === "recommended";
+
   const focus = useHoverFocus({
     groupCards,
     phaseBands,
     selectedId,
+    workHover: showRelatives,
     onPin: () => card.select(null),
   });
 
@@ -122,20 +129,21 @@ export function Graph() {
       : card.current?.open
         ? watchFirst(card.current.id, graph).map((step) => step.work)
         : null;
+  // A hovered poster previews what selecting it would light.
+  const hoveredWorkId = !selectedId && !listed ? focus.focusedWorkId : null;
+  const mapDistances = hoveredWorkId
+    ? getRelatedDistances(hoveredWorkId, "immediate", graph)
+    : distances;
   const activeSet = listed
     ? new Set([...listed.map((w) => w.id), ...(selectedId ? [selectedId] : [])])
     : computeActiveSet({
-        selectedId,
-        distances,
+        selectedId: selectedId ?? hoveredWorkId,
+        distances: mapDistances,
         focusedPhase: focus.focusedPhase?.phase,
         focusedGroup: focus.focusedCard?.key,
         grouping,
         graph,
       });
-  // Timelines place works by date rather than by what they build on, so
-  // relatives there are scattered across the map: a selection lights only
-  // itself. The list still marks them.
-  const showRelatives = mode === "recommended";
   const mapActiveSet = selectedId && !listed && !showRelatives ? new Set([selectedId]) : activeSet;
   const nodeState = (id: string): NodeState =>
     !mapActiveSet
@@ -349,7 +357,7 @@ export function Graph() {
                 edges={edges}
                 positions={layout.positions}
                 activeSet={mapActiveSet}
-                distances={distances}
+                distances={mapDistances}
                 visibleIds={visibleIds}
                 axis={axis}
                 {...geometry}
@@ -365,7 +373,9 @@ export function Graph() {
                     y={pos.y}
                     state={nodeState(work.id)}
                     delay={
-                      mapActiveSet?.has(work.id) ? Math.abs(distances.get(work.id) ?? 0) * 0.06 : 0
+                      mapActiveSet?.has(work.id)
+                        ? Math.abs(mapDistances.get(work.id) ?? 0) * 0.06
+                        : 0
                     }
                     onSelect={handleSelect}
                     onKeyboardFocus={handleKeyboardFocus}
