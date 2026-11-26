@@ -82,6 +82,9 @@ test("hovering a poster focuses its relatives, not its phase", async ({ page }) 
   }
   // Hovering doesn't select.
   await expect(poster).toHaveAttribute("aria-pressed", "false");
+  // Zooming moves the poster from under the pointer, which ends the hover.
+  await pinch(page, -40, 3);
+  await expect.poll(() => opacityOf(page, "moon-knight")).toBe(1);
 });
 
 test("About shows the TMDB notice", async ({ page }) => {

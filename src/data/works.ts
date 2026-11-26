@@ -2150,7 +2150,9 @@ export const WORKS: WorkNode[] = [
     thread: "shield",
     dependsOn: [
       { id: "avengers", kind: "prerequisite" },
-      { id: "captain-america-winter-soldier", kind: "prerequisite" },
+      // Only the back half of the season follows The Winter Soldier, which
+      // came out after the season began.
+      { id: "captain-america-winter-soldier", kind: "reference" },
     ],
     chronologyOrder: 91.1,
     setYear: 2013,

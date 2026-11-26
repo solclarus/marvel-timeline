@@ -10,39 +10,54 @@ const HOVER_DELAY_MS = 250;
 // counts as the card it sits in). Hover counts once the pointer rests, so
 // sweeping across doesn't flicker; a poster wins over the phase band it
 // sits in, and a phase band over its card. A selection overrides them all.
+// A hover only counts in the layout it began in (`layoutKey`), and ends when
+// the map pans or zooms (`clearHover`): either moves what's under a pointer
+// that hasn't moved.
 export function useHoverFocus({
   groupCards,
   phaseBands,
   selectedId,
   workHover,
+  layoutKey,
   onPin,
 }: {
   groupCards: ReturnType<typeof computeGroupCards>;
   phaseBands: ReturnType<typeof computePhaseBands>;
   selectedId: string | null;
   workHover: boolean;
+  layoutKey: string;
   // Called when a label is pinned, e.g. to clear the selection.
   onPin: () => void;
 }) {
   // `pending` keeps where the pointer entered, for the hover chip.
-  const [pending, setPending] = useState<{ id: string; x: number; y: number } | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [pending, setPending] = useState<{
+    id: string;
+    key: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [hovered, setHovered] = useState<{ id: string; key: string } | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (pending === null) return;
-    const timer = window.setTimeout(() => setHovered(pending.id), HOVER_DELAY_MS);
+    const timer = window.setTimeout(
+      () => setHovered({ id: pending.id, key: pending.key }),
+      HOVER_DELAY_MS,
+    );
     return () => window.clearTimeout(timer);
   }, [pending]);
 
   // A settled hover holds until the next target settles, so crossing a
   // poster's edge changes the map once rather than clearing it in between;
   // it clears once the pointer is over nothing.
-  const hoverId = pending ? hovered : null;
+  const live = pending?.key === layoutKey ? pending : null;
+  const hoverId = live && hovered?.key === layoutKey ? hovered.id : null;
   const focusedId = selectedId ? null : (hoverId ?? pinnedId);
   const focusedPhase = phaseBands.find((band) => `phase:${band.phase}` === focusedId);
   const focusedCard = groupCards.find((card) => `group:${card.key}` === focusedId);
-  const focusedWorkId = focusedId?.startsWith("work:") ? focusedId.slice("work:".length) : null;
+  const focusedWorkId =
+    workHover && focusedId?.startsWith("work:") ? focusedId.slice("work:".length) : null;
 
   // What the pointer rests on: a poster, else a phase band, else a card.
   const targetAt = (target: Element, point: { x: number; y: number }) => {
@@ -67,12 +82,17 @@ export function useHoverFocus({
     if (id === null) setHovered(null);
     // Same target: keep the state as is, so moving within it doesn't re-render.
     setPending((current) =>
-      (current?.id ?? null) === id
+      (current?.id ?? null) === id && current?.key === layoutKey
         ? current
         : id === null
           ? null
-          : { id, x: event.clientX, y: event.clientY },
+          : { id, key: layoutKey, x: event.clientX, y: event.clientY },
     );
+  };
+
+  const clearHover = () => {
+    setPending(null);
+    setHovered(null);
   };
 
   return {
@@ -83,16 +103,14 @@ export function useHoverFocus({
     // Where a group's hover began, while hover (not a pin) is what's
     // focused: the chip only shows then, since a pinned label already names
     // its group, and a poster has its own tooltip.
-    hoverChipAt: pending && pending.id === focusedId && !focusedWorkId ? pending : null,
+    hoverChipAt: live && live.id === focusedId && !focusedWorkId ? live : null,
     togglePinned: (id: string) => {
       onPin();
       setPinnedId((current) => (current === id ? null : id));
     },
     clearPinned: () => setPinnedId(null),
     onPointerMove,
-    onPointerLeave: () => {
-      setPending(null);
-      setHovered(null);
-    },
+    onPointerLeave: clearHover,
+    clearHover,
   };
 }
