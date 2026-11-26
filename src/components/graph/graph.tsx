@@ -104,6 +104,7 @@ export function Graph() {
     phaseBands,
     selectedId,
     workHover: showRelatives,
+    layoutKey: [mode, grouping.by, ...grouping.visible, "|", ...media].join(","),
     onPin: () => card.select(null),
   });
 
@@ -296,7 +297,11 @@ export function Graph() {
       // Desktop wheel and trackpad input is handled by attachDesktopInput.
       wheel={{ disabled: true }}
       pinch={{ step: 5 }}
-      onTransform={(_ref, state) => setZoomPercent(state.scale)}
+      onTransform={(_ref, state) => {
+        setZoomPercent(state.scale);
+        // What's under the pointer moved.
+        focus.clearHover();
+      }}
       // Dragging may overshoot; it eases back once released.
       onPanningStop={(ref) => {
         const { positionX: x, positionY: y, scale } = ref.instance.state;
