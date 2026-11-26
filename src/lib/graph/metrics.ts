@@ -35,10 +35,10 @@ export interface TimelineGrid {
 export const LANE_PX = 144;
 export const ROW_PX = 222;
 // The poster's size (see graph-node.tsx), which cards are padded around.
-export const POSTER_PX = { width: 68, height: 102 };
+export const POSTER_PX = { width: 80, height: 120 };
 // Every card (phase, saga, franchise or Earth) keeps this much room on all
 // four sides between its edge and what it holds.
-export const CARD_PAD_PX = 40;
+export const CARD_PAD_PX = 34;
 // Between neighboring cards' lane runs (a run holding phases also takes room
 // for its nested frames; see computeGitGraphLayout).
 export const GROUP_GAP_PX = 44;
@@ -70,7 +70,7 @@ export const UNPHASED_CLEARANCE = Math.max(
 // Timelines pack posters closer than the recommended map: no lines run
 // between them. The gutter and header keep the first column and row clear of
 // the year and month labels.
-export const TIMELINE_PX = { column: 92, row: 150, gutter: 72, header: 44, end: 24 };
+export const TIMELINE_PX = { column: 100, row: 164, gutter: 72, header: 44, end: 24 };
 
 export function canvasHeight(rowCount: number, headerPx = 0) {
   return Math.max(500, rowCount * ROW_PX + headerPx);

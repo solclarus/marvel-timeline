@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { earthsOf, type WorkNode } from "@/data/works";
 import type { Axis } from "@/lib/graph/layout";
+import { POSTER_PX } from "@/lib/graph/metrics";
 import { useI18n } from "@/lib/i18n";
 
 import { Poster } from "./poster";
@@ -22,8 +23,8 @@ const NODE_STATE_STYLE: Record<NodeState, { opacity: number; scale: number; gray
     dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
   };
 
-export const WIDTH = 68;
-export const HEIGHT = 102;
+export const WIDTH = POSTER_PX.width;
+export const HEIGHT = POSTER_PX.height;
 
 interface Props {
   work: WorkNode;
