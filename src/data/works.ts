@@ -2442,3 +2442,10 @@ export function posterUrl(work: WorkNode, width: "w154" | "w185" = "w185") {
 export function earthsOf(work: WorkNode): EarthId[] {
   return work.earths ?? [FRANCHISE_META[work.franchise].earth];
 }
+
+// The Earths that say more than the franchise does: none when the work
+// stays on its franchise's own Earth.
+export function notableEarthsOf(work: WorkNode): EarthId[] {
+  const earths = earthsOf(work);
+  return earths.length === 1 && earths[0] === FRANCHISE_META[work.franchise].earth ? [] : earths;
+}

@@ -1,4 +1,4 @@
-import { EARTH_META, earthsOf, FRANCHISE_META, type WorkNode } from "@/data/works";
+import { EARTH_META, FRANCHISE_META, notableEarthsOf, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 import { runtimeOf } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,6 @@ export function WorkRow({
 }) {
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const runtime = runtimeOf(work);
-  const earths = earthsOf(work);
   return (
     <li id={id}>
       <button
@@ -71,14 +70,12 @@ export function WorkRow({
             {work.phase !== undefined && <span>· {t.phase(work.phase)}</span>}
             <span className="tabular-nums">· {work.releaseDate.slice(0, 4)}</span>
             {runtime && <span className="tabular-nums">· {t.duration(runtime.minutes)}</span>}
-            {/* Earths only when they aren't the franchise's own. */}
-            {(earths.length > 1 || earths[0] !== FRANCHISE_META[work.franchise].earth) &&
-              earths.map((earth) => (
-                <span key={earth} className="flex items-center gap-1">
-                  · <span className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`} />
-                  {earthLabel(earth)}
-                </span>
-              ))}
+            {notableEarthsOf(work).map((earth) => (
+              <span key={earth} className="flex items-center gap-1">
+                · <span className={`size-1.5 rounded-full ${EARTH_META[earth].colorClass}`} />
+                {earthLabel(earth)}
+              </span>
+            ))}
           </span>
         </span>
         {tag && (

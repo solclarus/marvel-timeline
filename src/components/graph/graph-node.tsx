@@ -23,8 +23,8 @@ const NODE_STATE_STYLE: Record<NodeState, { opacity: number; scale: number; gray
     dimmed: { opacity: 0.15, scale: 0.85, grayscale: true },
   };
 
-export const WIDTH = POSTER_PX.width;
-export const HEIGHT = POSTER_PX.height;
+// How posters move to a new layout position.
+const MOVE = { duration: 0.45, ease: [0.22, 1, 0.36, 1] } as const;
 
 interface Props {
   work: WorkNode;
@@ -95,7 +95,13 @@ export function GraphNode({
           }}
           className="absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
           aria-pressed={state === "selected"}
-          style={{ left: 0, top: 0, width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
+          style={{
+            left: 0,
+            top: 0,
+            width: POSTER_PX.width,
+            height: POSTER_PX.height,
+            translate: "-50% -50%",
+          }}
           initial={false}
           animate={{
             x,
@@ -105,8 +111,8 @@ export function GraphNode({
           }}
           transition={{
             // Moves by transform, so a layout change stays smooth.
-            x: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-            y: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+            x: MOVE,
+            y: MOVE,
             opacity: { duration: 0.3, delay },
             scale: { duration: 0.25, delay, ease: "easeOut" },
           }}

@@ -3,14 +3,11 @@ import { useEffect, useState } from "react";
 
 import type { EdgeKind, WorkEdge } from "@/data/works";
 import { elbowPath, elbowPieces, mergedPath, type EdgePiece } from "@/lib/graph/edge-path";
-import type { Axis, Point } from "@/lib/graph/layout";
+import { pointToPx, type Axis, type Point } from "@/lib/graph/layout";
 
 // Prerequisites are drawn solid; references dashed, since they aren't.
-export type EdgeStyle = EdgeKind;
-
-export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
-  // The gold is --color-marquee, the accent the rest of the UI uses.
-  prerequisite: { stroke: "#d4a017", width: 3.5 },
+export const EDGE_STYLE: Record<EdgeKind, { stroke: string; width: number; dash?: string }> = {
+  prerequisite: { stroke: "var(--marquee)", width: 3.5 },
   reference: { stroke: "#78716c", width: 2.5, dash: "5 5" },
 };
 
@@ -59,7 +56,7 @@ export function GraphEdges({
   // would composite overlaps into a darker line.
   const edgeRenders: Array<{
     key: string;
-    style: EdgeStyle;
+    style: EdgeKind;
     pieces: EdgePiece[];
     path: string;
     opacity: number;
@@ -69,10 +66,7 @@ export function GraphEdges({
     onLeave: () => void;
   }> = [];
 
-  const toPx = (p: Point): Point => ({
-    x: (p.x / 100) * canvas.width,
-    y: (p.y / 100) * canvas.height,
-  });
+  const toPx = (p: Point) => pointToPx(p, canvas);
   const stubPx = (stubPercent / 100) * (axis === "y" ? canvas.height : canvas.width);
   const radiusPx = Math.min(CORNER_RADIUS_PX, stubPx);
 
