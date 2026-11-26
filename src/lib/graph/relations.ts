@@ -1,6 +1,5 @@
 import {
   EDGES,
-  HARD_EDGE_KINDS,
   MEDIA,
   mediumOf,
   WORKS,
@@ -83,7 +82,7 @@ function buildAdjacency(
 ) {
   const map = new Map<string, string[]>();
   for (const edge of edges) {
-    if (!withReferences && !HARD_EDGE_KINDS.includes(edge.kind)) continue;
+    if (!withReferences && edge.kind === "reference") continue;
     const [key, value] = direction === "incoming" ? [edge.to, edge.from] : [edge.from, edge.to];
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(value);
