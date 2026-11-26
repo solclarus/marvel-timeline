@@ -19,12 +19,12 @@ const STORAGE_KEY = "marvel-timeline:locale";
 const en = {
   // Command bar
   searchLabel: "Search works",
-  searchPlaceholder: "Search works…",
+  searchPlaceholder: "Search",
   noMatches: "No matches",
   viewLabel: (mode: string) => `View: ${mode}`,
-  modeRecommended: "ORDER",
-  modeRelease: "RELEASE",
-  modeChronology: "TIMELINE",
+  modeRecommended: "Order",
+  modeRelease: "Release",
+  modeChronology: "Timeline",
   upcoming: "Coming",
   today: "Today",
   // The release calendar's column for works announced only to the year.
@@ -124,7 +124,7 @@ export type Messages = typeof en;
 
 const ja: Messages = {
   searchLabel: "作品を検索",
-  searchPlaceholder: "作品を検索…",
+  searchPlaceholder: "検索",
   noMatches: "見つかりません",
   viewLabel: (mode) => `表示: ${mode}`,
   modeRecommended: "おすすめ順",

@@ -369,8 +369,8 @@ export function Graph() {
                   <GraphNode
                     key={work.id}
                     work={work}
-                    x={pos.x}
-                    y={pos.y}
+                    x={(pos.x / 100) * canvas.width}
+                    y={(pos.y / 100) * canvas.height}
                     state={nodeState(work.id)}
                     delay={
                       mapActiveSet?.has(work.id)

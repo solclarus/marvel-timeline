@@ -28,6 +28,7 @@ export const HEIGHT = POSTER_PX.height;
 
 interface Props {
   work: WorkNode;
+  // Center, in canvas pixels.
   x: number;
   y: number;
   state: NodeState;
@@ -45,15 +46,15 @@ interface Props {
 const NUB_CLASS = {
   y: {
     incoming:
-      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-slate-300",
+      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-neutral-300",
     outgoing:
-      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-slate-300",
+      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-neutral-300",
   },
   x: {
     incoming:
-      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-slate-300",
+      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-neutral-300",
     outgoing:
-      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-slate-300",
+      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-neutral-300",
   },
 } as const;
 
@@ -92,24 +93,25 @@ export function GraphNode({
           onFocus={(e) => {
             if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
           }}
-          className="absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
+          className="absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800"
           aria-pressed={state === "selected"}
-          style={{ width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
+          style={{ left: 0, top: 0, width: WIDTH, height: HEIGHT, translate: "-50% -50%" }}
           initial={false}
           animate={{
-            left: `${x}%`,
-            top: `${y}%`,
+            x,
+            y,
             opacity: style.opacity,
             scale: style.scale,
           }}
           transition={{
-            left: { type: "spring", stiffness: 140, damping: 22 },
-            top: { type: "spring", stiffness: 140, damping: 22 },
+            // Moves by transform, so a layout change stays smooth.
+            x: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+            y: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
             opacity: { duration: 0.3, delay },
             scale: { duration: 0.25, delay, ease: "easeOut" },
           }}
-          whileHover={{ scale: style.scale * 1.15 }}
-          whileTap={{ scale: style.scale * 0.95 }}
+          whileHover={{ scale: style.scale * 1.05 }}
+          whileTap={{ scale: style.scale * 0.97 }}
           aria-label={`${title}${earths.length > 1 ? ` (${earths.map(earthLabel).join(" / ")})` : ""}`}
         />
       }

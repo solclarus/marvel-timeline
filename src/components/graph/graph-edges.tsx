@@ -9,6 +9,7 @@ import type { Axis, Point } from "@/lib/graph/layout";
 export type EdgeStyle = EdgeKind;
 
 export const EDGE_STYLE: Record<EdgeStyle, { stroke: string; width: number; dash?: string }> = {
+  // The gold is --color-marquee, the accent the rest of the UI uses.
   prerequisite: { stroke: "#d4a017", width: 3.5 },
   reference: { stroke: "#78716c", width: 2.5, dash: "5 5" },
 };

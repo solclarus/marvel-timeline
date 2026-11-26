@@ -35,7 +35,7 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
       <button
         type="button"
         onClick={onFit}
-        className="w-10 rounded-full py-1 text-center text-[11px] text-muted-foreground tabular-nums hover:bg-muted hover:text-foreground"
+        className="w-10 rounded-full py-1 text-center text-xs text-muted-foreground tabular-nums hover:bg-muted hover:text-foreground"
         aria-label={t.fitToView}
       >
         {Math.round(zoom * 100)}%

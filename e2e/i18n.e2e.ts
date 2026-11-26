@@ -21,7 +21,7 @@ test.describe("with a Japanese browser", () => {
 
   test("starts in Japanese and finds works by Japanese title", async ({ page }) => {
     await page.goto("./");
-    await expect(page.getByPlaceholder("作品を検索…")).toBeVisible();
+    await expect(page.getByPlaceholder("検索", { exact: true })).toBeVisible();
     await page.keyboard.press("/");
     await page.keyboard.type("ローガン");
     await page.keyboard.press("Enter");

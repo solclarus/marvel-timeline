@@ -38,7 +38,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-3 rounded-item bg-white/3 p-3 ring-1 ring-white/5">
-      <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-foreground/80 uppercase">
+      <h2 className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
         <Icon className="size-3.5" />
         {title}
       </h2>
@@ -114,7 +114,7 @@ function Segmented<T extends string>({
 }
 
 const PILL_CLASS =
-  "flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-sky-500 data-pressed:bg-white/15 data-pressed:text-foreground";
+  "flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee data-pressed:bg-white/15 data-pressed:text-foreground";
 
 // Films, series and animation, each on or off; one always stays on.
 function MediaToggles({
@@ -186,7 +186,7 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
           type="button"
           disabled={allShown}
           onClick={() => onVisibleChange(new Set(groups.map((g) => g.key)))}
-          className="rounded-full px-2 py-0.5 text-xs text-sky-400 hover:bg-white/5 disabled:pointer-events-none disabled:opacity-40"
+          className="rounded-full px-2 py-0.5 text-xs text-marquee hover:bg-white/5 disabled:pointer-events-none disabled:opacity-40"
         >
           {t.showAll}
         </button>
@@ -221,7 +221,7 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
                 if (!longPressed.current) toggle(key);
               }}
               className={cn(
-                "flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs tabular-nums transition-colors select-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none disabled:cursor-default",
+                "flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs tabular-nums transition-colors select-none focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none disabled:cursor-default",
                 shown
                   ? "border-white/15 bg-white/10 text-foreground hover:bg-white/15"
                   : "border-dashed border-white/15 text-muted-foreground/70 hover:border-white/30 hover:text-foreground",
@@ -240,7 +240,7 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
           );
         })}
       </div>
-      <p className="text-[11px] text-muted-foreground/70">{t.showOnlyHint}</p>
+      <p className="text-xs text-muted-foreground">{t.showOnlyHint}</p>
     </div>
   );
 }
@@ -270,7 +270,7 @@ export function SettingsMenu({
       >
         <SlidersHorizontal className="size-4" />
         {filtered && (
-          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-sky-400 ring-2 ring-card" />
+          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-marquee ring-2 ring-card" />
         )}
       </PopoverTrigger>
       <PopoverContent

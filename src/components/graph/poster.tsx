@@ -20,13 +20,7 @@ function PosterArt({ work, compact = false }: { work: WorkNode; compact?: boolea
       data-poster-fallback
       className="@container absolute inset-0 overflow-hidden bg-linear-to-b from-neutral-800 to-neutral-950 text-white"
     >
-      {/* A soft glow and a thin rule in the franchise color. */}
-      <div
-        className={cn(
-          "absolute -top-1/4 left-1/2 size-[140%] -translate-x-1/2 rounded-full opacity-35 blur-2xl",
-          FRANCHISE_META[work.franchise].colorClass,
-        )}
-      />
+      {/* A thin rule in the franchise color. */}
       <div
         className={cn("absolute inset-x-0 top-0 h-0.75", FRANCHISE_META[work.franchise].colorClass)}
       />
