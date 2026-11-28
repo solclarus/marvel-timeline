@@ -1,13 +1,17 @@
-import { useEffect } from "react";
+import { CheckCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { isUpcoming } from "@/data/works";
 import type { Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import { listSections } from "@/lib/graph/list";
 import type { WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { setWatched } from "@/lib/watched";
 
 import { BulkWatched } from "./card-buttons";
+import { SelectionBar } from "./selection-bar";
 import { WorkRow, type RowTag } from "./work-row";
 
 interface Props {
@@ -39,6 +43,48 @@ export function ListView({
 }: Props) {
   const { t } = useI18n();
   const sections = listSections(mode, grouping, graph);
+  const ordered = sections.flatMap((section) => section.works);
+
+  // Picking several works to mark at once. While on, a tap checks a row
+  // instead of opening it, and shift-click checks the run since the last.
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+  const [anchor, setAnchor] = useState<string | null>(null);
+  const stopSelecting = () => {
+    setSelecting(false);
+    setPicked(new Set());
+    setAnchor(null);
+  };
+  const pick = (id: string, event: React.MouseEvent) => {
+    const next = new Set(picked);
+    const on = !picked.has(id);
+    const from = anchor && event.shiftKey ? ordered.findIndex((w) => w.id === anchor) : -1;
+    const to = ordered.findIndex((w) => w.id === id);
+    const run = from >= 0 ? ordered.slice(Math.min(from, to), Math.max(from, to) + 1) : [];
+    for (const work of run.length > 0 ? run : [ordered[to]]) {
+      if (isUpcoming(work)) continue;
+      if (on) next.add(work.id);
+      else next.delete(work.id);
+    }
+    setPicked(next);
+    setAnchor(id);
+  };
+  const markPicked = (on: boolean) => {
+    setWatched([...picked], on);
+    setPicked(new Set());
+  };
+
+  // Escape leaves selecting before anything else hears it.
+  useEffect(() => {
+    if (!selecting) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopImmediatePropagation();
+      stopSelecting();
+    };
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
+  });
   // Relatives of the selection: what comes before it, and after.
   const tagFor = (distance: number | undefined): RowTag | undefined =>
     distance === undefined
@@ -62,11 +108,24 @@ export function ListView({
   return (
     <main
       className={cn(
-        "h-dvh overflow-y-auto bg-neutral-800 px-3 pb-28 transition-[padding] duration-200 sm:px-6",
+        "h-dvh overflow-y-auto bg-neutral-800 px-3 transition-[padding] duration-200 sm:px-6",
+        // Room below the last row for the command bar (and the selection bar).
+        selecting ? "pb-44" : "pb-28",
         cardShown ? "pt-36 sm:pt-44" : "pt-4",
       )}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
+        <div className="-mb-3 flex justify-end px-1">
+          <button
+            type="button"
+            onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
+            aria-pressed={selecting}
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:bg-white/10 aria-pressed:text-foreground"
+          >
+            <CheckCheck className="size-3.5" aria-hidden />
+            {selecting ? t.selectDone : t.select}
+          </button>
+        </div>
         {sections.map((section) => (
           <section key={section.kind === "saga" ? section.saga : section.decade}>
             <div className="mb-2 flex items-center justify-between gap-2 px-2">
@@ -90,13 +149,26 @@ export function ListView({
                   selected={work.id === selectedId}
                   dimmed={activeSet !== null && !activeSet.has(work.id)}
                   tag={tagFor(distances.get(work.id))}
-                  onSelect={onSelect}
+                  check={
+                    selecting
+                      ? { checked: picked.has(work.id), disabled: isUpcoming(work) }
+                      : undefined
+                  }
+                  onSelect={selecting ? pick : onSelect}
                 />
               ))}
             </ol>
           </section>
         ))}
       </div>
+      {selecting && (
+        <SelectionBar
+          count={picked.size}
+          onMark={() => markPicked(true)}
+          onUnmark={() => markPicked(false)}
+          onDone={stopSelecting}
+        />
+      )}
     </main>
   );
 }

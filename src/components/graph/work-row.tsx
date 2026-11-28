@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+
 import { EARTH_META, FRANCHISE_META, notableEarthsOf, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 import { useNodeArt } from "@/lib/node-art";
@@ -22,12 +24,14 @@ const TAG_TONE: Record<RowTag["tone"], string> = {
 // year, running time and any Earths besides the franchise's own. Shared by
 // the list view and the watch lists.
 // `number` adds a step number on the left; `tag` a pill on the right.
+// `check` turns the row into a checkbox, for picking several at once.
 export function WorkRow({
   work,
   number,
   tag,
   selected = false,
   dimmed = false,
+  check,
   onSelect,
   id,
 }: {
@@ -36,7 +40,9 @@ export function WorkRow({
   tag?: RowTag;
   selected?: boolean;
   dimmed?: boolean;
-  onSelect: (id: string) => void;
+  check?: { checked: boolean; disabled?: boolean };
+  // The click comes along, for shift-click ranges.
+  onSelect: (id: string, event: React.MouseEvent) => void;
   id?: string;
 }) {
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
@@ -47,16 +53,31 @@ export function WorkRow({
     <li id={id}>
       <button
         type="button"
-        onClick={() => onSelect(work.id)}
-        aria-pressed={selected}
+        onClick={(event) => onSelect(work.id, event)}
+        aria-pressed={check ? check.checked : selected}
+        disabled={check?.disabled}
         className={cn(
           "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none",
           selected
             ? "border-white/40 bg-white/10"
             : "border-transparent bg-white/5 hover:bg-white/9",
-          dimmed && "opacity-35",
+          (dimmed || check?.disabled) && "opacity-35",
+          check?.checked && "border-marquee/50 bg-marquee/10",
         )}
       >
+        {check && (
+          <span
+            aria-hidden
+            className={cn(
+              "flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
+              check.checked
+                ? "border-marquee bg-marquee text-neutral-900"
+                : "border-white/30 bg-transparent text-transparent",
+            )}
+          >
+            <Check className="size-3.5" strokeWidth={3} />
+          </span>
+        )}
         {number !== undefined && (
           <span className="w-5 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
             {number}
