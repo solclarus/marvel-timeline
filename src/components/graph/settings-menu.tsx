@@ -3,13 +3,14 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import {
   Earth,
   Image,
+  Info,
   Library,
   ListFilter,
   Settings2,
   SlidersHorizontal,
   Type,
 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,7 +21,6 @@ import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { useNodeArt } from "@/lib/node-art";
 import { cn } from "@/lib/utils";
-import { clearWatched, useWatched } from "@/lib/watched";
 
 import { EDGE_STYLE } from "./graph-edges";
 import { MEDIUM_META } from "./medium-badge";
@@ -31,6 +31,7 @@ interface Props {
   grouping: Grouping;
   onVisibleChange: (visible: Set<string>) => void;
   onGroupByChange: (by: GroupBy) => void;
+  onAbout: () => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -262,15 +263,16 @@ export function SettingsMenu({
   grouping,
   onVisibleChange,
   onGroupByChange,
+  onAbout,
 }: Props) {
   const { t, locale, setLocale } = useI18n();
+  const [open, setOpen] = useState(false);
   const [art, setArt] = useNodeArt();
-  const watched = useWatched();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
     media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <Button
@@ -325,23 +327,6 @@ export function SettingsMenu({
               lang: option,
             }))}
           />
-          {watched.size > 0 && (
-            <div className="flex items-center justify-between gap-2">
-              <SectionLabel>
-                {t.watchedSection} · {t.watchedCount(watched.size)}
-              </SectionLabel>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 rounded-full px-2.5 text-xs text-muted-foreground"
-                onClick={() => {
-                  if (window.confirm(t.clearWatchedConfirm(watched.size))) clearWatched();
-                }}
-              >
-                {t.clearWatched}
-              </Button>
-            </div>
-          )}
         </Section>
         <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
           <SectionLabel>{t.lines}</SectionLabel>
@@ -357,6 +342,17 @@ export function SettingsMenu({
             </div>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            onAbout();
+          }}
+          className="flex items-center gap-1.5 rounded-item px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+        >
+          <Info className="size-3.5" aria-hidden />
+          {t.about}
+        </button>
       </PopoverContent>
     </Popover>
   );

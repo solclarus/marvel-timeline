@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("phones open on the list, and picking a work highlights its relatives", async ({ page }) => {
   await page.goto("./");
-  await expect(page.getByRole("button", { name: "Show as a map" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^View: List/ })).toBeVisible();
   const ironMan2 = page.locator("#list-iron-man-2 button");
   await ironMan2.click();
   await expect(page).toHaveURL(/work=iron-man-2/);
@@ -11,7 +11,8 @@ test("phones open on the list, and picking a work highlights its relatives", asy
   await expect(page.locator("#list-iron-man")).toContainText("Before");
   await expect(page.locator("#list-iron-man-3")).toContainText("After");
 
-  await page.getByRole("button", { name: "Show as a map" }).click();
+  await page.getByRole("button", { name: /^View: List/ }).click();
+  await page.getByRole("menuitemradio", { name: "Map" }).click();
   await expect(page).toHaveURL(/view=map/);
   await expect(page.locator('button[aria-label="Iron Man 2"]')).toBeVisible();
 });

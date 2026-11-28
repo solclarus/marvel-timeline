@@ -36,12 +36,15 @@ export function useCard(initial: { selectedId: string | null; listFocus: ListFoc
     previous: history.at(-1) ?? null,
     // From the map, the list or search: a fresh card, or none.
     select: (id: string | null) => startOver(id ? { kind: "work", id, open: false } : null),
-    openRoute: (id: string) => startOver({ kind: "route", id }),
     openProgress: () => startOver({ kind: "progress" }),
-    // From the card's own list.
+    // From the card's own list: a work, or (on the progress card) a route.
     pick: (id: string) => {
       if (current) setHistory((stack) => [...stack, current]);
       setCurrent({ kind: "work", id, open: false });
+    },
+    pickRoute: (id: string) => {
+      if (current) setHistory((stack) => [...stack, current]);
+      setCurrent({ kind: "route", id });
     },
     back: () => {
       setCurrent(history.at(-1) ?? null);

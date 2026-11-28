@@ -453,12 +453,12 @@ export function Graph() {
         onBack={card.back}
         onToggle={card.toggleOpen}
         onPick={(id) => reveal(id) && card.pick(id)}
+        onPickRoute={card.pickRoute}
       />
 
       <CommandBar
         display={display}
         onDisplayChange={setDisplay}
-        onRouteSelect={card.openRoute}
         onProgressOpen={card.openProgress}
         onSearchSelect={handleSearchSelect}
         mode={mode}
