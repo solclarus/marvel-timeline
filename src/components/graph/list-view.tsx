@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { setWatched } from "@/lib/watched";
 
 import { SelectionBar } from "./selection-bar";
-import { WorkRow, type RowTag } from "./work-row";
+import { WorkRow } from "./work-row";
 
 interface Props {
   mode: ViewMode;
@@ -20,8 +20,6 @@ interface Props {
   selectedId: string | null;
   // Highlighted works (a selection and its relatives), or null.
   activeSet: Set<string> | null;
-  // Negative for what comes before the selection, positive for after.
-  distances: Map<string, number>;
   onSelect: (id: string) => void;
   // The card is showing over the list's top (a work or a route).
   cardShown: boolean;
@@ -36,7 +34,6 @@ export function ListView({
   graph,
   selectedId,
   activeSet,
-  distances,
   onSelect,
   cardShown,
 }: Props) {
@@ -84,14 +81,6 @@ export function ListView({
     window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
   });
-  // Relatives of the selection: what comes before it, and after.
-  const tagFor = (distance: number | undefined): RowTag | undefined =>
-    distance === undefined
-      ? undefined
-      : distance < 0
-        ? { label: t.listBefore, kind: "before" }
-        : { label: t.listAfter, kind: "after" };
-
   // A selection made elsewhere (search, the card's list) scrolls into view.
   useEffect(() => {
     if (!selectedId) return;
@@ -151,7 +140,6 @@ export function ListView({
                   work={work}
                   selected={work.id === selectedId}
                   dimmed={activeSet !== null && !activeSet.has(work.id)}
-                  tag={tagFor(distances.get(work.id))}
                   check={
                     selecting
                       ? { checked: picked.has(work.id), disabled: isUpcoming(work) }

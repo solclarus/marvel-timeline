@@ -440,7 +440,6 @@ export function Graph() {
           graph={graph}
           selectedId={selectedId}
           activeSet={selectedId || listed ? activeSet : null}
-          distances={distances}
           onSelect={handleSelect}
           cardShown={card.current !== null}
         />

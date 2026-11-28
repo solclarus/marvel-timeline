@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { EARTH_META, FRANCHISE_META, notableEarthsOf, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
@@ -12,20 +12,14 @@ import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
 import { WatchedMark } from "./watched-mark";
 
-// A row's relation to the selection, shown as a mark rather than a word:
-// ↑ in gold to watch before it, ↓ after it, and a gold dot for a direct
-// prerequisite. The word stays for screen readers and as a tooltip.
-export type RowTag = { label: string; kind: "before" | "after" | "direct" };
-
 // One work as a card-like row: poster, title, then kind, franchise, phase,
 // year, running time and any Earths besides the franchise's own. Shared by
 // the list view and the watch lists.
-// `number` adds a step number on the left; `tag` a pill on the right.
+// `number` adds a step number on the left.
 // `check` turns the row into a checkbox, for picking several at once.
 export function WorkRow({
   work,
   number,
-  tag,
   selected = false,
   dimmed = false,
   check,
@@ -34,7 +28,6 @@ export function WorkRow({
 }: {
   work: WorkNode;
   number?: number;
-  tag?: RowTag;
   selected?: boolean;
   dimmed?: boolean;
   check?: { checked: boolean; disabled?: boolean };
@@ -112,18 +105,6 @@ export function WorkRow({
             ))}
           </span>
         </span>
-        {tag && (
-          <span className="flex size-5 shrink-0 items-center justify-center" title={tag.label}>
-            {tag.kind === "direct" ? (
-              <span className="size-1.5 rounded-full bg-marquee" aria-hidden />
-            ) : tag.kind === "before" ? (
-              <ArrowUp className="size-4 text-marquee" strokeWidth={2.5} aria-hidden />
-            ) : (
-              <ArrowDown className="size-4 text-muted-foreground" strokeWidth={2.5} aria-hidden />
-            )}
-            <span className="sr-only">{tag.label}</span>
-          </span>
-        )}
         {/* Watched: a check at the row's end, clear of the poster. */}
         {watched && (
           <WatchedMark className="size-5 shrink-0 bg-marquee text-background shadow-none" />
