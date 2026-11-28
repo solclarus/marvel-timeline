@@ -76,3 +76,34 @@ test("watched works are marked, leave time left, and are remembered", async ({ p
   await page.getByRole("button", { name: "Clear", exact: true }).click();
   await expect(page.getByText(/ left$/)).toHaveCount(0);
 });
+
+test("a whole list is marked at once, and the progress card counts it", async ({ page }) => {
+  // The Avengers' five prerequisites, marked together.
+  await page.goto("./?work=avengers&list=before:avengers");
+  await page.getByRole("button", { name: "Mark all watched" }).click();
+  await expect(page.getByRole("button", { name: "Unmark all" })).toBeVisible();
+  await expect(page.locator("#card-thor")).toContainText("(watched)");
+
+  // The progress card, from the command bar: five works, Phase 1 five in,
+  // and The Avengers up next.
+  await page.getByRole("button", { name: "Your progress" }).click();
+  await expect(page).toHaveURL(/list=progress/);
+  await expect(page.getByText(/^5 of \d+$/).first()).toBeVisible();
+  const phases = page.locator("section", {
+    has: page.getByRole("heading", { name: "The MCU by phase" }),
+  });
+  await expect(phases.locator("li").first()).toContainText("Phase 15 of 6");
+  await page.locator("#card-avengers button").click();
+  await expect(page.locator("[data-slot=detail-title]").first()).toHaveText("The Avengers");
+  await page.getByRole("button", { name: "Back to Your progress" }).click();
+
+  // Unmarking from the list view's section header clears the saga.
+  await page.goto("./?view=list");
+  const sagaToggle = page.getByRole("button", { name: /: The Infinity Saga$/ });
+  await expect(sagaToggle).toHaveText("Mark all watched");
+  await sagaToggle.click();
+  await expect(sagaToggle).toHaveText("Unmark all");
+  await sagaToggle.click();
+  await page.goto("./?list=progress");
+  await expect(page.getByText(/^0 of \d+$/).first()).toBeVisible();
+});

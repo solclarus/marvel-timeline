@@ -25,6 +25,16 @@ export function toggleWatched(id: string) {
   store.set(next);
 }
 
+// Marks every one of `ids` as watched, or none of them.
+export function setWatched(ids: readonly string[], on: boolean) {
+  const next = new Set(store.get());
+  for (const id of ids) {
+    if (on) next.add(id);
+    else next.delete(id);
+  }
+  store.set(next);
+}
+
 export function clearWatched() {
   store.set(new Set());
 }

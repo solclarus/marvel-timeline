@@ -7,7 +7,8 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 ## Using the map
 
 - **Select** a poster to highlight the works just before and after it; the map zooms to fit them. In release and timeline order, where works sit by date, only the poster lights up. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
-- **Watched**: the card's ✓ button marks a work as watched, remembered on the device; the map and lists then show a check on it, and a watch-first list adds how much is left.
+- **Watched**: the card's ✓ button marks a work as watched, remembered on the device; the map and lists then show a check on it, and a watch-first list adds how much is left. **Mark all watched** (or **Unmark all**) does a whole watch-first list, route, or list-view saga or decade at once; only works already out are marked.
+- **Your progress** (bottom bar) opens a card with how many works and hours you've watched of what's out, the MCU phase by phase and every franchise, and what's up next: works whose prerequisites you've all watched.
 - **The card** at the top holds the selection. **Watch first** on it folds out everything to watch before the work, in order, with the total running time; picking one moves the card to that work, and ‹ steps back. **Routes** (bottom bar) are short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga) shown the same way. The map or list behind stays as it was; ✕ (or Escape, after folding the list) closes the card.
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; only the bar's button switches between them.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology. Release date is a calendar, a row per year and a column per month (as wide as its busiest year needs), with a line at today; the chronology gives each in-story year a row, in story order. Year and month labels stay on screen as the map pans, and a colored bar under each poster shows its franchise or Earth.
@@ -21,7 +22,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 
 The app can be added to a home screen (it has a web manifest and icons). It has no service worker, on purpose: every visit loads the latest data.
 
-The view is kept in the URL (`work`, `view`, `list`, `mode`, `group`, `show`, `media`), so any state can be shared as a link. **Share** on the card copies the link (phones open the share sheet); a work's link goes through a small page at `w/<id>/` (`w/<id>/ja.html` in Japanese) that the build writes for each work, so the post previews that work's poster and what it builds on, then opens the app in the same view.
+The view is kept in the URL (`work`, `view`, `list` (including `list=progress`), `mode`, `group`, `show`, `media`), so any state can be shared as a link. **Share** on the card copies the link (phones open the share sheet); a work's link goes through a small page at `w/<id>/` (`w/<id>/ja.html` in Japanese) that the build writes for each work, so the post previews that work's poster and what it builds on, then opens the app in the same view.
 
 ## Development
 

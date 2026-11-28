@@ -1,4 +1,4 @@
-import { List, Map } from "lucide-react";
+import { ChartColumnBig, List, Map } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
@@ -18,6 +18,7 @@ interface Props {
   display: Display;
   onDisplayChange: (display: Display) => void;
   onRouteSelect: (id: string) => void;
+  onProgressOpen: () => void;
   onSearchSelect: (id: string) => void;
   mode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
@@ -35,6 +36,7 @@ export function CommandBar({
   display,
   onDisplayChange,
   onRouteSelect,
+  onProgressOpen,
   onSearchSelect,
   mode,
   onModeChange,
@@ -61,6 +63,15 @@ export function CommandBar({
           {display === "map" ? <List className="size-4" /> : <Map className="size-4" />}
         </Button>
         <RoutesDialog onSelect={onRouteSelect} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onProgressOpen}
+          aria-label={t.progress}
+          title={t.progress}
+        >
+          <ChartColumnBig className="size-4" />
+        </Button>
         <SettingsMenu
           media={media}
           onMediaChange={onMediaChange}

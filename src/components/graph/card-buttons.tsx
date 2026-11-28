@@ -1,10 +1,10 @@
 import { Check, Share } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import type { WorkNode } from "@/data/works";
+import { isUpcoming, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
 import { sharePath } from "@/lib/share-pages";
-import { toggleWatched, useWatched } from "@/lib/watched";
+import { setWatched, toggleWatched, useWatched } from "@/lib/watched";
 
 export const ICON_BUTTON =
   "rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none";
@@ -64,6 +64,27 @@ export function WatchedToggle({ work }: { work: WorkNode }) {
     >
       <Check className="size-3.5" strokeWidth={watched ? 3 : 2} aria-hidden />
       {t.watched}
+    </button>
+  );
+}
+
+// Marks a whole list watched, or (once it all is) unmarks it. Only what's
+// out counts: a work still to come can't have been watched.
+export function BulkWatched({ works, label }: { works: WorkNode[]; label?: string }) {
+  const { t } = useI18n();
+  const watched = useWatched();
+  const ids = works.filter((w) => !isUpcoming(w)).map((w) => w.id);
+  if (ids.length === 0) return null;
+  const all = ids.every((id) => watched.has(id));
+  const text = all ? t.unmarkAll : t.markAll;
+  return (
+    <button
+      type="button"
+      onClick={() => setWatched(ids, !all)}
+      aria-label={label ? `${text}: ${label}` : undefined}
+      className="shrink-0 rounded-full px-2 py-0.5 text-xs font-normal whitespace-nowrap text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+    >
+      {text}
     </button>
   );
 }
