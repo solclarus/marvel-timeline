@@ -1,5 +1,5 @@
-// Lists works whose release date or poster differs from TMDB, so
-// `src/data/works.ts` can be updated by hand. Needs a TMDB API read access
+// Lists works whose release date differs from TMDB, or whose poster TMDB no
+// longer lists, so `src/data/works.ts` can be updated by hand. Needs a TMDB API read access
 // token: TMDB_TOKEN=... pnpm check:tmdb
 // Exits 1 when anything differs or a request fails. Works TMDB doesn't list
 // yet (404, e.g. an announced season) are only noted.
@@ -13,7 +13,7 @@ if (!token) {
 }
 
 async function fetchDetails(path: string): Promise<TmdbDetails | null> {
-  const response = await fetch(`https://api.themoviedb.org/3${path}`, {
+  const response = await fetch(`https://api.themoviedb.org/3${path}?append_to_response=images`, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
   });
   if (response.status === 404) return null;
