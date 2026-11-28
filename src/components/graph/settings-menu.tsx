@@ -294,7 +294,7 @@ export function SettingsMenu({
       >
         <Ellipsis className="size-4" />
         {filtered && (
-          <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-marquee ring-2 ring-card" />
+          <span className="absolute top-0.5 right-0.5 size-2 rounded-full bg-marquee ring-2 ring-card" />
         )}
       </PopoverTrigger>
       <PopoverContent
