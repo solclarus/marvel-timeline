@@ -107,3 +107,24 @@ test("a whole list is marked at once, and the progress card counts it", async ({
   await page.goto("./?list=progress");
   await expect(page.getByText(/^0 of \d+$/).first()).toBeVisible();
 });
+
+test("picking several works in the list marks them together", async ({ page }) => {
+  await page.goto("./?view=list");
+  await page.getByRole("button", { name: "Select", exact: true }).click();
+  const row = (id: string) => page.locator(`#list-${id} button`);
+  // A tap checks a row instead of opening it; shift-click takes the run.
+  await row("iron-man").click();
+  await row("thor").click({ modifiers: ["Shift"] });
+  await expect(row("incredible-hulk")).toHaveAttribute("aria-pressed", "true");
+  await row("avengers").click();
+  await expect(page.locator("[data-slot=detail-title]")).toHaveCount(0);
+  const bar = page.getByRole("toolbar");
+  await expect(bar).toContainText("5 selected");
+
+  await bar.getByRole("button", { name: "Watched", exact: true }).click();
+  await expect(bar).toContainText("0 selected");
+  await page.keyboard.press("Escape");
+  await expect(bar).toHaveCount(0);
+  await expect(row("iron-man-2")).toContainText("(watched)");
+  await expect(row("captain-america-first-avenger")).not.toContainText("(watched)");
+});
