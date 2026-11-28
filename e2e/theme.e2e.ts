@@ -11,7 +11,7 @@ test.describe("on a dark system", () => {
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Light" }).click();
     await expect(html).not.toHaveClass(/\bdark\b/);
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#ffffff");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#f5f3ef");
     await page.reload();
     await expect(page.locator('button[aria-label="Iron Man"]')).toBeVisible();
     await expect(html).not.toHaveClass(/\bdark\b/);

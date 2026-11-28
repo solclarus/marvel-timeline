@@ -49,11 +49,14 @@
    and turns on the `dark:` variants. */
 :root {
   color-scheme: light;
+  /* Light is paper rather than white: warm, a little dimmed, with soft
+     black type, so it's easy on the eyes. */
   /* The one accent: the gold of the watch-first lines. Deeper on light
-     surfaces, so gold text still reads (5.3:1 on white). */
-  --marquee: #8a6500;
+     surfaces, so gold text still reads (5.8:1 on the cards, 4.7:1 on the
+     canvas). */
+  --marquee: #7a5a00;
   /* The map's and the list's ground, under the cards and posters. */
-  --canvas: oklch(0.955 0 0);
+  --canvas: oklch(0.9 0.007 80);
   /* Faint washes and hairlines over any surface: black on light, white on
      dark. Always used with an opacity (`bg-tint/5`, `border-tint/10`). */
   --tint: #000;
@@ -64,20 +67,20 @@
   --phase-border: rgba(37, 99, 235, 0.45);
   /* Lightness of the timelines' decade-band borders. */
   --decade-border-l: 48%;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --background: oklch(0.965 0.006 85);
+  --foreground: oklch(0.24 0.01 60);
+  --card: oklch(0.965 0.006 85);
+  --card-foreground: oklch(0.24 0.01 60);
+  --popover: oklch(0.965 0.006 85);
+  --popover-foreground: oklch(0.24 0.01 60);
+  --primary: oklch(0.28 0.01 60);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
+  --secondary: oklch(0.93 0.006 85);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.94 0 0);
-  /* 5.7:1 on white, 4.9:1 on the canvas. */
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.94 0 0);
+  --muted: oklch(0.915 0.006 85);
+  /* 6.2:1 on the cards, 5.1:1 on the canvas. */
+  --muted-foreground: oklch(0.47 0.01 70);
+  --accent: oklch(0.915 0.006 85);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0 0 0 / 12%);
