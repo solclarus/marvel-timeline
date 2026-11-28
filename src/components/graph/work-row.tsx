@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { ArrowDown, ArrowUp, Check } from "lucide-react";
 
 import { EARTH_META, FRANCHISE_META, notableEarthsOf, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
@@ -12,13 +12,10 @@ import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
 import { WatchedMark } from "./watched-mark";
 
-export type RowTag = { label: string; tone: "before" | "after" | "plain" };
-
-const TAG_TONE: Record<RowTag["tone"], string> = {
-  before: "border-marquee/40 text-marquee",
-  after: "border-tint/20 text-foreground/80",
-  plain: "border-tint/10 text-muted-foreground",
-};
+// A row's relation to the selection, shown as a mark rather than a word:
+// ↑ in gold to watch before it, ↓ after it, and a gold dot for a direct
+// prerequisite. The word stays for screen readers and as a tooltip.
+export type RowTag = { label: string; kind: "before" | "after" | "direct" };
 
 // One work as a card-like row: poster, title, then kind, franchise, phase,
 // year, running time and any Earths besides the franchise's own. Shared by
@@ -116,13 +113,15 @@ export function WorkRow({
           </span>
         </span>
         {tag && (
-          <span
-            className={cn(
-              "shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
-              TAG_TONE[tag.tone],
+          <span className="flex size-5 shrink-0 items-center justify-center" title={tag.label}>
+            {tag.kind === "direct" ? (
+              <span className="size-1.5 rounded-full bg-marquee" aria-hidden />
+            ) : tag.kind === "before" ? (
+              <ArrowUp className="size-4 text-marquee" strokeWidth={2.5} aria-hidden />
+            ) : (
+              <ArrowDown className="size-4 text-muted-foreground" strokeWidth={2.5} aria-hidden />
             )}
-          >
-            {tag.label}
+            <span className="sr-only">{tag.label}</span>
           </span>
         )}
         {/* Watched: a check at the row's end, clear of the poster. */}

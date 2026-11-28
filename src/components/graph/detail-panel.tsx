@@ -324,13 +324,11 @@ function WorkHeader({
               onClick={onToggle}
               aria-expanded={open}
               aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-tint/10 bg-tint/5 py-0.5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
+              title={`${t.watchFirst} · ${t.watchFirstCount(before)}`}
+              className="group inline-flex h-6 items-center gap-1 rounded-full border border-tint/10 bg-tint/5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
             >
               <ListOrdered className="size-3.5 text-marquee" aria-hidden />
-              {t.watchFirst}
-              <span className="text-muted-foreground tabular-nums">
-                {t.watchFirstCount(before)}
-              </span>
+              <span className="tabular-nums">{before}</span>
               <ChevronDown
                 className={cn(
                   "size-3.5 text-muted-foreground transition-transform duration-300",
@@ -441,7 +439,7 @@ function CardList({
             id={`card-${work.id}`}
             work={work}
             number={i + 1}
-            tag={direct ? { label: t.directTag, tone: "before" } : undefined}
+            tag={direct ? { label: t.directTag, kind: "direct" } : undefined}
             onSelect={onPick}
           />
         ))}
