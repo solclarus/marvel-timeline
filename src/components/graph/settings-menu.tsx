@@ -6,10 +6,10 @@ import {
   ChevronRight,
   Cog,
   Earth,
+  Ellipsis,
   Info,
   Library,
   ListFilter,
-  Menu,
   Moon,
   Spline,
   Sun,
@@ -36,6 +36,8 @@ interface Props {
   onGroupByChange: (by: GroupBy) => void;
   onAbout: () => void;
   onProgressOpen: () => void;
+  // Where the panel opens: above the bottom bar, or left of the side one.
+  side: "top" | "left";
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -263,6 +265,7 @@ export function SettingsMenu({
   onGroupByChange,
   onAbout,
   onProgressOpen,
+  side,
 }: Props) {
   const { t, locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
@@ -289,14 +292,14 @@ export function SettingsMenu({
           />
         }
       >
-        <Menu className="size-4" />
+        <Ellipsis className="size-4" />
         {filtered && (
           <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-marquee ring-2 ring-card" />
         )}
       </PopoverTrigger>
       <PopoverContent
-        side="top"
-        align="end"
+        side={side}
+        align={side === "top" ? "end" : "start"}
         sideOffset={14}
         className={cn(
           "flex flex-col gap-1.5 bg-card/95 backdrop-blur-md",

@@ -96,9 +96,9 @@ export function ListView({
   return (
     <main
       className={cn(
-        "h-dvh overflow-y-auto bg-canvas px-3 transition-[padding] duration-200 sm:px-6",
+        "h-dvh overflow-y-auto bg-canvas px-3 transition-[padding] duration-200 sm:px-6 lg:pr-28",
         // Room below the last row for the command bar (and the selection bar).
-        selecting ? "pb-44" : "pb-28",
+        selecting ? "pb-44 lg:pb-24" : "pb-28 lg:pb-8",
         // Under the card, or beside it where it's a sidebar.
         cardShown ? "pt-36 sm:pt-44 lg:pt-4 lg:pl-136" : "pt-4",
       )}

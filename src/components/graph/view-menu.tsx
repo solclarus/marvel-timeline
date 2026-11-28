@@ -40,11 +40,13 @@ interface Props {
   onModeChange: (mode: ViewMode) => void;
   display: Display;
   onDisplayChange: (display: Display) => void;
+  // Where the menu opens: above the bottom bar, or left of the side one.
+  side: "top" | "left";
 }
 
 // How the works are shown: as a map or a list, in which order, and as
 // posters or title logos. One menu, so the bar keeps a single button.
-export function ViewMenu({ mode, onModeChange, display, onDisplayChange }: Props) {
+export function ViewMenu({ mode, onModeChange, display, onDisplayChange, side }: Props) {
   const { t } = useI18n();
   const current = MODES.find((m) => m.value === mode)!;
   const shown = DISPLAYS.find((d) => d.value === display)!;
@@ -60,7 +62,12 @@ export function ViewMenu({ mode, onModeChange, display, onDisplayChange }: Props
       >
         <shown.icon className="size-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="center" sideOffset={14} className={fabMenuClass}>
+      <DropdownMenuContent
+        side={side}
+        align={side === "top" ? "center" : "start"}
+        sideOffset={14}
+        className={fabMenuClass}
+      >
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t.displayLabel}</DropdownMenuLabel>
           <DropdownMenuRadioGroup

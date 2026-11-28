@@ -42,11 +42,13 @@ export function searchWorks(query: string): WorkNode[] {
 
 interface Props {
   onSelect: (id: string) => void;
+  // Where the results open: above a bar at the bottom, or below one at the top.
+  side: "top" | "bottom";
 }
 
 // Searches every work, whatever the map currently shows; revealing the pick
 // is up to `onSelect`.
-export function SearchBox({ onSelect }: Props) {
+export function SearchBox({ onSelect, side }: Props) {
   const { t, titleOf, franchiseLabel } = useI18n();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +105,12 @@ export function SearchBox({ onSelect }: Props) {
         />
       </div>
       <Autocomplete.Portal>
-        <Autocomplete.Positioner side="top" sideOffset={18} align="start" className="z-50">
+        <Autocomplete.Positioner
+          side={side}
+          sideOffset={18}
+          align={side === "top" ? "start" : "end"}
+          className="z-50"
+        >
           <Autocomplete.Popup className="max-h-[60vh] w-(--anchor-width) min-w-64 overflow-y-auto rounded-surface border bg-card/95 p-1.5 text-card-foreground shadow-xl shadow-black/12 backdrop-blur-md dark:shadow-black/30">
             <Autocomplete.Empty className="px-3 py-2 text-xs text-muted-foreground empty:hidden">
               {query.trim() !== "" && t.noMatches}
