@@ -92,7 +92,6 @@ export function WorkRow({
           ) : (
             <Poster key={work.id} work={work} compact />
           )}
-          {watched && <WatchedMark className="absolute right-0.5 bottom-0.5" />}
         </span>
         <span className="min-w-0 flex-1">
           <span className="line-clamp-2 text-sm/snug font-medium">
@@ -125,6 +124,10 @@ export function WorkRow({
           >
             {tag.label}
           </span>
+        )}
+        {/* Watched: a check at the row's end, clear of the poster. */}
+        {watched && (
+          <WatchedMark className="size-5 shrink-0 bg-marquee text-background shadow-none" />
         )}
       </button>
     </li>

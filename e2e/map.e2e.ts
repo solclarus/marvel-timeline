@@ -214,9 +214,8 @@ test("the map can show title logos on wide tiles, remembered on reload", async (
     node.evaluate((el) => [(el as HTMLElement).offsetWidth, (el as HTMLElement).offsetHeight]);
   expect(await size()).toEqual([80, 120]);
 
-  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
-  await page.getByRole("button", { name: "Display", exact: true }).click();
-  await page.getByRole("button", { name: "Titles" }).click();
+  await page.getByRole("button", { name: /^View:/ }).click();
+  await page.getByRole("menuitemradio", { name: "Titles" }).click();
   await expect.poll(size).toEqual([128, 72]);
   await expect(node.locator("img")).toHaveAttribute("src", /image\.tmdb\.org\/t\/p\/w300\//);
 
@@ -234,15 +233,15 @@ test("the app can be installed: its manifest loads without errors", async ({ pag
   expect(icon.headers()["content-type"]).toBe("image/png");
 });
 
-test("the menu leads to filters and display, and back", async ({ page }) => {
+test("the menu leads to filters and the lines, and back", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
   const panel = page.locator("[data-slot=popover-content]");
   await panel.getByRole("button", { name: /^Filter/ }).click();
   await expect(panel.getByRole("button", { name: "Show all" })).toBeVisible();
   await panel.getByRole("button", { name: "Back to Menu" }).click();
-  await panel.getByRole("button", { name: "Display", exact: true }).click();
-  await expect(panel.getByRole("button", { name: "Titles" })).toBeVisible();
+  await panel.getByRole("button", { name: "Lines", exact: true }).click();
+  await expect(panel).toContainText("Reference only");
   await page.keyboard.press("Escape");
 
   // Whatever can be clicked shows a pointer, menu items included.
