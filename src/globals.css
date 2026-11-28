@@ -77,8 +77,21 @@
   html {
     @apply font-sans;
   }
+  /* Anything that can be clicked says so. */
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  a[href],
+  summary,
+  label:has(input:not(:disabled)),
+  :is(
+    [role="button"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"],
+    [role="option"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"]
+  ):not([aria-disabled="true"], [data-disabled]) {
     cursor: pointer;
   }
 }

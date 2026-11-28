@@ -1,6 +1,18 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import { ChevronLeft, ChevronRight, Earth, Image, Library, Menu, Type } from "lucide-react";
+import {
+  ChartColumnBig,
+  ChevronLeft,
+  ChevronRight,
+  Cog,
+  Earth,
+  Image,
+  Info,
+  Library,
+  ListFilter,
+  Menu,
+  Type,
+} from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -295,6 +307,7 @@ export function SettingsMenu({
           <nav aria-label={t.menu} className="flex flex-col gap-1 py-0.5">
             <MenuGroup label={t.menuWatching}>
               <MenuLink
+                icon={ChartColumnBig}
                 label={t.progress}
                 onClick={() => {
                   setOpen(false);
@@ -304,16 +317,28 @@ export function SettingsMenu({
             </MenuGroup>
             <MenuGroup label={t.menuView}>
               <MenuLink
+                icon={ListFilter}
                 label={t.filterSection}
                 note={filtered ? t.filterOn : undefined}
                 more
                 onClick={() => setPage("filter")}
               />
-              <MenuLink label={t.displaySection} more onClick={() => setPage("display")} />
+              <MenuLink
+                icon={Image}
+                label={t.displaySection}
+                more
+                onClick={() => setPage("display")}
+              />
             </MenuGroup>
             <MenuGroup label={t.menuApp}>
-              <MenuLink label={t.menuSettings} more onClick={() => setPage("settings")} />
               <MenuLink
+                icon={Cog}
+                label={t.menuSettings}
+                more
+                onClick={() => setPage("settings")}
+              />
+              <MenuLink
+                icon={Info}
                 label={t.about}
                 onClick={() => {
                   setOpen(false);
@@ -406,11 +431,13 @@ function MenuGroup({ label, children }: { label: string; children: React.ReactNo
 // One row of the menu: where it leads, a dot when it's on (a filter), and ›
 // when it opens a page of its own.
 function MenuLink({
+  icon: Icon,
   label,
   note,
   more = false,
   onClick,
 }: {
+  icon: typeof Earth;
   label: string;
   note?: string;
   more?: boolean;
@@ -422,6 +449,7 @@ function MenuLink({
       onClick={onClick}
       className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
     >
+      <Icon className="size-4 text-muted-foreground" aria-hidden />
       <span className="flex-1">{label}</span>
       {note && (
         <>
