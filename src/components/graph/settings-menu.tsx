@@ -10,7 +10,6 @@ import {
   Library,
   ListFilter,
   Menu,
-  Monitor,
   Moon,
   Spline,
   Sun,
@@ -399,7 +398,6 @@ export function SettingsMenu({
                 value={theme}
                 onChange={setTheme}
                 options={[
-                  { value: "system", label: t.themeSystem, icon: Monitor },
                   { value: "light", label: t.themeLight, icon: Sun },
                   { value: "dark", label: t.themeDark, icon: Moon },
                 ]}
