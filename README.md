@@ -46,6 +46,17 @@ Everything lives in `src/data/works.ts`: works, dependencies, Earths, release da
 - `titleJa` is the Japanese title (TMDB's ja-JP listing, lightly cleaned up). `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
 - Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works whose date has drifted from TMDB's (its earliest theatrical or first air date), or whose poster TMDB no longer lists; a poster that TMDB still lists stays, even after TMDB's main poster changes. Both TMDB scripts also read `TMDB_TOKEN` from an ignored `.env.local`. A weekly workflow (`.github/workflows/tmdb-check.yml`, also runnable by hand) does both with the `TMDB_TOKEN` repository secret and keeps one issue open with anything to update.
 
+### When a work comes out
+
+What a work builds on is only certain once it's out, so a release is worth a pass over its entry (e.g. Avengers: Doomsday, 16 December 2026):
+
+1. **Its ties.** Fix `dependsOn` against the work itself: a `prerequisite` the story needs, a `reference` for a cameo or a mention. Ties that surprise often reach works outside the MCU; check `not-on-the-map.ts` for any this brings in.
+2. **What builds on it.** Works announced after it (the next Avengers film, a sequel) may now take it as a prerequisite.
+3. **Story placement.** `setYear` and `chronologyOrder` for the chronology, `recommendedOrder` for the map, `earths` for any Earth it visits.
+4. **TMDB.** `pnpm check:tmdb` for the final date and poster, then `pnpm fetch:runtimes` once TMDB has its running time.
+5. **Routes.** A route whose goal it is (`doomsday-direct`) picks up new ties on its own; a listed route may want it added or a goal moved on to the next work.
+6. `pnpm test`: every work outside the MCU must still tie into it.
+
 ## Scripts
 
 | Command                     | Description                                                      |
