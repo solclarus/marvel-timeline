@@ -217,3 +217,13 @@ test("the map can show title logos on wide tiles, remembered on reload", async (
   await page.reload();
   await expect.poll(size).toEqual([128, 72]);
 });
+
+test("the app can be installed: its manifest loads without errors", async ({ page }) => {
+  await page.goto("./");
+  const cdp = await page.context().newCDPSession(page);
+  const { errors, url } = await cdp.send("Page.getAppManifest");
+  expect(url).toMatch(/manifest\.webmanifest$/);
+  expect(errors).toEqual([]);
+  const icon = await page.request.get("./icon-512.png");
+  expect(icon.headers()["content-type"]).toBe("image/png");
+});
