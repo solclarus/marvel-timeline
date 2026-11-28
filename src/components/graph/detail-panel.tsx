@@ -467,13 +467,12 @@ function CardList({
         aria-label={label}
         className="flex max-h-[min(52dvh,26rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-2 pb-1"
       >
-        {items.map(({ work, direct }, i) => (
+        {items.map(({ work }, i) => (
           <WorkRow
             key={work.id}
             id={`card-${work.id}`}
             work={work}
             number={i + 1}
-            tag={direct ? { label: t.directTag, kind: "direct" } : undefined}
             onSelect={onPick}
           />
         ))}

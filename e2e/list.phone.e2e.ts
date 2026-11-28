@@ -7,9 +7,13 @@ test("phones open on the list, and picking a work highlights its relatives", asy
   await ironMan2.click();
   await expect(page).toHaveURL(/work=iron-man-2/);
   await expect(ironMan2).toHaveAttribute("aria-pressed", "true");
-  // Iron Man comes before it; Iron Man 3 after.
-  await expect(page.locator("#list-iron-man")).toContainText("Before");
-  await expect(page.locator("#list-iron-man-3")).toContainText("After");
+  // Its relatives (Iron Man before it, Iron Man 3 after) stay bright; the
+  // rest dim.
+  await expect(page.locator("#list-iron-man button")).not.toHaveClass(/opacity-35/);
+  await expect(page.locator("#list-iron-man-3 button")).not.toHaveClass(/opacity-35/);
+  await expect(page.locator("#list-captain-america-first-avenger button")).toHaveClass(
+    /opacity-35/,
+  );
 
   await page.getByRole("button", { name: /^View: List/ }).click();
   await page.getByRole("menuitemradio", { name: "Map" }).click();

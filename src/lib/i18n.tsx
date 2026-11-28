@@ -72,8 +72,6 @@ const en = {
   displayMap: "Map",
   displayList: "List",
   orderLabel: "Order",
-  listBefore: "Before",
-  listAfter: "After",
   watchBefore: (title: string) => `Before ${title}`,
   backTo: (title: string) => `Back to ${title}`,
   hideWatchFirst: "Hide what to watch first",
@@ -95,7 +93,6 @@ const en = {
   watchFirstCount: (n: number) => `${n} ${n === 1 ? "work" : "works"}, in order`,
   nothingFirst: "Nothing to watch first — you can start here.",
   startHere: "Start here",
-  directTag: "Direct",
   duration: (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
@@ -220,8 +217,6 @@ const ja: Messages = {
   displayMap: "マップ",
   displayList: "リスト",
   orderLabel: "並び順",
-  listBefore: "先に観る",
-  listAfter: "この後",
   watchBefore: (title) => `${title}の前に観る作品`,
   backTo: (title) => `${title}に戻る`,
   hideWatchFirst: "先に観る作品を閉じる",
@@ -242,7 +237,6 @@ const ja: Messages = {
   watchFirstCount: (n) => `観る順に ${n} 作品`,
   nothingFirst: "先に観る作品はありません。ここから観られます。",
   startHere: "ここから観られます",
-  directTag: "直接",
   duration: (minutes) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
