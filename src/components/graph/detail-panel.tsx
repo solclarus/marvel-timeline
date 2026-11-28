@@ -318,7 +318,7 @@ function WorkHeader({
           the card under the poster; wider, it sits beside it. */}
       <m.dl
         variants={ITEM}
-        className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2.5 rounded-item bg-tint/4 px-3 py-2.5 sm:col-span-1 sm:col-start-2 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-3 sm:bg-transparent sm:p-0"
+        className="col-span-2 grid grid-cols-2 gap-x-5 gap-y-3.5 rounded-item bg-tint/4 px-3.5 py-3 sm:col-span-1 sm:col-start-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-4 sm:bg-transparent sm:p-0 sm:pt-1"
       >
         <Fact icon={Shapes} label={t.factMedium}>
           {t[MEDIUM_META[mediumOf(work)].label]}
@@ -358,12 +358,12 @@ function WorkHeader({
           </Fact>
         )}
       </m.dl>
-      {/* What the viewer can do with it, at the card's foot. */}
+      {/* What the viewer can do with it, along the card's foot: what to watch
+          first on the left, watched on the right. */}
       <m.div
         variants={ITEM}
-        className="col-span-2 flex flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2"
+        className="col-span-2 flex items-center justify-between gap-3 border-t border-tint/10 pt-3"
       >
-        <WatchedToggle work={work} />
         {before > 0 ? (
           <button
             type="button"
@@ -371,24 +371,25 @@ function WorkHeader({
             aria-expanded={open}
             aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
             title={`${t.watchFirst} · ${t.watchFirstCount(before)}`}
-            className="group inline-flex h-6 items-center gap-1 rounded-full border border-tint/10 bg-tint/5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
+            className="group inline-flex h-8 items-center gap-1.5 rounded-full border border-tint/10 bg-tint/5 pr-2.5 pl-3 text-sm whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
           >
-            <ListOrdered className="size-3.5 text-marquee" aria-hidden />
+            <ListOrdered className="size-4 text-marquee" aria-hidden />
             <span className="tabular-nums">{before}</span>
             <ChevronDown
               className={cn(
-                "size-3.5 text-muted-foreground transition-transform duration-300",
+                "size-4 text-muted-foreground transition-transform duration-300",
                 open && "rotate-180",
               )}
               aria-hidden
             />
           </button>
         ) : (
-          <span className="inline-flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
-            <ListOrdered className="size-3.5" aria-hidden />
+          <span className="inline-flex h-8 items-center gap-1.5 text-xs text-muted-foreground">
+            <ListOrdered className="size-4" aria-hidden />
             {t.startHere}
           </span>
         )}
+        <WatchedToggle work={work} />
       </m.div>
     </m.div>
   );
