@@ -24,7 +24,10 @@ export interface UrlState {
   listFocus: ListFocus | null;
 }
 
-export type ListFocus = { kind: "before"; id: string } | { kind: "route"; id: string };
+export type ListFocus =
+  | { kind: "before"; id: string }
+  | { kind: "route"; id: string }
+  | { kind: "progress" };
 
 export type Display = "map" | "list";
 const DISPLAYS: readonly Display[] = ["map", "list"];
@@ -42,8 +45,9 @@ export const DEFAULT_URL_STATE: UrlState = {
   listFocus: null,
 };
 
-// `list=before:thor-ragnarok` or `list=route:fox-x-men`.
+// `list=before:thor-ragnarok`, `list=route:fox-x-men` or `list=progress`.
 function parseListFocus(value: string | null): ListFocus | null {
+  if (value === "progress") return { kind: "progress" };
   const [kind, id] = (value ?? "").split(":");
   if (kind === "before" && id && WORK_BY_ID.has(id)) return { kind, id };
   if (kind === "route" && id && ROUTES.some((r) => r.id === id)) return { kind, id };
@@ -102,7 +106,10 @@ export function serializeUrlState(state: UrlState): string {
   const params = new URLSearchParams();
   if (state.selectedId) params.set("work", state.selectedId);
   if (state.display) params.set("view", state.display);
-  if (state.listFocus) params.set("list", `${state.listFocus.kind}:${state.listFocus.id}`);
+  if (state.listFocus) {
+    const focus = state.listFocus;
+    params.set("list", focus.kind === "progress" ? focus.kind : `${focus.kind}:${focus.id}`);
+  }
   if (state.mode !== DEFAULT_URL_STATE.mode) params.set("mode", state.mode);
 
   if (state.groupBy !== DEFAULT_URL_STATE.groupBy) params.set("group", state.groupBy);

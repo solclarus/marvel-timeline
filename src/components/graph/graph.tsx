@@ -114,14 +114,15 @@ export function Graph() {
 
   // While the card lists works (a watch-first path or a route), those are
   // what light up behind it.
+  const current = card.current;
   const listed =
-    card.current?.kind === "route"
+    current?.kind === "route"
       ? routeWorks(
-          ROUTES.find((r) => r.id === card.current!.id)!,
+          ROUTES.find((r) => r.id === current.id)!,
           WORK_GRAPHS.all,
         )
-      : card.current?.open
-        ? watchFirst(card.current.id, graph).map((step) => step.work)
+      : current?.kind === "work" && current.open
+        ? watchFirst(current.id, graph).map((step) => step.work)
         : null;
   // The selection, else a hovered poster: hovering previews what selecting
   // would light.
@@ -458,6 +459,7 @@ export function Graph() {
         display={display}
         onDisplayChange={setDisplay}
         onRouteSelect={card.openRoute}
+        onProgressOpen={card.openProgress}
         onSearchSelect={handleSearchSelect}
         mode={mode}
         onModeChange={setMode}

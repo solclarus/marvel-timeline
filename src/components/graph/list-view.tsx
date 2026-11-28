@@ -7,6 +7,7 @@ import type { WorkGraph } from "@/lib/graph/relations";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+import { BulkWatched } from "./card-buttons";
 import { WorkRow, type RowTag } from "./work-row";
 
 interface Props {
@@ -68,10 +69,18 @@ export function ListView({
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         {sections.map((section) => (
           <section key={section.kind === "saga" ? section.saga : section.decade}>
-            <h2 className="mb-2 flex items-baseline justify-between px-2 text-xs font-medium text-muted-foreground">
-              {section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
-              <span className="font-normal tabular-nums">{t.workCount(section.works.length)}</span>
-            </h2>
+            <div className="mb-2 flex items-center justify-between gap-2 px-2">
+              <h2 className="flex items-baseline gap-2 text-xs font-medium text-muted-foreground">
+                {section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
+                <span className="font-normal tabular-nums">
+                  {t.workCount(section.works.length)}
+                </span>
+              </h2>
+              <BulkWatched
+                works={section.works}
+                label={section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
+              />
+            </div>
             <ol className="flex flex-col gap-1">
               {section.works.map((work) => (
                 <WorkRow

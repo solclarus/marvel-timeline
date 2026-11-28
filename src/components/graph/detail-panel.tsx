@@ -7,13 +7,15 @@ import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl, type WorkNode } from "
 import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "@/lib/graph/relations";
 import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
+import { progressOf } from "@/lib/progress";
 import { runtimeOf, totalRuntime } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
 import { useWatched } from "@/lib/watched";
 
-import { ICON_BUTTON, ShareButton, WatchedToggle } from "./card-buttons";
+import { BulkWatched, ICON_BUTTON, ShareButton, WatchedToggle } from "./card-buttons";
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
+import { ProgressBody, ProgressHeader } from "./progress-card";
 import { UpcomingBadge } from "./upcoming-badge";
 import type { CardView } from "./use-card";
 import { useFlightFromMap } from "./use-flight-from-map";
@@ -52,20 +54,26 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
   const work = view?.kind === "work" ? WORK_BY_ID.get(view.id) : undefined;
   const route = view?.kind === "route" ? ROUTES.find((r) => r.id === view.id) : undefined;
   const ja = locale === "ja";
+  const watched = useWatched();
+  const progress = view?.kind === "progress" ? progressOf(watched) : null;
   const labelOf = (card: CardView) => {
     if (card.kind === "work") return titleOf(WORK_BY_ID.get(card.id)!);
+    if (card.kind === "progress") return t.progress;
     const { title, titleJa } = ROUTES.find((r) => r.id === card.id)!;
     return ja ? titleJa : title;
   };
 
   // What the card lists, in watch order: a work's prerequisites (when
-  // folded out) or a route's works.
+  // folded out), a route's works, or what's up next.
   const steps = work ? watchFirst(work.id, graph) : [];
   const items = route
     ? routeWorks(route, WORK_GRAPHS.all).map((w) => ({ work: w, direct: false }))
-    : view?.kind === "work" && view.open
-      ? steps
-      : null;
+    : progress
+      ? progress.nextUp.map((w) => ({ work: w, direct: false }))
+      : view?.kind === "work" && view.open
+        ? steps
+        : null;
+  const cardKey = view ? (view.kind === "progress" ? view.kind : `${view.kind}:${view.id}`) : "";
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
@@ -73,7 +81,7 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
         {/* The card floats in and out once; moving to another work or route
             only replays its contents, so it stays in place. */}
         <AnimatePresence>
-          {view && (work || route) && (
+          {view && (work || route || progress) && (
             <m.div
               key="detail-panel"
               initial={{ y: -16, scale: 0.96 }}
@@ -123,6 +131,7 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
                     />
                   )}
                   {route && <RouteHeader key={route.id} route={route} />}
+                  {progress && <ProgressHeader />}
                 </div>
                 <m.div
                   initial={{ opacity: 0 }}
@@ -130,7 +139,7 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
                   transition={{ duration: 0.3, delay: 0.15 }}
                   className="relative flex shrink-0 items-center gap-0.5"
                 >
-                  <ShareButton workId={work?.id} />
+                  {!progress && <ShareButton workId={work?.id} />}
                   <button
                     type="button"
                     onClick={onClose}
@@ -142,10 +151,30 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
                 </m.div>
               </div>
 
+              {progress && (
+                <div className="relative -mx-2 max-h-[min(60dvh,34rem)] overflow-y-auto overscroll-contain">
+                  <ProgressBody progress={progress} />
+                  {items?.length ? (
+                    <CardList
+                      items={items}
+                      label={t.upNext}
+                      heading={t.upNext}
+                      showTotal={false}
+                      bulk={false}
+                      onPick={onPick}
+                    />
+                  ) : (
+                    progress.works.watched > 0 && (
+                      <p className="px-2 pt-3 text-xs text-muted-foreground">{t.allCaughtUp}</p>
+                    )
+                  )}
+                </div>
+              )}
+
               <AnimatePresence initial={false}>
-                {items && items.length > 0 && (
+                {!progress && items && items.length > 0 && (
                   <m.div
-                    key={`${view.kind}:${view.id}`}
+                    key={cardKey}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -348,25 +377,39 @@ function RouteHeader({ route }: { route: (typeof ROUTES)[number] }) {
 function CardList({
   items,
   label,
+  heading,
   showTotal,
+  bulk = true,
   onPick,
 }: {
   items: Array<{ work: WorkNode; direct: boolean }>;
   label: string;
+  heading?: string;
   showTotal: boolean;
+  // Offer to mark (or unmark) the whole list.
+  bulk?: boolean;
   onPick: (id: string) => void;
 }) {
   const { t } = useI18n();
   const watched = useWatched();
-  const { minutes, missing } = totalRuntime(items.map((item) => item.work));
-  const left = totalRuntime(items.map((item) => item.work).filter((w) => !watched.has(w.id)));
+  const works = items.map((item) => item.work);
+  const { minutes, missing } = totalRuntime(works);
+  const left = totalRuntime(works.filter((w) => !watched.has(w.id)));
   return (
     <div className="pt-3">
-      {showTotal && minutes > 0 && (
-        <p className="px-2 pb-1.5 text-xs text-muted-foreground tabular-nums">
-          {t.totalTime(t.duration(minutes), missing)}
-          {left.minutes < minutes && ` · ${t.timeLeft(t.duration(left.minutes))}`}
-        </p>
+      {(heading || (showTotal && minutes > 0) || bulk) && (
+        <div className="flex min-h-7 items-center justify-between gap-2 px-2 pb-1.5">
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {heading && <span className="font-medium text-foreground/80">{heading}</span>}
+            {showTotal && minutes > 0 && (
+              <>
+                {t.totalTime(t.duration(minutes), missing)}
+                {left.minutes < minutes && ` · ${t.timeLeft(t.duration(left.minutes))}`}
+              </>
+            )}
+          </p>
+          {bulk && <BulkWatched works={works} />}
+        </div>
       )}
       <ol
         aria-label={label}
