@@ -61,9 +61,9 @@ export function WatchedToggle({ work }: { work: WorkNode }) {
       aria-pressed={watched}
       aria-label={t.markWatched(titleOf(work))}
       title={t.watched}
-      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-tint/15 bg-tint/5 text-muted-foreground transition-colors hover:border-tint/25 hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-marquee aria-pressed:bg-marquee aria-pressed:text-background"
+      className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-tint/15 bg-tint/5 text-muted-foreground transition-colors hover:border-tint/25 hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-marquee aria-pressed:bg-marquee aria-pressed:text-background"
     >
-      <Eye className="size-3.5" strokeWidth={watched ? 2.75 : 2.25} aria-hidden />
+      <Eye className="size-4" strokeWidth={watched ? 2.5 : 2} aria-hidden />
     </button>
   );
 }
