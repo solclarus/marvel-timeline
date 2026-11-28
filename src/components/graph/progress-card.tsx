@@ -115,7 +115,7 @@ export function ProgressStats({ progress }: { progress: Progress }) {
 export function ProgressBreakdown({ progress }: { progress: Progress }) {
   const { t, franchiseLabel } = useI18n();
   return (
-    <div className="grid gap-4 px-2 pt-4 sm:grid-cols-2 sm:gap-6">
+    <div className="grid gap-4 px-2 pt-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-1 lg:gap-4">
       <MeterList title={t.byPhase}>
         {progress.phases.map((p) => (
           <MeterRow key={p.phase} name={t.phase(p.phase)} tally={p} />
@@ -142,12 +142,14 @@ export function RouteList({ onPick }: { onPick: (id: string) => void }) {
   const ja = locale === "ja";
   return (
     <section className="flex flex-col gap-1.5 px-2 pt-4">
-      <h3 className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
-        <Signpost className="size-3.5 text-marquee" aria-hidden />
-        {t.routes}
-        <span className="font-normal text-muted-foreground">· {t.routesIntro}</span>
-      </h3>
-      <ul className="grid gap-1.5 sm:grid-cols-2">
+      <div className="flex flex-col gap-0.5">
+        <h3 className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+          <Signpost className="size-3.5 text-marquee" aria-hidden />
+          {t.routes}
+        </h3>
+        <p className="text-xs text-muted-foreground">{t.routesIntro}</p>
+      </div>
+      <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
         {ROUTES.map((route) => {
           // Routes span every kind of work, whatever the map's filters.
           const works = routeWorks(route, WORK_GRAPHS.all);

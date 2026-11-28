@@ -99,7 +99,8 @@ export function ListView({
         "h-dvh overflow-y-auto bg-canvas px-3 transition-[padding] duration-200 sm:px-6",
         // Room below the last row for the command bar (and the selection bar).
         selecting ? "pb-44" : "pb-28",
-        cardShown ? "pt-36 sm:pt-44" : "pt-4",
+        // Under the card, or beside it where it's a sidebar.
+        cardShown ? "pt-36 sm:pt-44 lg:pt-4 lg:pl-136" : "pt-4",
       )}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
