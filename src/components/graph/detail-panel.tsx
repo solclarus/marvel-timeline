@@ -1,4 +1,16 @@
-import { ChevronDown, ChevronLeft, ListOrdered, Signpost, X } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  Clock,
+  Earth,
+  Layers,
+  Library,
+  ListOrdered,
+  Shapes,
+  Signpost,
+  X,
+} from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 
@@ -8,6 +20,7 @@ import {
   earthsOf,
   FRANCHISE_META,
   isUpcoming,
+  mediumOf,
   posterUrl,
   type WorkNode,
 } from "@/data/works";
@@ -21,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { useWatched } from "@/lib/watched";
 
 import { BulkWatched, ICON_BUTTON, ShareButton, WatchedToggle } from "./card-buttons";
-import { MediumBadge } from "./medium-badge";
+import { MEDIUM_META } from "./medium-badge";
 import { Poster } from "./poster";
 import {
   ClearWatched,
@@ -300,34 +313,6 @@ function WorkHeader({
             </span>
           )}
         </m.span>
-        <m.span variants={ITEM} className="flex flex-wrap items-center gap-1.5">
-          <WatchedToggle work={work} />
-          {before > 0 ? (
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={open}
-              aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
-              title={`${t.watchFirst} · ${t.watchFirstCount(before)}`}
-              className="group inline-flex h-6 items-center gap-1 rounded-full border border-tint/10 bg-tint/5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
-            >
-              <ListOrdered className="size-3.5 text-marquee" aria-hidden />
-              <span className="tabular-nums">{before}</span>
-              <ChevronDown
-                className={cn(
-                  "size-3.5 text-muted-foreground transition-transform duration-300",
-                  open && "rotate-180",
-                )}
-                aria-hidden
-              />
-            </button>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
-              <ListOrdered className="size-3.5" aria-hidden />
-              {t.startHere}
-            </span>
-          )}
-        </m.span>
       </span>
       {/* What it is, in small labels over their values. On phones it spans
           the card under the poster; wider, it sits beside it. */}
@@ -335,17 +320,21 @@ function WorkHeader({
         variants={ITEM}
         className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2.5 rounded-item bg-tint/4 px-3 py-2.5 sm:col-span-1 sm:col-start-2 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-3 sm:bg-transparent sm:p-0"
       >
-        <Fact label={t.factMedium}>
-          <MediumBadge work={work} className="text-foreground [&_svg]:size-3.5" />
+        <Fact icon={Shapes} label={t.factMedium}>
+          {t[MEDIUM_META[mediumOf(work)].label]}
         </Fact>
-        <Fact label={t.franchise}>
+        <Fact icon={Library} label={t.franchise}>
           <span
             className={`size-2 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
           />
           <span className="truncate">{franchiseLabel(work.franchise)}</span>
         </Fact>
-        {work.phase !== undefined && <Fact label={t.factPhase}>{t.phase(work.phase)}</Fact>}
-        <Fact label={t.earth}>
+        {work.phase !== undefined && (
+          <Fact icon={Layers} label={t.factPhase}>
+            {t.phase(work.phase)}
+          </Fact>
+        )}
+        <Fact icon={Earth} label={t.earth}>
           <span className="flex flex-wrap gap-x-2 gap-y-0.5">
             {earthsOf(work).map((earth) => (
               <span key={earth} className="flex items-center gap-1">
@@ -355,13 +344,13 @@ function WorkHeader({
             ))}
           </span>
         </Fact>
-        <Fact label={upcoming ? t.factComing : t.factReleased}>
+        <Fact icon={CalendarDays} label={upcoming ? t.factComing : t.factReleased}>
           <span className={cn("tabular-nums", upcoming && "text-marquee")}>
             {formatRelease(work, locale)}
           </span>
         </Fact>
         {runtime && (
-          <Fact label={t.factRuntime}>
+          <Fact icon={Clock} label={t.factRuntime}>
             <span className="tabular-nums">
               {runtime.episodes && `${t.episodes(runtime.episodes)} · `}
               {t.duration(runtime.minutes)}
@@ -369,15 +358,58 @@ function WorkHeader({
           </Fact>
         )}
       </m.dl>
+      {/* What the viewer can do with it, at the card's foot. */}
+      <m.div
+        variants={ITEM}
+        className="col-span-2 flex flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2"
+      >
+        <WatchedToggle work={work} />
+        {before > 0 ? (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
+            title={`${t.watchFirst} · ${t.watchFirstCount(before)}`}
+            className="group inline-flex h-6 items-center gap-1 rounded-full border border-tint/10 bg-tint/5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
+          >
+            <ListOrdered className="size-3.5 text-marquee" aria-hidden />
+            <span className="tabular-nums">{before}</span>
+            <ChevronDown
+              className={cn(
+                "size-3.5 text-muted-foreground transition-transform duration-300",
+                open && "rotate-180",
+              )}
+              aria-hidden
+            />
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 py-0.5 text-xs text-muted-foreground">
+            <ListOrdered className="size-3.5" aria-hidden />
+            {t.startHere}
+          </span>
+        )}
+      </m.div>
     </m.div>
   );
 }
 
 // A small label over its value.
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+function Fact({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof Earth;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Icon className="size-3.5" aria-hidden />
+        {label}
+      </dt>
       <dd className="flex min-w-0 items-center gap-1.5 text-sm">{children}</dd>
     </div>
   );
