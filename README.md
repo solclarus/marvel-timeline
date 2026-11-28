@@ -42,11 +42,12 @@ Everything lives in `src/data/works.ts`: works, dependencies, Earths, release da
 - `dependsOn` lists what a work builds on; `reference` edges are drawn but don't count as prerequisites.
 - `animated: true` marks animated films and series, which the media filter treats as animation rather than films or series.
 - Routes live in `src/data/routes.ts`: a list of works, or a goal whose direct prerequisites are taken; the app orders them.
+- `TMDB_TOKEN=… pnpm check:new` lists Marvel Studios works and seasons on TMDB, out in the last year or coming, that the map doesn't have. Each goes into `works.ts`, or into `src/data/reviewed-on-tmdb.ts` with why it's left off (`untilDated` brings an undated one back once TMDB dates it).
 - Title logos are in `src/data/logos.ts`, generated from TMDB by `pnpm fetch:logos`: each work's English logo (a season uses its show's), kept while TMDB still lists it.
 - Running times are in `src/data/runtimes.ts`, generated from TMDB by `pnpm fetch:runtimes` (works without a full runtime yet are left out).
 - `releasePrecision: "month" | "year"` marks works announced only to the month or year; `poster: ""` shows stand-in art until TMDB has one.
 - `titleJa` is the Japanese title (TMDB's ja-JP listing, lightly cleaned up). `earths` lists the Earths a work is set on or crosses into, home first (defaults to its franchise's Earth). `EARTH_META` cites where each Earth number comes from.
-- Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works whose date has drifted from TMDB's (its earliest theatrical or first air date), or whose poster TMDB no longer lists; a poster that TMDB still lists stays, even after TMDB's main poster changes. Every TMDB script also reads `TMDB_TOKEN` from an ignored `.env.local`. A weekly workflow (`.github/workflows/tmdb-check.yml`, also runnable by hand) runs all three with the `TMDB_TOKEN` repository secret and keeps one issue open with anything to update.
+- Each work's `tmdb` id points at its themoviedb.org movie or TV season, the source of its date and poster. `TMDB_TOKEN=… pnpm check:tmdb` lists works whose date has drifted from TMDB's (its earliest theatrical or first air date), or whose poster TMDB no longer lists; a poster that TMDB still lists stays, even after TMDB's main poster changes. Every TMDB script also reads `TMDB_TOKEN` from an ignored `.env.local`. A weekly workflow (`.github/workflows/tmdb-check.yml`, also runnable by hand) runs all four with the `TMDB_TOKEN` repository secret and keeps one issue open with anything to update.
 
 ### When a work comes out
 
@@ -69,6 +70,7 @@ What a work builds on is only certain once it's out, so a release is worth a pas
 | `pnpm lint` / `pnpm format` | oxlint / oxfmt                                                   |
 | `pnpm fix`                  | Apply lint fixes (incl. canonical Tailwind classes), then format |
 | `pnpm check:tmdb`           | Compare dates and posters with TMDB (needs a token)              |
+| `pnpm check:new`            | List new Marvel Studios works on TMDB (needs a token)            |
 | `pnpm fetch:runtimes`       | Regenerate running times from TMDB (needs a token)               |
 | `pnpm fetch:logos`          | Regenerate title logos from TMDB (needs a token)                 |
 

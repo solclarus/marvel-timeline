@@ -1,8 +1,9 @@
 name: TMDB check
 
-# Weekly: compares release dates and posters with TMDB and checks whether
-# running times or title logos have changed, then keeps one open issue up to
-# date with anything to fix by hand (or closes it once everything matches).
+# Weekly: compares release dates and posters with TMDB, checks whether
+# running times or title logos have changed, and looks for new Marvel Studios
+# works, then keeps one open issue up to date with anything to fix by hand
+# (or closes it once everything matches).
 on:
   schedule:
     - cron: "0 0 * * 1" # Mondays, 09:00 JST
@@ -54,10 +55,17 @@ jobs:
           git diff -- src/data/logos.ts > logos.txt
           echo "changed=$([ -s logos.txt ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           cat logos.txt
+      - name: Look for new works
+        id: new
+        run: |
+          set +e
+          pnpm --silent check:new > new.txt 2>&1
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          cat new.txt
       - name: Report
         run: |
           existing=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number -q '.[0].number')
-          if [ "${{ steps.dates.outputs.status }}" = "0" ] && [ "${{ steps.runtimes.outputs.changed }}" = "false" ] && [ "${{ steps.logos.outputs.changed }}" = "false" ]; then
+          if [ "${{ steps.dates.outputs.status }}" = "0" ] && [ "${{ steps.runtimes.outputs.changed }}" = "false" ] && [ "${{ steps.logos.outputs.changed }}" = "false" ] && [ "${{ steps.new.outputs.status }}" = "0" ]; then
             if [ -n "$existing" ]; then
               gh issue close "$existing" --comment "Everything matches TMDB again ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
             fi
@@ -82,6 +90,13 @@ jobs:
               echo "## Logos changed — run \`pnpm fetch:logos\` and commit"
               echo '```diff'
               head -c 20000 logos.txt
+              echo '```'
+            fi
+            if [ "${{ steps.new.outputs.status }}" != "0" ]; then
+              echo
+              echo "## New on TMDB (\`pnpm check:new\`) — add to works.ts, or to reviewed-on-tmdb.ts with why"
+              echo '```'
+              cat new.txt
               echo '```'
             fi
           } > body.md
