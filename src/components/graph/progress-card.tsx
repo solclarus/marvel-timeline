@@ -30,7 +30,7 @@ export function ProgressHeader() {
       >
         <ChartColumnBig className="size-5" aria-hidden />
       </m.span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 pr-10">
         <m.span
           variants={ITEM}
           data-slot="detail-title"

@@ -1,8 +1,8 @@
-import { Check } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// The check on a watched work's poster or tile.
+// The eye on a watched work: a poster's or tile's corner, or a row's end.
 export function WatchedMark({ className }: { className?: string }) {
   return (
     <span
@@ -12,7 +12,7 @@ export function WatchedMark({ className }: { className?: string }) {
         className,
       )}
     >
-      <Check className="size-3" strokeWidth={3} />
+      <Eye className="size-3" strokeWidth={2.75} />
     </span>
   );
 }
