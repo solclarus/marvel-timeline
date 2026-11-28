@@ -40,7 +40,8 @@ test("a work with no prerequisites says you can start there", async ({ page }) =
 
 test("a route opens as a card, and its works lead on from it", async ({ page }) => {
   await page.goto("./?view=map");
-  await page.getByRole("button", { name: "Watching" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: "Your watching" }).click();
   await page.getByRole("button", { name: /The MCU's Spider-Man/ }).click();
   await expect(title(page)).toHaveText("The MCU's Spider-Man");
   await expect(page).toHaveURL(/list=route%3Amcu-spider-man/);
@@ -72,7 +73,8 @@ test("watched works are marked, leave time left, and are remembered", async ({ p
 
   // Cleared from the Watching card, after a confirm.
   page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Watching" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: "Your watching" }).click();
   await page.getByRole("button", { name: "Clear", exact: true }).click();
   await expect(page.getByRole("button", { name: "Clear", exact: true })).toHaveCount(0);
 });
@@ -86,7 +88,8 @@ test("a whole list is marked at once, and the progress card counts it", async ({
 
   // The progress card, from the command bar: five works, Phase 1 five in,
   // and The Avengers up next.
-  await page.getByRole("button", { name: "Watching" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: "Your watching" }).click();
   await expect(page).toHaveURL(/list=progress/);
   await expect(page.getByText(/^5 of \d+$/).first()).toBeVisible();
   const phases = page.locator("section", {
@@ -95,12 +98,12 @@ test("a whole list is marked at once, and the progress card counts it", async ({
   await expect(phases.locator("li").first()).toContainText("Phase 15 of 6");
   await page.locator("#card-avengers button").click();
   await expect(page.locator("[data-slot=detail-title]").first()).toHaveText("The Avengers");
-  await page.getByRole("button", { name: "Back to Watching" }).click();
+  await page.getByRole("button", { name: "Back to Your watching" }).click();
 
   // A route from the same card, and ‹ back to it.
   await page.getByRole("button", { name: /The Defenders Saga/ }).click();
   await expect(page).toHaveURL(/list=route%3Adefenders/);
-  await page.getByRole("button", { name: "Back to Watching" }).click();
+  await page.getByRole("button", { name: "Back to Your watching" }).click();
   await expect(page).toHaveURL(/list=progress/);
 
   // In the list, a section's "Select all" picks the saga to unmark at once.

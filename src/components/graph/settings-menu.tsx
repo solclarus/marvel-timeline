@@ -1,15 +1,6 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import {
-  Earth,
-  Image,
-  Info,
-  Library,
-  ListFilter,
-  Settings2,
-  SlidersHorizontal,
-  Type,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Earth, Image, Library, Menu, Type } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -32,28 +23,17 @@ interface Props {
   onVisibleChange: (visible: Set<string>) => void;
   onGroupByChange: (by: GroupBy) => void;
   onAbout: () => void;
+  onProgressOpen: () => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-muted-foreground">{children}</p>;
 }
 
-// A titled block of the panel: filters, then display options.
-function Section({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: typeof Earth;
-  children: React.ReactNode;
-}) {
+// A page's controls, in one block under its header.
+function Section({ children }: { children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3 rounded-item bg-white/3 p-3 ring-1 ring-white/5">
-      <h2 className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
-        <Icon className="size-3.5" />
-        {title}
-      </h2>
       {children}
     </section>
   );
@@ -257,6 +237,12 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
   );
 }
 
+type Page = "menu" | "filter" | "display" | "settings";
+
+// The bar's last button: a short menu, in three groups. Watching opens the
+// viewer's own card; the map and list's filters and display, and the app's
+// settings (language, theme), open as pages in the same panel, so the map
+// stays in view while they change (‹ goes back); About opens a dialog.
 export function SettingsMenu({
   media,
   onMediaChange,
@@ -264,26 +250,34 @@ export function SettingsMenu({
   onVisibleChange,
   onGroupByChange,
   onAbout,
+  onProgressOpen,
 }: Props) {
   const { t, locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState<Page>("menu");
   const [art, setArt] = useNodeArt();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
     media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setPage("menu");
+      }}
+    >
       <PopoverTrigger
         render={
           <Button
             variant="ghost"
             size="icon"
             className="relative"
-            aria-label={filtered ? t.viewSettingsFiltered : t.viewSettings}
+            aria-label={filtered ? t.menuFiltered : t.menu}
           />
         }
       >
-        <SlidersHorizontal className="size-4" />
+        <Menu className="size-4" />
         {filtered && (
           <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-marquee ring-2 ring-card" />
         )}
@@ -292,68 +286,168 @@ export function SettingsMenu({
         side="top"
         align="end"
         sideOffset={14}
-        className="flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-1.5 bg-card/95 backdrop-blur-md"
+        className={cn(
+          "flex flex-col gap-1.5 bg-card/95 backdrop-blur-md",
+          page === "menu" ? "w-56 p-1.5" : "w-[min(22rem,calc(100vw-2rem))]",
+        )}
       >
-        <Section title={t.filterSection} icon={ListFilter}>
-          <MediaToggles media={media} onChange={onMediaChange} />
-          <Segmented<GroupBy>
-            label={t.groupBy}
-            value={grouping.by}
-            onChange={onGroupByChange}
-            options={[
-              { value: "franchise", label: t.franchise, icon: Library },
-              { value: "earth", label: t.earth, icon: Earth },
-            ]}
-          />
-          <GroupChips grouping={grouping} onVisibleChange={onVisibleChange} />
-        </Section>
-        <Section title={t.displaySection} icon={Settings2}>
-          <Segmented<NodeArt>
-            label={t.nodeArt}
-            value={art}
-            onChange={setArt}
-            options={[
-              { value: "poster", label: t.artPoster, icon: Image },
-              { value: "logo", label: t.artLogo, icon: Type },
-            ]}
-          />
-          <Segmented<Locale>
-            label={t.language}
-            value={locale}
-            onChange={setLocale}
-            options={LOCALES.map((option) => ({
-              value: option,
-              label: LOCALE_NAMES[option],
-              lang: option,
-            }))}
-          />
-        </Section>
-        <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
-          <SectionLabel>{t.lines}</SectionLabel>
-          {EDGE_LEGEND.map(({ style, label, detail }) => (
-            <div key={style} className="flex items-start gap-2 text-xs">
-              <span className="flex h-4 items-center">
-                <LineSample style={style} />
-              </span>
-              <span>
-                {t[label]}
-                {detail && <span className="text-muted-foreground"> · {t[detail]}</span>}
-              </span>
+        {page === "menu" && (
+          <nav aria-label={t.menu} className="flex flex-col gap-1 py-0.5">
+            <MenuGroup label={t.menuWatching}>
+              <MenuLink
+                label={t.progress}
+                onClick={() => {
+                  setOpen(false);
+                  onProgressOpen();
+                }}
+              />
+            </MenuGroup>
+            <MenuGroup label={t.menuView}>
+              <MenuLink
+                label={t.filterSection}
+                note={filtered ? t.filterOn : undefined}
+                more
+                onClick={() => setPage("filter")}
+              />
+              <MenuLink label={t.displaySection} more onClick={() => setPage("display")} />
+            </MenuGroup>
+            <MenuGroup label={t.menuApp}>
+              <MenuLink label={t.menuSettings} more onClick={() => setPage("settings")} />
+              <MenuLink
+                label={t.about}
+                onClick={() => {
+                  setOpen(false);
+                  onAbout();
+                }}
+              />
+            </MenuGroup>
+          </nav>
+        )}
+        {page === "filter" && (
+          <>
+            <PageHeader title={t.filterSection} onBack={() => setPage("menu")} />
+            <Section>
+              <MediaToggles media={media} onChange={onMediaChange} />
+              <Segmented<GroupBy>
+                label={t.groupBy}
+                value={grouping.by}
+                onChange={onGroupByChange}
+                options={[
+                  { value: "franchise", label: t.franchise, icon: Library },
+                  { value: "earth", label: t.earth, icon: Earth },
+                ]}
+              />
+              <GroupChips grouping={grouping} onVisibleChange={onVisibleChange} />
+            </Section>
+          </>
+        )}
+        {page === "display" && (
+          <>
+            <PageHeader title={t.displaySection} onBack={() => setPage("menu")} />
+            <Section>
+              <Segmented<NodeArt>
+                label={t.nodeArt}
+                value={art}
+                onChange={setArt}
+                options={[
+                  { value: "poster", label: t.artPoster, icon: Image },
+                  { value: "logo", label: t.artLogo, icon: Type },
+                ]}
+              />
+            </Section>
+            <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
+              <SectionLabel>{t.lines}</SectionLabel>
+              {EDGE_LEGEND.map(({ style, label, detail }) => (
+                <div key={style} className="flex items-start gap-2 text-xs">
+                  <span className="flex h-4 items-center">
+                    <LineSample style={style} />
+                  </span>
+                  <span>
+                    {t[label]}
+                    {detail && <span className="text-muted-foreground"> · {t[detail]}</span>}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setOpen(false);
-            onAbout();
-          }}
-          className="flex items-center gap-1.5 rounded-item px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
-        >
-          <Info className="size-3.5" aria-hidden />
-          {t.about}
-        </button>
+          </>
+        )}
+        {page === "settings" && (
+          <>
+            <PageHeader title={t.menuSettings} onBack={() => setPage("menu")} />
+            <Section>
+              <Segmented<Locale>
+                label={t.language}
+                value={locale}
+                onChange={setLocale}
+                options={LOCALES.map((option) => ({
+                  value: option,
+                  label: LOCALE_NAMES[option],
+                  lang: option,
+                }))}
+              />
+            </Section>
+          </>
+        )}
       </PopoverContent>
     </Popover>
+  );
+}
+
+// A titled run of menu rows.
+function MenuGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col">
+      <span className="px-2 pt-1 pb-0.5 text-xs text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+// One row of the menu: where it leads, a dot when it's on (a filter), and ›
+// when it opens a page of its own.
+function MenuLink({
+  label,
+  note,
+  more = false,
+  onClick,
+}: {
+  label: string;
+  note?: string;
+  more?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+    >
+      <span className="flex-1">{label}</span>
+      {note && (
+        <>
+          <span className="size-1.5 rounded-full bg-marquee" aria-hidden />
+          <span className="sr-only">{note}</span>
+        </>
+      )}
+      {more && <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden />}
+    </button>
+  );
+}
+
+// A page's title, with ‹ back to the menu.
+function PageHeader({ title, onBack }: { title: string; onBack: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label={t.backTo(t.menu)}
+        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+      </button>
+      <h2 className="text-sm font-medium">{title}</h2>
+    </div>
   );
 }

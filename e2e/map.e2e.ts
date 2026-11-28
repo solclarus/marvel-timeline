@@ -41,7 +41,8 @@ test("manual zoom sticks after the selection fit", async ({ page }) => {
 test("media filter hides series and brings back a searched one", async ({ page }) => {
   await page.goto("./");
   await expect(page.locator('[id="wandavision"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: /^Filter/ }).click();
   const panel = page.locator("[data-slot=popover-content]");
   await panel.getByRole("button", { name: "Series", exact: true }).click();
   await panel.getByRole("button", { name: "Animation", exact: true }).click();
@@ -89,7 +90,7 @@ test("hovering a poster focuses its relatives, not its phase", async ({ page }) 
 
 test("About shows the TMDB notice", async ({ page }) => {
   await page.goto("./");
-  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
   await page.getByRole("button", { name: "About" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("not endorsed, certified, or otherwise approved by TMDB");
@@ -100,7 +101,7 @@ test("About shows the TMDB notice", async ({ page }) => {
 
 test("About lists the works left off the map", async ({ page }) => {
   await page.goto("./");
-  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
   await page.getByRole("button", { name: "About" }).click();
   const dialog = page.locator("[data-slot=dialog-content]");
   await dialog.getByRole("button", { name: /Show the \d+ left off/ }).click();
@@ -167,7 +168,8 @@ test("timelines light only the selection, with no lines", async ({ page }) => {
 
 test("settings switch with buttons and filter groups with chips", async ({ page }) => {
   await page.goto("./");
-  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: /^Filter/ }).click();
   const panel = page.locator("[data-slot=popover-content]");
   await panel.getByRole("button", { name: "Earth", exact: true }).click();
   await expect(page).toHaveURL(/group=earth/);
@@ -187,12 +189,13 @@ test("settings switch with buttons and filter groups with chips", async ({ page 
 
   await panel.getByRole("button", { name: "Animation", exact: true }).click();
   await expect(page).toHaveURL(/media=movie%2Cseries(&|$)/);
-  await expect(page.getByRole("button", { name: "View settings (filtered)" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Menu (filtered)" })).toBeVisible();
 });
 
 test("a route's card lists its works, and picking one shows it", async ({ page }) => {
   await page.goto("./?media=movie");
-  await page.getByRole("button", { name: "Watching" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: "Your watching" }).click();
   await page.getByRole("button", { name: /The Defenders Saga/ }).click();
   await expect(page).toHaveURL(/list=route%3Adefenders/);
   await expect(page.getByRole("list", { name: "The Defenders Saga" }).locator("li")).toHaveCount(
@@ -211,7 +214,8 @@ test("the map can show title logos on wide tiles, remembered on reload", async (
     node.evaluate((el) => [(el as HTMLElement).offsetWidth, (el as HTMLElement).offsetHeight]);
   expect(await size()).toEqual([80, 120]);
 
-  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  await page.getByRole("button", { name: "Display", exact: true }).click();
   await page.getByRole("button", { name: "Titles" }).click();
   await expect.poll(size).toEqual([128, 72]);
   await expect(node.locator("img")).toHaveAttribute("src", /image\.tmdb\.org\/t\/p\/w300\//);
@@ -228,4 +232,15 @@ test("the app can be installed: its manifest loads without errors", async ({ pag
   expect(errors).toEqual([]);
   const icon = await page.request.get("./icon-512.png");
   expect(icon.headers()["content-type"]).toBe("image/png");
+});
+
+test("the menu leads to filters and display, and back", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: /^Menu( \(filtered\))?$/ }).click();
+  const panel = page.locator("[data-slot=popover-content]");
+  await panel.getByRole("button", { name: /^Filter/ }).click();
+  await expect(panel.getByRole("button", { name: "Show all" })).toBeVisible();
+  await panel.getByRole("button", { name: "Back to Menu" }).click();
+  await panel.getByRole("button", { name: "Display", exact: true }).click();
+  await expect(panel.getByRole("button", { name: "Titles" })).toBeVisible();
 });
