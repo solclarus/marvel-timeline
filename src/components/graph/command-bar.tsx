@@ -1,11 +1,8 @@
-import { ChartColumnBig } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import type { MediaFilter } from "@/lib/graph/relations";
-import { useI18n } from "@/lib/i18n";
 import type { Display } from "@/lib/url-state";
 
 import { AboutDialog } from "./about-dialog";
@@ -28,9 +25,9 @@ interface Props {
   onGroupByChange: (by: GroupBy) => void;
 }
 
-// Every map-wide control in one bar, four in all: search, the view (map or
-// list, and the order), the viewer's own card (progress, up next, routes),
-// and settings (filters, display, About). At the bottom, within thumb
+// Every map-wide control in one bar, three in all: search, the view (map or
+// list, and the order), and the menu (the viewer's own card; filters and
+// display; About). At the bottom, within thumb
 // reach; full width on phones.
 export function CommandBar({
   display,
@@ -45,7 +42,6 @@ export function CommandBar({
   onVisibleGroupsChange,
   onGroupByChange,
 }: Props) {
-  const { t } = useI18n();
   const [aboutOpen, setAboutOpen] = useState(false);
   return (
     <div className="fixed inset-x-4 bottom-4 z-40 flex justify-center sm:bottom-6">
@@ -58,15 +54,6 @@ export function CommandBar({
           display={display}
           onDisplayChange={onDisplayChange}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onProgressOpen}
-          aria-label={t.progress}
-          title={t.progress}
-        >
-          <ChartColumnBig className="size-4" />
-        </Button>
         <SettingsMenu
           media={media}
           onMediaChange={onMediaChange}
@@ -74,6 +61,7 @@ export function CommandBar({
           onVisibleChange={onVisibleGroupsChange}
           onGroupByChange={onGroupByChange}
           onAbout={() => setAboutOpen(true)}
+          onProgressOpen={onProgressOpen}
         />
       </FabBar>
       <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
