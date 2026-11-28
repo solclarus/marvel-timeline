@@ -3,11 +3,19 @@ import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
 
 import { ROUTES } from "@/data/routes";
-import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl, type WorkNode } from "@/data/works";
+import {
+  EARTH_META,
+  earthsOf,
+  FRANCHISE_META,
+  isUpcoming,
+  posterUrl,
+  type WorkNode,
+} from "@/data/works";
 import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "@/lib/graph/relations";
 import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { progressOf } from "@/lib/progress";
+import { formatRelease } from "@/lib/release-date";
 import { runtimeOf, totalRuntime } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
 import { useWatched } from "@/lib/watched";
@@ -22,7 +30,6 @@ import {
   ProgressStats,
   RouteList,
 } from "./progress-card";
-import { UpcomingBadge } from "./upcoming-badge";
 import type { CardView } from "./use-card";
 import { useFlightFromMap } from "./use-flight-from-map";
 import { WorkRow } from "./work-row";
@@ -132,7 +139,7 @@ export function DetailPanel({
                       type="button"
                       onClick={onBack}
                       aria-label={t.backTo(labelOf(previous))}
-                      className="mb-1.5 -ml-1.5 flex max-w-full items-center gap-0.5 rounded-full py-0.5 pr-2 pl-1 text-xs text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground"
+                      className="mb-1.5 -ml-1.5 flex max-w-[calc(100%-4rem)] items-center gap-0.5 rounded-full py-0.5 pr-2 pl-1 text-xs text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground"
                     >
                       <ChevronLeft className="size-3.5 shrink-0" aria-hidden />
                       <span className="truncate">{labelOf(previous)}</span>
@@ -154,7 +161,7 @@ export function DetailPanel({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.15 }}
-                  className="relative flex shrink-0 items-center gap-0.5"
+                  className="absolute top-0 right-0 z-20 flex items-center gap-0.5"
                 >
                   {!progress && <ShareButton workId={work?.id} />}
                   <button
@@ -264,56 +271,33 @@ function WorkHeader({
   const { t, titleOf, franchiseLabel, earthLabel, locale } = useI18n();
   const runtime = runtimeOf(work);
   const posterRef = useFlightFromMap(work.id);
+  const upcoming = isUpcoming(work);
   return (
     <m.div
       variants={CONTENTS}
       initial="hidden"
       animate="shown"
-      className="flex items-start gap-3 sm:gap-4"
+      className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:gap-x-5"
     >
       <span
         ref={posterRef}
-        className="relative z-10 block h-20 w-14 shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/20 ring-tint/15 sm:h-28 sm:w-[4.7rem] dark:shadow-black/50"
+        className="relative z-10 row-span-1 block h-28 w-[4.7rem] shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/20 ring-tint/15 sm:row-span-2 sm:h-44 sm:w-[7.4rem] dark:shadow-black/50"
       >
         <Poster key={work.id} work={work} loading="eager" />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-1 sm:gap-1.5">
-        <m.span
-          variants={ITEM}
-          className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground"
-        >
-          <MediumBadge work={work} />
-          <span className={`size-2 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`} />
-          {franchiseLabel(work.franchise)}
-          <span aria-hidden>·</span>
-          {earthsOf(work).map((earth, i) => (
-            <span key={earth} className="flex items-center gap-1">
-              {i > 0 && <span aria-hidden>/ </span>}
-              <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
-              {earthLabel(earth)}
-            </span>
-          ))}
-          <span aria-hidden>·</span>
-          {work.releaseDate.slice(0, 4)}
-          {runtime && (
-            <>
-              <span aria-hidden>·</span>
-              {runtime.episodes && `${t.episodes(runtime.episodes)} · `}
-              {t.duration(runtime.minutes)}
-            </>
-          )}
-          <UpcomingBadge work={work} />
-        </m.span>
+      <span className="flex min-w-0 flex-col gap-2 self-center sm:self-start sm:pt-1">
         <m.span variants={ITEM} className="block">
           <span
             data-slot="detail-title"
-            className="block text-base/snug font-semibold text-balance sm:text-lg"
+            className="block pr-16 text-lg/snug font-semibold text-balance sm:text-2xl/tight"
           >
             {titleOf(work)}
           </span>
           {/* The original title under the Japanese one. */}
           {locale === "ja" && work.titleJa !== work.title && (
-            <span className="block truncate text-xs text-muted-foreground">{work.title}</span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+              {work.title}
+            </span>
           )}
         </m.span>
         <m.span variants={ITEM} className="flex flex-wrap items-center gap-1.5">
@@ -345,7 +329,57 @@ function WorkHeader({
           )}
         </m.span>
       </span>
+      {/* What it is, in small labels over their values. On phones it spans
+          the card under the poster; wider, it sits beside it. */}
+      <m.dl
+        variants={ITEM}
+        className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-2.5 rounded-item bg-tint/4 px-3 py-2.5 sm:col-span-1 sm:col-start-2 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-3 sm:bg-transparent sm:p-0"
+      >
+        <Fact label={t.factMedium}>
+          <MediumBadge work={work} className="text-foreground [&_svg]:size-3.5" />
+        </Fact>
+        <Fact label={t.franchise}>
+          <span
+            className={`size-2 shrink-0 rounded-full ${FRANCHISE_META[work.franchise].colorClass}`}
+          />
+          <span className="truncate">{franchiseLabel(work.franchise)}</span>
+        </Fact>
+        {work.phase !== undefined && <Fact label={t.factPhase}>{t.phase(work.phase)}</Fact>}
+        <Fact label={t.earth}>
+          <span className="flex flex-wrap gap-x-2 gap-y-0.5">
+            {earthsOf(work).map((earth) => (
+              <span key={earth} className="flex items-center gap-1">
+                <span className={`size-2 rounded-full ${EARTH_META[earth].colorClass}`} />
+                {earthLabel(earth)}
+              </span>
+            ))}
+          </span>
+        </Fact>
+        <Fact label={upcoming ? t.factComing : t.factReleased}>
+          <span className={cn("tabular-nums", upcoming && "text-marquee")}>
+            {formatRelease(work, locale)}
+          </span>
+        </Fact>
+        {runtime && (
+          <Fact label={t.factRuntime}>
+            <span className="tabular-nums">
+              {runtime.episodes && `${t.episodes(runtime.episodes)} · `}
+              {t.duration(runtime.minutes)}
+            </span>
+          </Fact>
+        )}
+      </m.dl>
     </m.div>
+  );
+}
+
+// A small label over its value.
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="flex min-w-0 items-center gap-1.5 text-sm">{children}</dd>
+    </div>
   );
 }
 
@@ -367,7 +401,7 @@ function RouteHeader({ route }: { route: (typeof ROUTES)[number] }) {
       >
         <Signpost className="size-5" aria-hidden />
       </m.span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 pr-16">
         <m.span variants={ITEM} className="text-xs text-muted-foreground">
           {t.routes}
         </m.span>

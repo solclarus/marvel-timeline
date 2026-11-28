@@ -1,4 +1,4 @@
-import { Check, Share } from "lucide-react";
+import { Check, Eye, Share } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { isUpcoming, type WorkNode } from "@/data/works";
@@ -50,7 +50,7 @@ export function ShareButton({ workId }: { workId: string | undefined }) {
   );
 }
 
-// Marks the card's work as watched, or not: a check alone, gold when on.
+// Marks the card's work as watched, or not: an eye alone, gold when on.
 export function WatchedToggle({ work }: { work: WorkNode }) {
   const { t, titleOf } = useI18n();
   const watched = useWatched().has(work.id);
@@ -63,7 +63,7 @@ export function WatchedToggle({ work }: { work: WorkNode }) {
       title={t.watched}
       className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-tint/15 bg-tint/5 text-muted-foreground transition-colors hover:border-tint/25 hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-marquee aria-pressed:bg-marquee aria-pressed:text-background"
     >
-      <Check className="size-3.5" strokeWidth={watched ? 3 : 2.5} aria-hidden />
+      <Eye className="size-3.5" strokeWidth={watched ? 2.75 : 2.25} aria-hidden />
     </button>
   );
 }
