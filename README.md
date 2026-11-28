@@ -18,7 +18,7 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
 - **Language**: English or Japanese (Settings → Display → Language); the first visit follows the browser, later visits remember the choice. Both English and Japanese titles are searchable.
 
-The view is kept in the URL (`work`, `view`, `list`, `mode`, `group`, `show`, `media`), so any state can be shared as a link.
+The view is kept in the URL (`work`, `view`, `list`, `mode`, `group`, `show`, `media`), so any state can be shared as a link. **Share** on the card copies the link (phones open the share sheet); a work's link goes through a small page at `w/<id>/` (`w/<id>/ja.html` in Japanese) that the build writes for each work, so the post previews that work's poster and what it builds on, then opens the app in the same view.
 
 ## Development
 

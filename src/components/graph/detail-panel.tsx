@@ -1,7 +1,7 @@
-import { ChevronDown, ChevronLeft, ListOrdered, Signpost, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, ListOrdered, Share, Signpost, X } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ROUTES } from "@/data/routes";
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl, type WorkNode } from "@/data/works";
@@ -10,6 +10,7 @@ import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
 import { runtimeOf, totalRuntime } from "@/lib/runtime";
+import { sharePath } from "@/lib/share-pages";
 import { cn } from "@/lib/utils";
 
 import { MediumBadge } from "./medium-badge";
@@ -165,17 +166,22 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
                   )}
                   {route && <RouteHeader key={route.id} route={route} />}
                 </div>
-                <m.button
-                  type="button"
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.15 }}
-                  onClick={onClose}
-                  className="relative shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
-                  aria-label={t.clearSelection}
+                  className="relative flex shrink-0 items-center gap-0.5"
                 >
-                  <X className="size-4" />
-                </m.button>
+                  <ShareButton workId={work?.id} />
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className={ICON_BUTTON}
+                    aria-label={t.clearSelection}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </m.div>
               </div>
 
               <AnimatePresence initial={false}>
@@ -202,6 +208,50 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+const ICON_BUTTON =
+  "rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none";
+
+// The link to what's on screen. A work's link goes through its preview page
+// (see `share-pages.ts`), so the post shows that work; a route's is the
+// address as it is. Phones open the share sheet; elsewhere it's copied.
+function ShareButton({ workId }: { workId: string | undefined }) {
+  const { t, locale } = useI18n();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const linkOf = () => {
+    if (!workId) return location.href;
+    const query = new URLSearchParams(location.search);
+    query.delete("work");
+    const search = query.size > 0 ? `?${query}` : "";
+    return new URL(sharePath(workId, locale) + search, document.baseURI).href;
+  };
+
+  const share = async () => {
+    const url = linkOf();
+    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+      // Dismissing the sheet rejects; nothing to do then.
+      await navigator.share({ url }).catch(() => {});
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+  };
+
+  return (
+    <>
+      <button type="button" onClick={share} className={ICON_BUTTON} aria-label={t.shareLink}>
+        {copied ? <Check className="size-4 text-marquee" /> : <Share className="size-4" />}
+      </button>
+      <output className="sr-only">{copied ? t.linkCopied : ""}</output>
+    </>
   );
 }
 
@@ -310,7 +360,7 @@ function WorkHeader({
               onClick={onToggle}
               aria-expanded={open}
               aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2 text-xs text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
             >
               <ListOrdered className="size-3.5 text-marquee" aria-hidden />
               {t.watchFirst}
