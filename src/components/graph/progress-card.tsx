@@ -52,7 +52,7 @@ const percent = ({ watched, total }: Tally) =>
 // A headline number with its label underneath.
 function Stat({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 rounded-item bg-white/5 px-3 py-2.5">
+    <div className="flex min-w-0 flex-col gap-0.5 rounded-item bg-tint/5 px-3 py-2.5">
       <span className="truncate text-xs text-muted-foreground">{label}</span>
       <span className="text-base font-semibold whitespace-nowrap tabular-nums sm:text-2xl">
         {value}
@@ -157,7 +157,7 @@ export function RouteList({ onPick }: { onPick: (id: string) => void }) {
               <button
                 type="button"
                 onClick={() => onPick(route.id)}
-                className="flex size-full items-center gap-2 rounded-item bg-white/5 p-2.5 text-left transition-colors hover:bg-white/9 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+                className="flex size-full items-center gap-2 rounded-item bg-tint/5 p-2.5 text-left transition-colors hover:bg-tint/9 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">
@@ -190,7 +190,7 @@ export function ClearWatched() {
         onClick={() => {
           if (window.confirm(t.clearWatchedConfirm(watched.size))) clearWatched();
         }}
-        className="rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+        className="rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
       >
         {t.clearWatched}
       </button>

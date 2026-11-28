@@ -16,8 +16,8 @@ export type RowTag = { label: string; tone: "before" | "after" | "plain" };
 
 const TAG_TONE: Record<RowTag["tone"], string> = {
   before: "border-marquee/40 text-marquee",
-  after: "border-white/20 text-foreground/80",
-  plain: "border-white/10 text-muted-foreground",
+  after: "border-tint/20 text-foreground/80",
+  plain: "border-tint/10 text-muted-foreground",
 };
 
 // One work as a card-like row: poster, title, then kind, franchise, phase,
@@ -58,9 +58,7 @@ export function WorkRow({
         disabled={check?.disabled}
         className={cn(
           "flex w-full items-center gap-3 rounded-item border p-2 text-left transition-[opacity,background-color,border-color] duration-200 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none",
-          selected
-            ? "border-white/40 bg-white/10"
-            : "border-transparent bg-white/5 hover:bg-white/9",
+          selected ? "border-tint/40 bg-tint/10" : "border-transparent bg-tint/5 hover:bg-tint/9",
           (dimmed || check?.disabled) && "opacity-35",
           check?.checked && "border-marquee/50 bg-marquee/10",
         )}
@@ -71,8 +69,8 @@ export function WorkRow({
             className={cn(
               "flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
               check.checked
-                ? "border-marquee bg-marquee text-neutral-900"
-                : "border-white/30 bg-transparent text-transparent",
+                ? "border-marquee bg-marquee text-background"
+                : "border-tint/30 bg-transparent text-transparent",
             )}
           >
             <Check className="size-3.5" strokeWidth={3} />

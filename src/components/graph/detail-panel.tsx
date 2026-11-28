@@ -120,7 +120,7 @@ export function DetailPanel({
                 initial={{ opacity: 0, filter: "blur(8px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="pointer-events-none absolute inset-0 overflow-hidden rounded-surface border border-white/10 bg-card/90 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                className="pointer-events-none absolute inset-0 overflow-hidden rounded-surface border border-tint/10 bg-card/90 shadow-2xl shadow-black/15 backdrop-blur-xl dark:shadow-black/40"
               >
                 {work && <PosterWash work={work} />}
               </m.div>
@@ -132,7 +132,7 @@ export function DetailPanel({
                       type="button"
                       onClick={onBack}
                       aria-label={t.backTo(labelOf(previous))}
-                      className="mb-1.5 -ml-1.5 flex max-w-full items-center gap-0.5 rounded-full py-0.5 pr-2 pl-1 text-xs text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+                      className="mb-1.5 -ml-1.5 flex max-w-full items-center gap-0.5 rounded-full py-0.5 pr-2 pl-1 text-xs text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground"
                     >
                       <ChevronLeft className="size-3.5 shrink-0" aria-hidden />
                       <span className="truncate">{labelOf(previous)}</span>
@@ -234,7 +234,7 @@ function PosterWash({ work }: { work: WorkNode }) {
           <img
             src={posterUrl(work, "w154")}
             alt=""
-            className="absolute top-0 left-0 h-40 w-2/3 scale-125 object-cover opacity-50 blur-2xl saturate-125"
+            className="absolute top-0 left-0 h-40 w-2/3 scale-125 object-cover opacity-35 blur-2xl saturate-125 dark:opacity-50"
           />
         ) : (
           <div
@@ -273,7 +273,7 @@ function WorkHeader({
     >
       <span
         ref={posterRef}
-        className="relative z-10 block h-20 w-14 shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/50 ring-white/15 sm:h-28 sm:w-[4.7rem]"
+        className="relative z-10 block h-20 w-14 shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/20 ring-tint/15 sm:h-28 sm:w-[4.7rem] dark:shadow-black/50"
       >
         <Poster key={work.id} work={work} loading="eager" />
       </span>
@@ -324,7 +324,7 @@ function WorkHeader({
               onClick={onToggle}
               aria-expanded={open}
               aria-label={open ? t.hideWatchFirst : t.showDetails(titleOf(work))}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-tint/10 bg-tint/5 py-0.5 pr-1.5 pl-2 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-expanded:border-marquee/40 aria-expanded:bg-marquee/10"
             >
               <ListOrdered className="size-3.5 text-marquee" aria-hidden />
               {t.watchFirst}

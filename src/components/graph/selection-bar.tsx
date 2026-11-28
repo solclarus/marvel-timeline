@@ -24,7 +24,7 @@ export function SelectionBar({
       aria-label={t.selectedCount(count)}
       initial={{ y: 16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md items-center gap-1 rounded-full border border-white/10 bg-card/95 py-1.5 pr-1.5 pl-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:bottom-28"
+      className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md items-center gap-1 rounded-full border border-tint/10 bg-card/95 py-1.5 pr-1.5 pl-4 shadow-2xl shadow-black/15 backdrop-blur-xl sm:bottom-28 dark:shadow-black/50"
     >
       <output className="flex-1 truncate text-xs text-muted-foreground tabular-nums">
         {t.selectedCount(count)}
@@ -33,7 +33,7 @@ export function SelectionBar({
         type="button"
         onClick={onUnmark}
         disabled={count === 0}
-        className={`${action} text-foreground/85 hover:bg-white/10`}
+        className={`${action} text-foreground/85 hover:bg-tint/10`}
       >
         {t.unmarkSelected}
       </button>
@@ -41,14 +41,14 @@ export function SelectionBar({
         type="button"
         onClick={onMark}
         disabled={count === 0}
-        className={`${action} bg-marquee text-neutral-900 hover:bg-marquee/90`}
+        className={`${action} bg-marquee text-background hover:bg-marquee/90`}
       >
         {t.markSelected}
       </button>
       <button
         type="button"
         onClick={onDone}
-        className={`${action} text-muted-foreground hover:bg-white/10`}
+        className={`${action} text-muted-foreground hover:bg-tint/10`}
       >
         {t.selectDone}
       </button>

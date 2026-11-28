@@ -51,15 +51,15 @@ interface Props {
 const NUB_CLASS = {
   y: {
     incoming:
-      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-neutral-300",
+      "absolute top-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 -translate-y-full rounded-t-full bg-nub",
     outgoing:
-      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-neutral-300",
+      "absolute bottom-0 left-1/2 z-10 h-1 w-2 -translate-x-1/2 translate-y-full rounded-b-full bg-nub",
   },
   x: {
     incoming:
-      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-neutral-300",
+      "absolute top-1/2 left-0 z-10 h-2 w-1 -translate-x-full -translate-y-1/2 rounded-l-full bg-nub",
     outgoing:
-      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-neutral-300",
+      "absolute top-1/2 right-0 z-10 h-2 w-1 translate-x-full -translate-y-1/2 rounded-r-full bg-nub",
   },
 } as const;
 
@@ -101,7 +101,7 @@ export function GraphNode({
           onFocus={(e) => {
             if (e.currentTarget.matches(":focus-visible")) onKeyboardFocus(work.id);
           }}
-          className={`absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 ${state === "selected" ? "ring-2 ring-marquee ring-offset-2 ring-offset-neutral-800" : ""}`}
+          className={`absolute rounded-thumb outline-none focus-visible:ring-4 focus-visible:ring-marquee focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${state === "selected" ? "ring-2 ring-marquee ring-offset-2 ring-offset-canvas" : ""}`}
           aria-pressed={state === "selected"}
           style={{
             left: 0,
@@ -132,7 +132,7 @@ export function GraphNode({
     >
       {hasIncoming && <span aria-hidden className={nubClass.incoming} />}
       <div
-        className={`relative size-full overflow-hidden rounded-thumb border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
+        className={`relative size-full overflow-hidden rounded-thumb border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.2)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
       >
         {art === "logo" ? <Logo work={work} /> : <Poster work={work} />}
       </div>

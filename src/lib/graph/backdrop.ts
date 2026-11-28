@@ -14,17 +14,17 @@ import { releaseMonth, timelineYear } from "./timeline-layout";
 function decadeTint(step: number) {
   const hue = Math.round(step * 270);
   return {
-    // Tuned for the dark canvas: enough color to tell decades apart without
-    // lifting the backdrop over the posters.
+    // Enough color to tell decades apart without lifting the backdrop over
+    // the posters. The border's lightness follows the theme (globals.css).
     color: `hsla(${hue}, 80%, 55%, 0.14)`,
-    borderColor: `hsla(${hue}, 75%, 62%, 0.45)`,
+    borderColor: `hsl(${hue} 75% var(--decade-border-l) / 0.45)`,
   };
 }
 
 // Phases stack without overlapping, so one tint serves them all; their
 // borders and labels tell them apart. A soft blue, clear of the MCU card's
-// rose outline and the slate/gold edges.
-const PHASE_COLOR = { color: "rgba(96,165,250,0.09)", borderColor: "rgba(96,165,250,0.45)" };
+// rose outline and the slate/gold edges. Per theme, in globals.css.
+const PHASE_COLOR = { color: "var(--phase-fill)", borderColor: "var(--phase-border)" };
 
 // One outlined card per franchise or Earth, hugging its works like the
 // phase bands do. Timelines mix the groups within each year, so they have

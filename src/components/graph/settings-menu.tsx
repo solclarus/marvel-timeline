@@ -11,6 +11,9 @@ import {
   Library,
   ListFilter,
   Menu,
+  Monitor,
+  Moon,
+  Sun,
   Type,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -23,6 +26,7 @@ import type { NodeArt } from "@/lib/graph/metrics";
 import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { useNodeArt } from "@/lib/node-art";
+import { useTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 import { EDGE_STYLE } from "./graph-edges";
@@ -45,7 +49,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // A page's controls, in one block under its header.
 function Section({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3 rounded-item bg-white/3 p-3 ring-1 ring-white/5">
+    <section className="flex flex-col gap-3 rounded-item bg-tint/3 p-3 ring-1 ring-tint/5">
       {children}
     </section>
   );
@@ -84,7 +88,7 @@ interface Option<T extends string> {
   lang?: string;
 }
 
-// A two-way switch: both choices side by side, the current one filled.
+// A switch: the choices side by side, the current one filled.
 function Segmented<T extends string>({
   label,
   value,
@@ -104,7 +108,7 @@ function Segmented<T extends string>({
         value={[value]}
         // Pressing the current choice again would leave none; ignore it.
         onValueChange={(next: T[]) => next[0] && onChange(next[0])}
-        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/30 p-0.5"
+        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/7 p-0.5 dark:bg-black/30"
       >
         {options.map(({ value: option, label: optionLabel, icon: Icon, lang }) => (
           <Toggle key={option} value={option} lang={lang} className={PILL_CLASS}>
@@ -118,7 +122,7 @@ function Segmented<T extends string>({
 }
 
 const PILL_CLASS =
-  "flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee data-pressed:bg-white/15 data-pressed:text-foreground";
+  "flex min-h-8 items-center justify-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee data-pressed:bg-card data-pressed:text-foreground data-pressed:shadow-sm dark:data-pressed:bg-tint/15 dark:data-pressed:shadow-none";
 
 // Films, series and animation, each on or off; one always stays on.
 function MediaToggles({
@@ -136,7 +140,7 @@ function MediaToggles({
         onValueChange={(next: Medium[]) => {
           if (next.length > 0) onChange(MEDIA.filter((medium) => next.includes(medium)));
         }}
-        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/30 p-0.5"
+        className="grid auto-cols-fr grid-flow-col gap-0.5 rounded-full bg-black/7 p-0.5 dark:bg-black/30"
       >
         {MEDIA.map((medium) => {
           const { label, icon: Icon } = MEDIUM_META[medium];
@@ -190,7 +194,7 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
           type="button"
           disabled={allShown}
           onClick={() => onVisibleChange(new Set(groups.map((g) => g.key)))}
-          className="rounded-full px-2 py-0.5 text-xs text-marquee hover:bg-white/5 disabled:pointer-events-none disabled:opacity-40"
+          className="rounded-full px-2 py-0.5 text-xs text-marquee hover:bg-tint/5 disabled:pointer-events-none disabled:opacity-40"
         >
           {t.showAll}
         </button>
@@ -227,8 +231,8 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
               className={cn(
                 "flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs tabular-nums transition-colors select-none focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none disabled:cursor-default",
                 shown
-                  ? "border-white/15 bg-white/10 text-foreground hover:bg-white/15"
-                  : "border-dashed border-white/15 text-muted-foreground/70 hover:border-white/30 hover:text-foreground",
+                  ? "border-tint/15 bg-tint/10 text-foreground hover:bg-tint/15"
+                  : "border-dashed border-tint/15 text-muted-foreground hover:border-tint/30 hover:text-foreground dark:text-muted-foreground/70",
               )}
             >
               <span
@@ -268,6 +272,7 @@ export function SettingsMenu({
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<Page>("menu");
   const [art, setArt] = useNodeArt();
+  const [theme, setTheme] = useTheme();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
     media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
@@ -410,6 +415,16 @@ export function SettingsMenu({
                   lang: option,
                 }))}
               />
+              <Segmented<Theme>
+                label={t.theme}
+                value={theme}
+                onChange={setTheme}
+                options={[
+                  { value: "system", label: t.themeSystem, icon: Monitor },
+                  { value: "light", label: t.themeLight, icon: Sun },
+                  { value: "dark", label: t.themeDark, icon: Moon },
+                ]}
+              />
             </Section>
           </>
         )}
@@ -447,7 +462,7 @@ function MenuLink({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-white/8 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-tint/8 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
     >
       <Icon className="size-4 text-muted-foreground" aria-hidden />
       <span className="flex-1">{label}</span>
@@ -471,7 +486,7 @@ function PageHeader({ title, onBack }: { title: string; onBack: () => void }) {
         type="button"
         onClick={onBack}
         aria-label={t.backTo(t.menu)}
-        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
       >
         <ChevronLeft className="size-4" aria-hidden />
       </button>

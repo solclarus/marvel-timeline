@@ -107,7 +107,7 @@ export function ListView({
   return (
     <main
       className={cn(
-        "h-dvh overflow-y-auto bg-neutral-800 px-3 transition-[padding] duration-200 sm:px-6",
+        "h-dvh overflow-y-auto bg-canvas px-3 transition-[padding] duration-200 sm:px-6",
         // Room below the last row for the command bar (and the selection bar).
         selecting ? "pb-44" : "pb-28",
         cardShown ? "pt-36 sm:pt-44" : "pt-4",
@@ -119,7 +119,7 @@ export function ListView({
             type="button"
             onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
             aria-pressed={selecting}
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:bg-white/10 aria-pressed:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:bg-tint/10 aria-pressed:text-foreground"
           >
             <CheckCheck className="size-3.5" aria-hidden />
             {selecting ? t.selectDone : t.select}
@@ -205,7 +205,7 @@ function SelectAll({
         onChange(next);
       }}
       aria-label={`${text}: ${label}`}
-      className="shrink-0 rounded-full px-2 py-0.5 text-xs whitespace-nowrap text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+      className="shrink-0 rounded-full px-2 py-0.5 text-xs whitespace-nowrap text-muted-foreground transition-colors hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
     >
       {text}
     </button>

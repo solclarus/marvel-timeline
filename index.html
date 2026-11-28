@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,41 @@
       name="description"
       content="An interactive map of how Marvel films and series connect: the MCU, the Netflix Defenders Saga, Fox X-Men, Sony's Spider-Man films, and more. Pick a work to see what to watch first."
     />
-    <meta name="theme-color" content="#141414" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- The theme before first paint: the remembered choice, else the
+         system's. Mirrors src/lib/theme.ts. -->
+    <script>
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem("marvel-timeline:theme");
+        } catch (e) {}
+        var dark =
+          theme === "dark" ||
+          (theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        if (dark) document.querySelector('meta[name="theme-color"]').content = "#141414";
+      })();
+    </script>
+    <style>
+      /* The placeholder below, in each theme's canvas color. */
+      #boot {
+        display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        background: #efefef;
+        color: rgba(0, 0, 0, 0.6);
+        font:
+          600 14px/1.4 system-ui,
+          sans-serif;
+        letter-spacing: 0.04em;
+      }
+      .dark #boot {
+        background: #262626;
+        color: rgba(255, 255, 255, 0.55);
+      }
+    </style>
     <link rel="canonical" href="https://solclarus.github.io/marvel-timeline/" />
     <!-- Posters come from TMDB's image CDN; connect while the app loads. -->
     <link rel="preconnect" href="https://image.tmdb.org" />
@@ -48,25 +82,10 @@
     />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
-    <!-- Painted before the app's scripts arrive; React replaces it. Inline
-         styles: the stylesheet may not have loaded yet either. -->
+    <!-- Painted before the app's scripts arrive; React replaces it. Styled
+         inline in <head>: the stylesheet may not have loaded yet either. -->
     <div id="root">
-      <div
-        style="
-          display: flex;
-          height: 100vh;
-          align-items: center;
-          justify-content: center;
-          background: #262626;
-          color: rgba(255, 255, 255, 0.55);
-          font:
-            600 14px/1.4 system-ui,
-            sans-serif;
-          letter-spacing: 0.04em;
-        "
-      >
-        Marvel Timeline
-      </div>
+      <div id="boot">Marvel Timeline</div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

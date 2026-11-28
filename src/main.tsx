@@ -5,8 +5,11 @@ import { createRoot } from "react-dom/client";
 import { Graph } from "@/components/graph/graph";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
+import { startTheme } from "@/lib/theme";
 
 import "@/globals.css";
+
+startTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
