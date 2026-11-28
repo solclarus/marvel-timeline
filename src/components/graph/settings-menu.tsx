@@ -6,15 +6,14 @@ import {
   ChevronRight,
   Cog,
   Earth,
-  Image,
   Info,
   Library,
   ListFilter,
   Menu,
   Monitor,
   Moon,
+  Spline,
   Sun,
-  Type,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -22,10 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MEDIA, type EdgeKind, type Medium } from "@/data/works";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
-import type { NodeArt } from "@/lib/graph/metrics";
 import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
-import { useNodeArt } from "@/lib/node-art";
 import { useTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -253,11 +250,11 @@ function GroupChips({ grouping, onVisibleChange }: Pick<Props, "grouping" | "onV
   );
 }
 
-type Page = "menu" | "filter" | "display" | "settings";
+type Page = "menu" | "filter" | "lines" | "settings";
 
 // The bar's last button: a short menu, in three groups. Watching opens the
-// viewer's own card; the map and list's filters and display, and the app's
-// settings (language, theme), open as pages in the same panel, so the map
+// viewer's own card; the map and list's filters and what the lines mean, and
+// the app's settings (language, theme), open as pages in the same panel, so the map
 // stays in view while they change (‹ goes back); About opens a dialog.
 export function SettingsMenu({
   media,
@@ -271,7 +268,6 @@ export function SettingsMenu({
   const { t, locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<Page>("menu");
-  const [art, setArt] = useNodeArt();
   const [theme, setTheme] = useTheme();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
@@ -328,12 +324,7 @@ export function SettingsMenu({
                 more
                 onClick={() => setPage("filter")}
               />
-              <MenuLink
-                icon={Image}
-                label={t.displaySection}
-                more
-                onClick={() => setPage("display")}
-              />
+              <MenuLink icon={Spline} label={t.linesPage} more onClick={() => setPage("lines")} />
             </MenuGroup>
             <MenuGroup label={t.menuApp}>
               <MenuLink
@@ -371,22 +362,10 @@ export function SettingsMenu({
             </Section>
           </>
         )}
-        {page === "display" && (
+        {page === "lines" && (
           <>
-            <PageHeader title={t.displaySection} onBack={() => setPage("menu")} />
+            <PageHeader title={t.linesPage} onBack={() => setPage("menu")} />
             <Section>
-              <Segmented<NodeArt>
-                label={t.nodeArt}
-                value={art}
-                onChange={setArt}
-                options={[
-                  { value: "poster", label: t.artPoster, icon: Image },
-                  { value: "logo", label: t.artLogo, icon: Type },
-                ]}
-              />
-            </Section>
-            <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
-              <SectionLabel>{t.lines}</SectionLabel>
               {EDGE_LEGEND.map(({ style, label, detail }) => (
                 <div key={style} className="flex items-start gap-2 text-xs">
                   <span className="flex h-4 items-center">
@@ -398,7 +377,7 @@ export function SettingsMenu({
                   </span>
                 </div>
               ))}
-            </div>
+            </Section>
           </>
         )}
         {page === "settings" && (
