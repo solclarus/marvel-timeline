@@ -12,6 +12,7 @@ import { motionMs } from "@/lib/motion";
 import { runtimeOf, totalRuntime } from "@/lib/runtime";
 import { sharePath } from "@/lib/share-pages";
 import { cn } from "@/lib/utils";
+import { toggleWatched, useWatched } from "@/lib/watched";
 
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
@@ -353,7 +354,8 @@ function WorkHeader({
             <span className="block truncate text-xs text-muted-foreground">{work.title}</span>
           )}
         </m.span>
-        <m.span variants={ITEM} className="block">
+        <m.span variants={ITEM} className="flex flex-wrap items-center gap-1.5">
+          <WatchedToggle work={work} />
           {before > 0 ? (
             <button
               type="button"
@@ -384,6 +386,24 @@ function WorkHeader({
         </m.span>
       </span>
     </m.div>
+  );
+}
+
+// Marks the card's work as watched, or not.
+function WatchedToggle({ work }: { work: WorkNode }) {
+  const { t, titleOf } = useI18n();
+  const watched = useWatched().has(work.id);
+  return (
+    <button
+      type="button"
+      onClick={() => toggleWatched(work.id)}
+      aria-pressed={watched}
+      aria-label={t.markWatched(titleOf(work))}
+      className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 py-0.5 pr-2 pl-1.5 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-white/60 aria-pressed:bg-white aria-pressed:text-neutral-900"
+    >
+      <Check className="size-3.5" strokeWidth={watched ? 3 : 2} aria-hidden />
+      {t.watched}
+    </button>
   );
 }
 
@@ -442,12 +462,15 @@ function CardList({
   onPick: (id: string) => void;
 }) {
   const { t } = useI18n();
+  const watched = useWatched();
   const { minutes, missing } = totalRuntime(items.map((item) => item.work));
+  const left = totalRuntime(items.map((item) => item.work).filter((w) => !watched.has(w.id)));
   return (
     <div className="pt-3">
       {showTotal && minutes > 0 && (
         <p className="px-2 pb-1.5 text-xs text-muted-foreground tabular-nums">
           {t.totalTime(t.duration(minutes), missing)}
+          {left.minutes < minutes && ` · ${t.timeLeft(t.duration(left.minutes))}`}
         </p>
       )}
       <ol

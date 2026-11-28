@@ -1,10 +1,14 @@
 import { EARTH_META, FRANCHISE_META, notableEarthsOf, type WorkNode } from "@/data/works";
 import { useI18n } from "@/lib/i18n";
+import { useNodeArt } from "@/lib/node-art";
 import { runtimeOf } from "@/lib/runtime";
 import { cn } from "@/lib/utils";
+import { useWatched } from "@/lib/watched";
 
+import { Logo } from "./logo";
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
+import { WatchedMark } from "./watched-mark";
 
 export type RowTag = { label: string; tone: "before" | "after" | "plain" };
 
@@ -37,6 +41,8 @@ export function WorkRow({
 }) {
   const { t, titleOf, franchiseLabel, earthLabel } = useI18n();
   const runtime = runtimeOf(work);
+  const watched = useWatched().has(work.id);
+  const [art] = useNodeArt();
   return (
     <li id={id}>
       <button
@@ -56,11 +62,24 @@ export function WorkRow({
             {number}
           </span>
         )}
-        <span className="relative block h-18 w-12 shrink-0 overflow-hidden rounded-thumb bg-muted">
-          <Poster key={work.id} work={work} compact />
+        <span
+          className={cn(
+            "relative block shrink-0 overflow-hidden rounded-thumb bg-muted",
+            art === "logo" ? "h-12 w-20" : "h-18 w-12",
+          )}
+        >
+          {art === "logo" ? (
+            <Logo key={work.id} work={work} />
+          ) : (
+            <Poster key={work.id} work={work} compact />
+          )}
+          {watched && <WatchedMark className="absolute right-0.5 bottom-0.5" />}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="line-clamp-2 text-sm/snug font-medium">{titleOf(work)}</span>
+          <span className="line-clamp-2 text-sm/snug font-medium">
+            {titleOf(work)}
+            {watched && <span className="sr-only">{t.watchedSuffix}</span>}
+          </span>
           <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
             <MediumBadge work={work} />
             <span

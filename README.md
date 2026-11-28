@@ -7,12 +7,13 @@ Static SPA built with Vite + React. Live at https://solclarus.github.io/marvel-t
 ## Using the map
 
 - **Select** a poster to highlight the works just before and after it; the map zooms to fit them. In release and timeline order, where works sit by date, only the poster lights up. **Search** (`/` or ⌘K / Ctrl+K) finds any work and reveals it if it's filtered out.
+- **Watched**: the card's ✓ button marks a work as watched, remembered on the device; the map and lists then show a check on it, and a watch-first list adds how much is left.
 - **The card** at the top holds the selection. **Watch first** on it folds out everything to watch before the work, in order, with the total running time; picking one moves the card to that work, and ‹ steps back. **Routes** (bottom bar) are short themed paths (straight to Avengers: Doomsday, the MCU's Spider-Man, Fox's X-Men, the Defenders Saga) shown the same way. The map or list behind stays as it was; ✕ (or Escape, after folding the list) closes the card.
 - **List or map** (bottom bar): phones open on a list of every work in the view mode's order, split by saga or decade; picking one marks what to watch before and after it. Computers open on the map; only the bar's button switches between them.
 - **View mode** (bottom bar): recommended order, release date, or in-story chronology. Release date is a calendar, a row per year and a column per month (as wide as its busiest year needs), with a line at today; the chronology gives each in-story year a row, in story order. Year and month labels stay on screen as the map pans, and a colored bar under each poster shows its franchise or Earth.
 - **Settings** (bottom bar), in two parts:
   - **Filter**: the map opens on the MCU alone; tap a group chip (or **Show all**) to bring in the other franchises. Films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
-  - **Display**: language, and whether the map shows posters or title logos (English in either language, on wider tiles; a dark logo is drawn white). Both are remembered on the device.
+  - **Display**: language, and whether works show as posters or title logos, on the map and in lists (English logos in either language, on wider tiles; a dark logo is drawn white). Both are remembered on the device. Once something is marked watched, a **Clear** button here forgets it all.
 - **Sagas**: in recommended order the MCU phases sit inside saga frames (Infinity: 1–3, Multiverse: 4–6, Mutant: 7 on); works outside the phases, like the One-Shots, sit just outside their saga.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.
