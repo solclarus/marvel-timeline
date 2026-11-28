@@ -36,3 +36,9 @@ export async function pinch(page: Page, deltaY: number, times: number) {
 
 export const opacityOf = (page: Page, id: string) =>
   page.locator(`[id="${id}"]`).evaluate((el) => Number(getComputedStyle(el).opacity));
+
+// The map's zoom, read from its transform.
+export const mapScale = (page: Page) =>
+  page
+    .locator(".react-transform-component")
+    .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
