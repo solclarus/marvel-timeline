@@ -1,23 +1,22 @@
-import { Check, ChevronDown, ChevronLeft, ListOrdered, Share, Signpost, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ListOrdered, Signpost, X } from "lucide-react";
 import { AnimatePresence, type Variants } from "motion/react";
 import * as m from "motion/react-m";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ROUTES } from "@/data/routes";
 import { EARTH_META, earthsOf, FRANCHISE_META, posterUrl, type WorkNode } from "@/data/works";
 import { WORK_BY_ID, WORK_GRAPHS, type WorkGraph } from "@/lib/graph/relations";
 import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
-import { motionMs } from "@/lib/motion";
 import { runtimeOf, totalRuntime } from "@/lib/runtime";
-import { sharePath } from "@/lib/share-pages";
 import { cn } from "@/lib/utils";
-import { toggleWatched, useWatched } from "@/lib/watched";
+import { useWatched } from "@/lib/watched";
 
+import { ICON_BUTTON, ShareButton, WatchedToggle } from "./card-buttons";
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
 import { UpcomingBadge } from "./upcoming-badge";
 import type { CardView } from "./use-card";
+import { useFlightFromMap } from "./use-flight-from-map";
 import { WorkRow } from "./work-row";
 
 interface Props {
@@ -44,48 +43,6 @@ const ITEM: Variants = {
   hidden: { opacity: 0, y: 6, filter: "blur(4px)" },
   shown: { opacity: 1, y: 0, filter: "blur(0px)", transition: FLOAT },
 };
-
-// A little past the target, then back: the poster lands with a bounce.
-const LANDING = "cubic-bezier(0.3, 1.25, 0.4, 1)";
-
-// Flies the card's poster out of the selected poster on the map, so the
-// card reads as opening from it. With no poster on screen to leave from
-// (a search pick far away, or the list), it pops in where it is instead.
-function useFlightFromMap(id: string | undefined) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const target = ref.current;
-    if (!id || !target) return;
-    const from = document.getElementById(id)?.getBoundingClientRect();
-    const to = target.getBoundingClientRect();
-    const onScreen =
-      from &&
-      from.width > 4 &&
-      from.bottom > 0 &&
-      from.right > 0 &&
-      from.top < window.innerHeight &&
-      from.left < window.innerWidth;
-    const keyframes = onScreen
-      ? [
-          {
-            transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${
-              from.top + from.height / 2 - (to.top + to.height / 2)
-            }px) scale(${from.width / to.width})`,
-          },
-          { transform: "none" },
-        ]
-      : [
-          { transform: "scale(0.9) rotate(-2deg)", opacity: 0 },
-          { transform: "none", opacity: 1 },
-        ];
-    const animation = target.animate(keyframes, {
-      duration: motionMs(onScreen ? 650 : 360),
-      easing: LANDING,
-    });
-    return () => animation.cancel();
-  }, [id]);
-  return ref;
-}
 
 // The card at the top: the selected work, or a route. A work's card folds
 // out what to watch first; a route's lists its works. Picking from either
@@ -209,50 +166,6 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
         </AnimatePresence>
       </div>
     </div>
-  );
-}
-
-const ICON_BUTTON =
-  "rounded-full p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none";
-
-// The link to what's on screen. A work's link goes through its preview page
-// (see `share-pages.ts`), so the post shows that work; a route's is the
-// address as it is. Phones open the share sheet; elsewhere it's copied.
-function ShareButton({ workId }: { workId: string | undefined }) {
-  const { t, locale } = useI18n();
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 2000);
-    return () => clearTimeout(timer);
-  }, [copied]);
-
-  const linkOf = () => {
-    if (!workId) return location.href;
-    const query = new URLSearchParams(location.search);
-    query.delete("work");
-    const search = query.size > 0 ? `?${query}` : "";
-    return new URL(sharePath(workId, locale) + search, document.baseURI).href;
-  };
-
-  const share = async () => {
-    const url = linkOf();
-    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
-      // Dismissing the sheet rejects; nothing to do then.
-      await navigator.share({ url }).catch(() => {});
-      return;
-    }
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-  };
-
-  return (
-    <>
-      <button type="button" onClick={share} className={ICON_BUTTON} aria-label={t.shareLink}>
-        {copied ? <Check className="size-4 text-marquee" /> : <Share className="size-4" />}
-      </button>
-      <output className="sr-only">{copied ? t.linkCopied : ""}</output>
-    </>
   );
 }
 
@@ -386,24 +299,6 @@ function WorkHeader({
         </m.span>
       </span>
     </m.div>
-  );
-}
-
-// Marks the card's work as watched, or not.
-function WatchedToggle({ work }: { work: WorkNode }) {
-  const { t, titleOf } = useI18n();
-  const watched = useWatched().has(work.id);
-  return (
-    <button
-      type="button"
-      onClick={() => toggleWatched(work.id)}
-      aria-pressed={watched}
-      aria-label={t.markWatched(titleOf(work))}
-      className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 py-0.5 pr-2 pl-1.5 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-white/20 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-white/60 aria-pressed:bg-white aria-pressed:text-neutral-900"
-    >
-      <Check className="size-3.5" strokeWidth={watched ? 3 : 2} aria-hidden />
-      {t.watched}
-    </button>
   );
 }
 
