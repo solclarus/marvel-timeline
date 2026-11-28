@@ -10,9 +10,11 @@ import { earthsOf, type WorkNode } from "@/data/works";
 import type { Axis } from "@/lib/graph/layout";
 import type { NodeArt } from "@/lib/graph/metrics";
 import { useI18n } from "@/lib/i18n";
+import { useWatched } from "@/lib/watched";
 
 import { Logo } from "./logo";
 import { Poster } from "./poster";
+import { WatchedMark } from "./watched-mark";
 
 export type NodeState = "selected" | "ancestor" | "dimmed" | "neutral";
 
@@ -78,7 +80,8 @@ export function GraphNode({
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
-  const { titleOf, earthLabel } = useI18n();
+  const { t, titleOf, earthLabel } = useI18n();
+  const watched = useWatched().has(work.id);
   const title = titleOf(work);
   const earths = earthsOf(work);
 
@@ -123,7 +126,7 @@ export function GraphNode({
           }}
           whileHover={{ scale: style.scale * 1.05 }}
           whileTap={{ scale: style.scale * 0.97 }}
-          aria-label={`${title}${earths.length > 1 ? ` (${earths.map(earthLabel).join(" / ")})` : ""}`}
+          aria-label={`${title}${earths.length > 1 ? ` (${earths.map(earthLabel).join(" / ")})` : ""}${watched ? t.watchedSuffix : ""}`}
         />
       }
     >
@@ -133,6 +136,11 @@ export function GraphNode({
       >
         {art === "logo" ? <Logo work={work} /> : <Poster work={work} />}
       </div>
+      {watched && (
+        <WatchedMark
+          className={`absolute -top-1.5 -right-1.5 ${style.grayscale ? "grayscale" : ""}`}
+        />
+      )}
       {hasOutgoing && <span aria-hidden className={nubClass.outgoing} />}
       {markClass && (
         <span

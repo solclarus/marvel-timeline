@@ -20,6 +20,7 @@ import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
 import { useNodeArt } from "@/lib/node-art";
 import { cn } from "@/lib/utils";
+import { clearWatched, useWatched } from "@/lib/watched";
 
 import { EDGE_STYLE } from "./graph-edges";
 import { MEDIUM_META } from "./medium-badge";
@@ -264,6 +265,7 @@ export function SettingsMenu({
 }: Props) {
   const { t, locale, setLocale } = useI18n();
   const [art, setArt] = useNodeArt();
+  const watched = useWatched();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
     media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
@@ -323,6 +325,23 @@ export function SettingsMenu({
               lang: option,
             }))}
           />
+          {watched.size > 0 && (
+            <div className="flex items-center justify-between gap-2">
+              <SectionLabel>
+                {t.watchedSection} · {t.watchedCount(watched.size)}
+              </SectionLabel>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 rounded-full px-2.5 text-xs text-muted-foreground"
+                onClick={() => {
+                  if (window.confirm(t.clearWatchedConfirm(watched.size))) clearWatched();
+                }}
+              >
+                {t.clearWatched}
+              </Button>
+            </div>
+          )}
         </Section>
         <div className="flex flex-col gap-1.5 px-3 pt-1 pb-2">
           <SectionLabel>{t.lines}</SectionLabel>

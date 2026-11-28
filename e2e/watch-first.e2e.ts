@@ -57,3 +57,22 @@ test("a route opens as a card, and its works lead on from it", async ({ page }) 
   await expect(page).not.toHaveURL(/list=|work=/);
   await expect(page.locator('button[aria-label="Iron Man"]')).toBeAttached();
 });
+
+test("watched works are marked, leave time left, and are remembered", async ({ page }) => {
+  await page.goto("./?work=iron-man");
+  const mark = page.getByRole("button", { name: "Mark Iron Man as watched" });
+  await mark.click();
+  await expect(mark).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('button[aria-label="Iron Man (watched)"]')).toBeAttached();
+
+  // The Avengers' watch-first list counts what's left.
+  await page.goto("./?work=avengers&list=before:avengers");
+  await expect(page.getByText(/in all · .+ left$/)).toBeVisible();
+  await expect(page.locator("#card-iron-man")).toContainText("(watched)");
+
+  // Cleared from settings, after a confirm.
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect(page.getByText(/ left$/)).toHaveCount(0);
+});
