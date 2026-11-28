@@ -133,7 +133,7 @@ export function DetailPanel({
                 transition: { duration: 0.18, ease: "easeIn" },
               }}
               transition={FLOAT}
-              className="pointer-events-auto relative flex flex-col px-4 py-3 lg:max-h-[calc(100dvh-7.5rem)] lg:px-5 lg:py-4"
+              className="pointer-events-auto relative flex flex-col px-4 py-3 lg:max-h-[calc(100dvh-2rem)] lg:px-5 lg:py-4"
             >
               {/* The surface fades in out of a blur on its own, so a poster
                   flying in from the map is in full view the whole way. */}
@@ -500,7 +500,7 @@ function CardList({
       )}
       <ol
         aria-label={label}
-        className="flex max-h-[min(52dvh,26rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-2 pb-1 lg:max-h-[calc(100dvh-33rem)]"
+        className="flex max-h-[min(52dvh,26rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-2 pb-1 lg:max-h-[calc(100dvh-27.5rem)]"
       >
         {items.map(({ work }, i) => (
           <WorkRow

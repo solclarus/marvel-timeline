@@ -79,7 +79,7 @@ export function useSelectionFit({
           viewport,
           {
             top: sidebar ? 32 : phone ? 120 : 150,
-            bottom: 88,
+            bottom: sidebar ? 24 : 88,
             left: sidebar ? 544 : 24,
             // The desktop zoom controls sit on the right.
             right: viewport.width >= 768 ? 96 : 24,

@@ -22,7 +22,10 @@ export function ZoomFab({ zoom, minZoom, maxZoom, onZoomIn, onZoomOut, onFit }: 
   return (
     // Desktop only: phones pinch to zoom. Top-right, out of the way of the
     // command bar.
-    <FabBar from="top" className="fixed top-6 right-6 z-40 hidden flex-col md:flex">
+    <FabBar
+      from="top"
+      className="fixed top-6 right-6 z-40 hidden flex-col md:flex lg:top-auto lg:right-4 lg:bottom-4"
+    >
       <Button
         variant="ghost"
         size="icon"
