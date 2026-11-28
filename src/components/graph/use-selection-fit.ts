@@ -71,14 +71,16 @@ export function useSelectionFit({
         if (!wrapper) return;
         const viewport = { width: wrapper.clientWidth, height: wrapper.clientHeight };
         const phone = viewport.width < 640;
+        // Wide screens show the card as a sidebar on the left.
+        const sidebar = viewport.width >= 1024;
         const { min, max } = scale[phone ? "phone" : "desktop"];
         const next = fitBox(
           box,
           viewport,
           {
-            top: phone ? 120 : 150,
+            top: sidebar ? 32 : phone ? 120 : 150,
             bottom: 88,
-            left: 24,
+            left: sidebar ? 544 : 24,
             // The desktop zoom controls sit on the right.
             right: viewport.width >= 768 ? 96 : 24,
           },

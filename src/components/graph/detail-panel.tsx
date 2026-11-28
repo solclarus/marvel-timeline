@@ -113,8 +113,10 @@ export function DetailPanel({
   const cardKey = view ? (view.kind === "progress" ? view.kind : `${view.kind}:${view.id}`) : "";
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24">
-      <div className="mx-auto max-w-4xl">
+    // On wide screens the card is a sidebar on the left, beside the map,
+    // stopping above the command bar; narrower, it floats across the top.
+    <div className="pointer-events-none fixed inset-x-0 top-4 z-30 px-4 sm:top-6 md:pr-24 lg:top-4 lg:right-auto lg:left-4 lg:w-lg lg:px-0 lg:pr-0">
+      <div className="mx-auto max-w-4xl lg:max-w-none">
         {/* The card floats in and out once; moving to another work or route
             only replays its contents, so it stays in place. */}
         <AnimatePresence>
@@ -131,7 +133,7 @@ export function DetailPanel({
                 transition: { duration: 0.18, ease: "easeIn" },
               }}
               transition={FLOAT}
-              className="pointer-events-auto relative flex flex-col px-4 py-3"
+              className="pointer-events-auto relative flex flex-col px-4 py-3 lg:max-h-[calc(100dvh-7.5rem)] lg:px-5 lg:py-4"
             >
               {/* The surface fades in out of a blur on its own, so a poster
                   flying in from the map is in full view the whole way. */}
@@ -189,7 +191,7 @@ export function DetailPanel({
               </div>
 
               {progress && (
-                <div className="relative -mx-2 max-h-[min(62dvh,36rem)] overflow-y-auto overscroll-contain">
+                <div className="relative -mx-2 max-h-[min(62dvh,36rem)] overflow-y-auto overscroll-contain lg:max-h-none lg:min-h-0 lg:flex-1">
                   <ProgressStats progress={progress} />
                   {items?.length ? (
                     <CardList
@@ -294,7 +296,7 @@ function WorkHeader({
     >
       <span
         ref={posterRef}
-        className="relative z-10 row-span-1 block h-28 w-[4.7rem] shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/20 ring-tint/15 sm:row-span-2 sm:h-44 sm:w-[7.4rem] dark:shadow-black/50"
+        className="relative z-10 row-span-1 block h-28 w-[4.7rem] shrink-0 overflow-hidden rounded-thumb bg-muted shadow-lg ring-1 shadow-black/20 ring-tint/15 sm:row-span-2 sm:h-44 sm:w-[7.4rem] lg:row-span-1 lg:h-36 lg:w-24 dark:shadow-black/50"
       >
         <Poster key={work.id} work={work} loading="eager" />
       </span>
@@ -302,7 +304,7 @@ function WorkHeader({
         <m.span variants={ITEM} className="block">
           <span
             data-slot="detail-title"
-            className="block pr-16 text-lg/snug font-semibold text-balance sm:text-2xl/tight"
+            className="block pr-16 text-lg/snug font-semibold text-balance sm:text-2xl/tight lg:text-xl/snug"
           >
             {titleOf(work)}
           </span>
@@ -318,7 +320,7 @@ function WorkHeader({
           the card under the poster; wider, it sits beside it. */}
       <m.dl
         variants={ITEM}
-        className="col-span-2 grid grid-cols-2 gap-x-5 gap-y-3.5 rounded-item bg-tint/4 px-3.5 py-3 sm:col-span-1 sm:col-start-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-4 sm:bg-transparent sm:p-0 sm:pt-1"
+        className="col-span-2 grid grid-cols-2 gap-x-5 gap-y-3.5 rounded-item bg-tint/4 px-3.5 py-3 sm:col-span-1 sm:col-start-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-4 sm:bg-transparent sm:p-0 sm:pt-1 lg:col-span-2 lg:col-start-1 lg:grid-cols-2 lg:gap-x-5 lg:gap-y-3.5 lg:bg-tint/4 lg:px-3.5 lg:py-3"
       >
         <Fact icon={Shapes} label={t.factMedium}>
           {t[MEDIUM_META[mediumOf(work)].label]}
@@ -498,7 +500,7 @@ function CardList({
       )}
       <ol
         aria-label={label}
-        className="flex max-h-[min(52dvh,26rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-2 pb-1"
+        className="flex max-h-[min(52dvh,26rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-2 pb-1 lg:max-h-[calc(100dvh-33rem)]"
       >
         {items.map(({ work }, i) => (
           <WorkRow
