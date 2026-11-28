@@ -16,7 +16,7 @@ The bottom bar holds three controls: **Search**, **View** and the **Menu**. The 
 - **Menu** pages:
   - **Filter**: the map opens on the MCU alone; tap a group chip (or **Show all**) to bring in the other franchises. Films, live-action series and animation, each on or off (hidden works are bridged, so a film that follows a series still links to the films before it); group by franchise or by Earth; tap a group chip to show or hide it, long-press or right-click to show only that one. A dot on the button means a filter is on.
   - **Display**: whether works show as posters or title logos, on the map and in lists (English logos in either language, on wider tiles; a dark logo is drawn white), and what the lines mean. Remembered on the device.
-  - **Settings**: language.
+  - **Settings**: language and theme (System, Light or Dark; System follows the device and is the default, and the choice is remembered).
 - **Sagas**: in recommended order the MCU phases sit inside saga frames (Infinity: 1–3, Multiverse: 4–6, Mutant: 7 on); works outside the phases, like the One-Shots, sit just outside their saga.
 - **Hover** a group card or MCU phase (or tap its label) to focus it.
 - **Navigate**: scroll or drag to pan, pinch (or ⌘/Ctrl + scroll) to zoom.

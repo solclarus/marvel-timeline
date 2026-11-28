@@ -80,7 +80,7 @@ export function Poster({
   return (
     <>
       {status === "loading" && (
-        <Skeleton className="absolute inset-0 rounded-none bg-neutral-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" />
+        <Skeleton className="absolute inset-0 rounded-none bg-neutral-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.12)] dark:bg-neutral-700 dark:shadow-[inset_0_0_10px_rgba(0,0,0,0.4)]" />
       )}
       <img
         ref={imgRef}

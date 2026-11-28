@@ -6,6 +6,9 @@
 
 @theme inline {
   --color-marquee: var(--marquee);
+  --color-canvas: var(--canvas);
+  --color-tint: var(--tint);
+  --color-nub: var(--nub);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
@@ -41,11 +44,57 @@
   --radius-thumb: 0.375rem;
 }
 
+/* Light by default; `class="dark"` on <html> (set from the theme setting,
+   see src/lib/theme.ts and the inline script in index.html) switches to dark
+   and turns on the `dark:` variants. */
 :root {
-  /* Dark only. `class="dark"` on <html> keeps shadcn's `dark:` variants on. */
+  color-scheme: light;
+  /* The one accent: the gold of the watch-first lines. Deeper on light
+     surfaces, so gold text still reads (5.3:1 on white). */
+  --marquee: #8a6500;
+  /* The map's and the list's ground, under the cards and posters. */
+  --canvas: oklch(0.955 0 0);
+  /* Faint washes and hairlines over any surface: black on light, white on
+     dark. Always used with an opacity (`bg-tint/5`, `border-tint/10`). */
+  --tint: #000;
+  /* The stubs where lines meet a poster. */
+  --nub: oklch(0.6 0 0);
+  /* MCU phase bands. */
+  --phase-fill: rgba(37, 99, 235, 0.07);
+  --phase-border: rgba(37, 99, 235, 0.45);
+  /* Lightness of the timelines' decade-band borders. */
+  --decade-border-l: 48%;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.94 0 0);
+  /* 5.7:1 on white, 4.9:1 on the canvas. */
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0 0 0 / 12%);
+  --input: oklch(0 0 0 / 15%);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+}
+
+.dark {
   color-scheme: dark;
-  /* The one accent: the gold of the watch-first lines. */
   --marquee: #d4a017;
+  --canvas: oklch(0.269 0 0);
+  --tint: #fff;
+  --nub: oklch(0.87 0 0);
+  --phase-fill: rgba(96, 165, 250, 0.09);
+  --phase-border: rgba(96, 165, 250, 0.45);
+  --decade-border-l: 62%;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -64,7 +113,6 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --radius: 0.625rem;
 }
 
 @layer base {

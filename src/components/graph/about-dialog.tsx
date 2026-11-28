@@ -105,7 +105,7 @@ function OffMapList() {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 py-0.5 pr-1.5 pl-2.5 text-xs hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+        className="inline-flex items-center gap-1 rounded-full border border-tint/10 bg-tint/5 py-0.5 pr-1.5 pl-2.5 text-xs hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
       >
         {open ? t.offMapHide : t.offMapShow(NOT_ON_THE_MAP.length)}
         <ChevronDown
@@ -125,7 +125,7 @@ function OffMapList() {
                 </h4>
                 <ul className="space-y-1.5">
                   {works.map((work) => (
-                    <li key={work.title} className="rounded-item bg-white/5 px-3 py-2">
+                    <li key={work.title} className="rounded-item bg-tint/5 px-3 py-2">
                       <p className="text-sm/snug">
                         {ja ? work.titleJa : work.title}
                         {work.years && (

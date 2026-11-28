@@ -46,7 +46,7 @@ export function MapBackdrop({
       {groupCards.map((card) => (
         <div
           key={card.key}
-          className={`absolute rounded-surface border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-white/10" : "bg-white/3"} ${card.cardClass}`}
+          className={`absolute rounded-surface border-2 border-dashed transition-colors ${card.key === focusedCardKey ? "bg-tint/10" : "bg-tint/3"} ${card.cardClass}`}
           style={box(card)}
         >
           <BorderLabel
@@ -62,10 +62,10 @@ export function MapBackdrop({
       {sagaBands.map((band) => (
         <div
           key={band.saga}
-          className="absolute rounded-surface border border-white/30 bg-white/2.5"
+          className="absolute rounded-surface border border-tint/30 bg-tint/2.5"
           style={box(band)}
         >
-          <BorderLabel dot={{ className: "bg-white/70" }}>{t.saga(band.saga)}</BorderLabel>
+          <BorderLabel dot={{ className: "bg-tint/70" }}>{t.saga(band.saga)}</BorderLabel>
         </div>
       ))}
       {phaseBands.map((band) => (
@@ -103,7 +103,7 @@ export function MapBackdrop({
             <div
               key={month.month}
               aria-hidden
-              className="pointer-events-none absolute inset-y-0 bg-white/4"
+              className="pointer-events-none absolute inset-y-0 bg-tint/4"
               style={{ left: `${month.left}%`, width: `${month.right - month.left}%` }}
             />
           ),
@@ -112,7 +112,7 @@ export function MapBackdrop({
         <div
           key={row.year}
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 h-px bg-white/8"
+          className="pointer-events-none absolute inset-x-0 h-px bg-tint/8"
           style={{ top: `${row.top}%` }}
         />
       ))}

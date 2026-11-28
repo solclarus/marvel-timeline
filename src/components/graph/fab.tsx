@@ -17,7 +17,7 @@ export function FabBar({
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className={cn(
-        "flex items-center gap-1 rounded-full border border-border/60 bg-card/95 p-2 shadow-xl shadow-black/20 backdrop-blur-md",
+        "flex items-center gap-1 rounded-full border border-border/60 bg-card/95 p-2 shadow-xl shadow-black/10 backdrop-blur-md dark:shadow-black/20",
         className,
       )}
     >
