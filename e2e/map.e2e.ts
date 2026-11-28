@@ -201,3 +201,19 @@ test("a route's card lists its works, and picking one shows it", async ({ page }
   await expect(page).toHaveURL(/work=the-defenders/);
   await expect(page).toHaveURL(/media=movie%2Cseries/);
 });
+
+test("the map can show title logos on wide tiles, remembered on reload", async ({ page }) => {
+  await page.goto("./?work=avengers-endgame");
+  const node = page.locator('[id="avengers-endgame"]');
+  const size = () =>
+    node.evaluate((el) => [(el as HTMLElement).offsetWidth, (el as HTMLElement).offsetHeight]);
+  expect(await size()).toEqual([80, 120]);
+
+  await page.getByRole("button", { name: "View settings" }).click();
+  await page.getByRole("button", { name: "Titles" }).click();
+  await expect.poll(size).toEqual([128, 72]);
+  await expect(node.locator("img")).toHaveAttribute("src", /image\.tmdb\.org\/t\/p\/w300\//);
+
+  await page.reload();
+  await expect.poll(size).toEqual([128, 72]);
+});

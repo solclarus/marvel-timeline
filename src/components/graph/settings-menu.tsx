@@ -1,14 +1,24 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
-import { Earth, Library, ListFilter, Settings2, SlidersHorizontal } from "lucide-react";
+import {
+  Earth,
+  Image,
+  Library,
+  ListFilter,
+  Settings2,
+  SlidersHorizontal,
+  Type,
+} from "lucide-react";
 import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MEDIA, type EdgeKind, type Medium } from "@/data/works";
 import { GROUPS, type GroupBy, type Grouping } from "@/lib/graph/groups";
+import type { NodeArt } from "@/lib/graph/metrics";
 import type { MediaFilter } from "@/lib/graph/relations";
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale, type Messages } from "@/lib/i18n";
+import { useNodeArt } from "@/lib/node-art";
 import { cn } from "@/lib/utils";
 
 import { EDGE_STYLE } from "./graph-edges";
@@ -253,6 +263,7 @@ export function SettingsMenu({
   onGroupByChange,
 }: Props) {
   const { t, locale, setLocale } = useI18n();
+  const [art, setArt] = useNodeArt();
   // The bar no longer shows the filters, so the button flags when one is on.
   const filtered =
     media.length < MEDIA.length || grouping.visible.size < GROUPS[grouping.by].length;
@@ -293,6 +304,15 @@ export function SettingsMenu({
           <GroupChips grouping={grouping} onVisibleChange={onVisibleChange} />
         </Section>
         <Section title={t.displaySection} icon={Settings2}>
+          <Segmented<NodeArt>
+            label={t.nodeArt}
+            value={art}
+            onChange={setArt}
+            options={[
+              { value: "poster", label: t.artPoster, icon: Image },
+              { value: "logo", label: t.artLogo, icon: Type },
+            ]}
+          />
           <Segmented<Locale>
             label={t.language}
             value={locale}

@@ -8,9 +8,10 @@ import {
 } from "@/components/ui/tooltip";
 import { earthsOf, type WorkNode } from "@/data/works";
 import type { Axis } from "@/lib/graph/layout";
-import { POSTER_PX } from "@/lib/graph/metrics";
+import type { NodeArt } from "@/lib/graph/metrics";
 import { useI18n } from "@/lib/i18n";
 
+import { Logo } from "./logo";
 import { Poster } from "./poster";
 
 export type NodeState = "selected" | "ancestor" | "dimmed" | "neutral";
@@ -41,6 +42,8 @@ interface Props {
   hasOutgoing: boolean;
   // Timelines: the work's group color, as a bar under the poster.
   markClass?: string;
+  art: NodeArt;
+  size: { width: number; height: number };
 }
 
 const NUB_CLASS = {
@@ -70,6 +73,8 @@ export function GraphNode({
   hasIncoming,
   hasOutgoing,
   markClass,
+  art,
+  size,
 }: Props) {
   const style = NODE_STATE_STYLE[state];
   const nubClass = NUB_CLASS[axis];
@@ -98,8 +103,8 @@ export function GraphNode({
           style={{
             left: 0,
             top: 0,
-            width: POSTER_PX.width,
-            height: POSTER_PX.height,
+            width: size.width,
+            height: size.height,
             translate: "-50% -50%",
           }}
           initial={false}
@@ -126,7 +131,7 @@ export function GraphNode({
       <div
         className={`relative size-full overflow-hidden rounded-thumb border border-border/70 shadow-[0_4px_10px_rgba(0,0,0,0.45)] ${style.grayscale ? "grayscale" : ""}`}
       >
-        <Poster work={work} />
+        {art === "logo" ? <Logo work={work} /> : <Poster work={work} />}
       </div>
       {hasOutgoing && <span aria-hidden className={nubClass.outgoing} />}
       {markClass && (
