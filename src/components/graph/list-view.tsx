@@ -89,8 +89,8 @@ export function ListView({
     distance === undefined
       ? undefined
       : distance < 0
-        ? { label: t.listBefore, tone: "before" }
-        : { label: t.listAfter, tone: "after" };
+        ? { label: t.listBefore, kind: "before" }
+        : { label: t.listAfter, kind: "after" };
 
   // A selection made elsewhere (search, the card's list) scrolls into view.
   useEffect(() => {

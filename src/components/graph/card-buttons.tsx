@@ -50,7 +50,7 @@ export function ShareButton({ workId }: { workId: string | undefined }) {
   );
 }
 
-// Marks the card's work as watched, or not.
+// Marks the card's work as watched, or not: a check alone, gold when on.
 export function WatchedToggle({ work }: { work: WorkNode }) {
   const { t, titleOf } = useI18n();
   const watched = useWatched().has(work.id);
@@ -60,10 +60,10 @@ export function WatchedToggle({ work }: { work: WorkNode }) {
       onClick={() => toggleWatched(work.id)}
       aria-pressed={watched}
       aria-label={t.markWatched(titleOf(work))}
-      className="inline-flex items-center gap-1 rounded-full border border-tint/10 bg-tint/5 py-0.5 pr-2 pl-1.5 text-xs whitespace-nowrap text-foreground/85 transition-colors hover:border-tint/20 hover:bg-tint/10 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-marquee aria-pressed:bg-marquee aria-pressed:text-background"
+      title={t.watched}
+      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-tint/15 bg-tint/5 text-muted-foreground transition-colors hover:border-tint/25 hover:bg-tint/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none aria-pressed:border-marquee aria-pressed:bg-marquee aria-pressed:text-background"
     >
-      <Check className="size-3.5" strokeWidth={watched ? 3 : 2} aria-hidden />
-      {t.watched}
+      <Check className="size-3.5" strokeWidth={watched ? 3 : 2.5} aria-hidden />
     </button>
   );
 }
