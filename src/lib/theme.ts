@@ -8,7 +8,7 @@ export type Theme = (typeof THEMES)[number];
 
 const STORAGE_KEY = "marvel-timeline:theme";
 // The browser chrome's color: each theme's --background.
-const THEME_COLOR = { light: "#ffffff", dark: "#141414" };
+const THEME_COLOR = { light: "#f5f3ef", dark: "#141414" };
 
 const isTheme = (value: string | null): value is Theme =>
   (THEMES as readonly (string | null)[]).includes(value);
