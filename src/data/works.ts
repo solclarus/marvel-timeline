@@ -308,7 +308,7 @@ export const WORKS: WorkNode[] = [
     setYear: 2011,
     recommendedOrder: 4,
     tmdb: { type: "movie", id: 10195 },
-    releaseDate: "2011-04-21",
+    releaseDate: "2011-04-27",
     poster: "/prSfAi1xGrhLQNxVSUFh61xQ4Qy.jpg",
   },
   {
@@ -530,7 +530,7 @@ export const WORKS: WorkNode[] = [
     setYear: 2017,
     recommendedOrder: 17,
     tmdb: { type: "movie", id: 284053 },
-    releaseDate: "2017-10-02",
+    releaseDate: "2017-10-24",
     poster: "/rzRwTcFvttcN1ZpX2xv4j3tSdJu.jpg",
   },
   {
@@ -620,7 +620,7 @@ export const WORKS: WorkNode[] = [
     recommendedOrder: 22,
     tmdb: { type: "movie", id: 299534 },
     releaseDate: "2019-04-24",
-    poster: "/ulzhLuWrPK07P1YkdWQLZnQh1JL.jpg",
+    poster: "/jtDv3lCnST0fZRvdYFwR5CVwK2x.jpg",
   },
   {
     id: "spider-man-far-from-home",
@@ -794,7 +794,7 @@ export const WORKS: WorkNode[] = [
     setYear: 2023,
     recommendedOrder: 27,
     tmdb: { type: "tv", id: 85271, season: 1 },
-    releaseDate: "2021-01-15",
+    releaseDate: "2021-01-14",
     poster: "/8BSVNGpZwZDScVv8e5S1c8XIjeJ.jpg",
   },
   {
@@ -1597,7 +1597,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 78,
     recommendedOrder: 59,
     tmdb: { type: "movie", id: 1003596 },
-    releaseDate: "2026-12-15",
+    releaseDate: "2026-12-16",
     poster: "/jzPwsojjFStf5lR5Nm07w2hH56G.jpg",
   },
   {
@@ -1718,7 +1718,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 77.5,
     recommendedOrder: 58.5,
     tmdb: { type: "tv", id: 213375, season: 1 },
-    releaseDate: "2026-10-14",
+    releaseDate: "2026-10-13",
     poster: "/xK27l5uwaVyZSlENWnmLlWwDQNS.jpg",
   },
   {
@@ -2118,7 +2118,7 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 89,
     recommendedOrder: null,
     tmdb: { type: "movie", id: 911916 },
-    releaseDate: "2027-06-17",
+    releaseDate: "2027-06-16",
     poster: "/9KAe39xqyZnv9J4W3DRGdQqX82h.jpg",
   },
   // --- Continuing animated seasons ---
@@ -2135,9 +2135,8 @@ export const WORKS: WorkNode[] = [
     chronologyOrder: 51.75,
     recommendedOrder: 58.7,
     tmdb: { type: "tv", id: 138503, season: 2 },
-    releaseDate: "2027-01-01",
-    releasePrecision: "month",
-    poster: "",
+    releaseDate: "2027-01-13",
+    poster: "/rAgl03cfcLgPSzeozownXAdhDkw.jpg",
   },
   // --- Marvel Television (ABC, Hulu, Freeform) ---
   // Made as part of the MCU, but Marvel Studios now files them under "Marvel

@@ -21,11 +21,27 @@ describe("diffWork", () => {
     ).toEqual([]);
   });
 
-  it("reports a changed date and poster", () => {
-    expect(diffWork(ironMan, { release_date: "2008-05-02", poster_path: "/new.jpg" })).toEqual([
+  it("reports a changed date, and a poster TMDB no longer lists", () => {
+    expect(
+      diffWork(ironMan, {
+        release_date: "2008-05-02",
+        poster_path: "/new.jpg",
+        images: { posters: [{ file_path: "/new.jpg" }] },
+      }),
+    ).toEqual([
       { id: "iron-man", field: "releaseDate", ours: ironMan.releaseDate, tmdb: "2008-05-02" },
       { id: "iron-man", field: "poster", ours: ironMan.poster, tmdb: "/new.jpg" },
     ]);
+  });
+
+  it("keeps a poster TMDB still lists, even when its main one changes", () => {
+    expect(
+      diffWork(ironMan, {
+        release_date: ironMan.releaseDate,
+        poster_path: "/new.jpg",
+        images: { posters: [{ file_path: "/new.jpg" }, { file_path: ironMan.poster }] },
+      }),
+    ).toEqual([]);
   });
 
   it("reads a season's air date, and skips values TMDB doesn't have yet", () => {
