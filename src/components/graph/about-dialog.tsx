@@ -1,14 +1,7 @@
-import { ChevronDown, Info } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { NOT_ON_THE_MAP, type OffMapReason } from "@/data/not-on-the-map";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -28,14 +21,18 @@ const linkClass = "underline underline-offset-2 hover:text-foreground";
 
 // What the site is, where its data comes from, what it leaves off, and who
 // owns what: the required TMDB notice, the unofficial-fan-project
-// disclaimer, and the license. Opened from the command bar; there are no other pages.
-export function AboutDialog() {
+// disclaimer, and the license. Opened from the settings menu; there are no
+// other pages.
+export function AboutDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { t, locale } = useI18n();
   return (
-    <Dialog>
-      <DialogTrigger render={<Button variant="ghost" size="icon" aria-label={t.about} />}>
-        <Info className="size-4" />
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent closeLabel={t.close}>
         <DialogTitle>{t.aboutTitle}</DialogTitle>
         <DialogDescription className="mt-1">{t.aboutLead}</DialogDescription>

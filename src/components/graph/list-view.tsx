@@ -1,7 +1,7 @@
 import { CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { isUpcoming } from "@/data/works";
+import { isUpcoming, type WorkNode } from "@/data/works";
 import type { Grouping } from "@/lib/graph/groups";
 import type { ViewMode } from "@/lib/graph/layout";
 import { listSections } from "@/lib/graph/list";
@@ -10,7 +10,6 @@ import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { setWatched } from "@/lib/watched";
 
-import { BulkWatched } from "./card-buttons";
 import { SelectionBar } from "./selection-bar";
 import { WorkRow, type RowTag } from "./work-row";
 
@@ -135,10 +134,14 @@ export function ListView({
                   {t.workCount(section.works.length)}
                 </span>
               </h2>
-              <BulkWatched
-                works={section.works}
-                label={section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
-              />
+              {selecting && (
+                <SelectAll
+                  works={section.works}
+                  picked={picked}
+                  onChange={setPicked}
+                  label={section.kind === "saga" ? t.saga(section.saga) : t.decade(section.decade)}
+                />
+              )}
             </div>
             <ol className="flex flex-col gap-1">
               {section.works.map((work) => (
@@ -170,5 +173,41 @@ export function ListView({
         />
       )}
     </main>
+  );
+}
+
+// While picking: every work in a section that's out, or none of them.
+function SelectAll({
+  works,
+  picked,
+  onChange,
+  label,
+}: {
+  works: WorkNode[];
+  picked: ReadonlySet<string>;
+  onChange: (picked: ReadonlySet<string>) => void;
+  label: string;
+}) {
+  const { t } = useI18n();
+  const ids = works.filter((w) => !isUpcoming(w)).map((w) => w.id);
+  if (ids.length === 0) return null;
+  const all = ids.every((id) => picked.has(id));
+  const text = all ? t.deselectAll : t.selectAll;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const next = new Set(picked);
+        for (const id of ids) {
+          if (all) next.delete(id);
+          else next.add(id);
+        }
+        onChange(next);
+      }}
+      aria-label={`${text}: ${label}`}
+      className="shrink-0 rounded-full px-2 py-0.5 text-xs whitespace-nowrap text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+    >
+      {text}
+    </button>
   );
 }

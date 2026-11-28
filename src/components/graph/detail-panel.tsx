@@ -15,7 +15,13 @@ import { useWatched } from "@/lib/watched";
 import { BulkWatched, ICON_BUTTON, ShareButton, WatchedToggle } from "./card-buttons";
 import { MediumBadge } from "./medium-badge";
 import { Poster } from "./poster";
-import { ProgressBody, ProgressHeader } from "./progress-card";
+import {
+  ClearWatched,
+  ProgressBreakdown,
+  ProgressHeader,
+  ProgressStats,
+  RouteList,
+} from "./progress-card";
 import { UpcomingBadge } from "./upcoming-badge";
 import type { CardView } from "./use-card";
 import { useFlightFromMap } from "./use-flight-from-map";
@@ -31,6 +37,8 @@ interface Props {
   onToggle: () => void;
   // A work picked from the card's list.
   onPick: (id: string) => void;
+  // A route picked from the progress card.
+  onPickRoute: (id: string) => void;
 }
 
 // Soft and a little springy, so the card floats in rather than snapping.
@@ -49,7 +57,16 @@ const ITEM: Variants = {
 // The card at the top: the selected work, or a route. A work's card folds
 // out what to watch first; a route's lists its works. Picking from either
 // list moves the card to that work, and ‹ steps back.
-export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, onPick }: Props) {
+export function DetailPanel({
+  view,
+  previous,
+  graph,
+  onClose,
+  onBack,
+  onToggle,
+  onPick,
+  onPickRoute,
+}: Props) {
   const { t, titleOf, locale } = useI18n();
   const work = view?.kind === "work" ? WORK_BY_ID.get(view.id) : undefined;
   const route = view?.kind === "route" ? ROUTES.find((r) => r.id === view.id) : undefined;
@@ -152,8 +169,8 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
               </div>
 
               {progress && (
-                <div className="relative -mx-2 max-h-[min(60dvh,34rem)] overflow-y-auto overscroll-contain">
-                  <ProgressBody progress={progress} />
+                <div className="relative -mx-2 max-h-[min(62dvh,36rem)] overflow-y-auto overscroll-contain">
+                  <ProgressStats progress={progress} />
                   {items?.length ? (
                     <CardList
                       items={items}
@@ -168,6 +185,9 @@ export function DetailPanel({ view, previous, graph, onClose, onBack, onToggle, 
                       <p className="px-2 pt-3 text-xs text-muted-foreground">{t.allCaughtUp}</p>
                     )
                   )}
+                  <RouteList onPick={onPickRoute} />
+                  <ProgressBreakdown progress={progress} />
+                  <ClearWatched />
                 </div>
               )}
 

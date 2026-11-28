@@ -89,6 +89,7 @@ test("hovering a poster focuses its relatives, not its phase", async ({ page }) 
 
 test("About shows the TMDB notice", async ({ page }) => {
   await page.goto("./");
+  await page.getByRole("button", { name: "View settings" }).click();
   await page.getByRole("button", { name: "About" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("not endorsed, certified, or otherwise approved by TMDB");
@@ -99,6 +100,7 @@ test("About shows the TMDB notice", async ({ page }) => {
 
 test("About lists the works left off the map", async ({ page }) => {
   await page.goto("./");
+  await page.getByRole("button", { name: "View settings" }).click();
   await page.getByRole("button", { name: "About" }).click();
   const dialog = page.locator("[data-slot=dialog-content]");
   await dialog.getByRole("button", { name: /Show the \d+ left off/ }).click();
@@ -190,7 +192,7 @@ test("settings switch with buttons and filter groups with chips", async ({ page 
 
 test("a route's card lists its works, and picking one shows it", async ({ page }) => {
   await page.goto("./?media=movie");
-  await page.getByRole("button", { name: "Routes" }).click();
+  await page.getByRole("button", { name: "Watching" }).click();
   await page.getByRole("button", { name: /The Defenders Saga/ }).click();
   await expect(page).toHaveURL(/list=route%3Adefenders/);
   await expect(page.getByRole("list", { name: "The Defenders Saga" }).locator("li")).toHaveCount(

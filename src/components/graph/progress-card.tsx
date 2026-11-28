@@ -1,9 +1,14 @@
-import { ChartColumnBig } from "lucide-react";
+import { ChartColumnBig, ChevronRight, Signpost } from "lucide-react";
 import * as m from "motion/react-m";
 
+import { ROUTES } from "@/data/routes";
 import { FRANCHISE_META } from "@/data/works";
+import { WORK_GRAPHS } from "@/lib/graph/relations";
+import { routeWorks } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import type { Progress, Tally } from "@/lib/progress";
+import { totalRuntime } from "@/lib/runtime";
+import { clearWatched, useWatched } from "@/lib/watched";
 
 const ITEM = {
   hidden: { opacity: 0, y: 6 },
@@ -90,36 +95,105 @@ function MeterList({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-// The numbers: how much is watched, then the MCU phase by phase and every
-// franchise.
-export function ProgressBody({ progress }: { progress: Progress }) {
-  const { t, franchiseLabel } = useI18n();
-  const { works, minutes, phases, franchises } = progress;
+// The headline numbers: how much of what's out is watched.
+export function ProgressStats({ progress }: { progress: Progress }) {
+  const { t } = useI18n();
+  const { works, minutes } = progress;
   return (
-    <div className="flex flex-col gap-4 px-2 pt-3">
+    <div className="flex flex-col gap-2 px-2 pt-3">
       <div className="grid grid-cols-3 gap-2">
         <Stat label={t.statWatched} value={t.worksOf(works.watched, works.total)} />
         <Stat label={t.statTime} value={t.duration(minutes.watched)} />
         <Stat label={t.statShare} value={`${percent(works)}%`} />
       </div>
       {works.watched === 0 && <p className="text-xs text-muted-foreground">{t.nothingWatched}</p>}
-      <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <MeterList title={t.byPhase}>
-          {phases.map((p) => (
-            <MeterRow key={p.phase} name={t.phase(p.phase)} tally={p} />
-          ))}
-        </MeterList>
-        <MeterList title={t.byFranchise}>
-          {franchises.map((f) => (
-            <MeterRow
-              key={f.franchise}
-              name={franchiseLabel(f.franchise)}
-              tally={f}
-              dot={FRANCHISE_META[f.franchise].colorClass}
-            />
-          ))}
-        </MeterList>
-      </div>
+    </div>
+  );
+}
+
+// The breakdown: the MCU phase by phase, and every franchise.
+export function ProgressBreakdown({ progress }: { progress: Progress }) {
+  const { t, franchiseLabel } = useI18n();
+  return (
+    <div className="grid gap-4 px-2 pt-4 sm:grid-cols-2 sm:gap-6">
+      <MeterList title={t.byPhase}>
+        {progress.phases.map((p) => (
+          <MeterRow key={p.phase} name={t.phase(p.phase)} tally={p} />
+        ))}
+      </MeterList>
+      <MeterList title={t.byFranchise}>
+        {progress.franchises.map((f) => (
+          <MeterRow
+            key={f.franchise}
+            name={franchiseLabel(f.franchise)}
+            tally={f}
+            dot={FRANCHISE_META[f.franchise].colorClass}
+          />
+        ))}
+      </MeterList>
+    </div>
+  );
+}
+
+// Short themed paths, for watching one storyline rather than everything.
+// Picking one moves the card to it; ‹ comes back here.
+export function RouteList({ onPick }: { onPick: (id: string) => void }) {
+  const { t, locale } = useI18n();
+  const ja = locale === "ja";
+  return (
+    <section className="flex flex-col gap-1.5 px-2 pt-4">
+      <h3 className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+        <Signpost className="size-3.5 text-marquee" aria-hidden />
+        {t.routes}
+        <span className="font-normal text-muted-foreground">· {t.routesIntro}</span>
+      </h3>
+      <ul className="grid gap-1.5 sm:grid-cols-2">
+        {ROUTES.map((route) => {
+          // Routes span every kind of work, whatever the map's filters.
+          const works = routeWorks(route, WORK_GRAPHS.all);
+          const { minutes } = totalRuntime(works);
+          return (
+            <li key={route.id}>
+              <button
+                type="button"
+                onClick={() => onPick(route.id)}
+                className="flex size-full items-center gap-2 rounded-item bg-white/5 p-2.5 text-left transition-colors hover:bg-white/9 focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium">
+                    {ja ? route.titleJa : route.title}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground tabular-nums">
+                    {t.routeCount(works.length)}
+                    {minutes > 0 && ` · ${t.duration(minutes)}`}
+                  </span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+// Forgets every watched mark, after a confirm. Only there once something is.
+export function ClearWatched() {
+  const { t } = useI18n();
+  const watched = useWatched();
+  if (watched.size === 0) return null;
+  return (
+    <div className="flex justify-end px-2 pt-3 pb-1">
+      <button
+        type="button"
+        onClick={() => {
+          if (window.confirm(t.clearWatchedConfirm(watched.size))) clearWatched();
+        }}
+        className="rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
+      >
+        {t.clearWatched}
+      </button>
     </div>
   );
 }

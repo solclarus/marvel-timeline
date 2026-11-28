@@ -1,4 +1,5 @@
-import { ChartColumnBig, List, Map } from "lucide-react";
+import { ChartColumnBig } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { GroupBy, Grouping } from "@/lib/graph/groups";
@@ -9,15 +10,13 @@ import type { Display } from "@/lib/url-state";
 
 import { AboutDialog } from "./about-dialog";
 import { FabBar, FabDivider } from "./fab";
-import { ModeMenu } from "./mode-menu";
-import { RoutesDialog } from "./routes-dialog";
 import { SearchBox } from "./search-box";
 import { SettingsMenu } from "./settings-menu";
+import { ViewMenu } from "./view-menu";
 
 interface Props {
   display: Display;
   onDisplayChange: (display: Display) => void;
-  onRouteSelect: (id: string) => void;
   onProgressOpen: () => void;
   onSearchSelect: (id: string) => void;
   mode: ViewMode;
@@ -29,13 +28,13 @@ interface Props {
   onGroupByChange: (by: GroupBy) => void;
 }
 
-// Every map-wide control in one bar: search, view mode, and the settings
-// panel (filters, highlight, grouping, language). At the bottom, within thumb
+// Every map-wide control in one bar, four in all: search, the view (map or
+// list, and the order), the viewer's own card (progress, up next, routes),
+// and settings (filters, display, About). At the bottom, within thumb
 // reach; full width on phones.
 export function CommandBar({
   display,
   onDisplayChange,
-  onRouteSelect,
   onProgressOpen,
   onSearchSelect,
   mode,
@@ -47,22 +46,18 @@ export function CommandBar({
   onGroupByChange,
 }: Props) {
   const { t } = useI18n();
+  const [aboutOpen, setAboutOpen] = useState(false);
   return (
     <div className="fixed inset-x-4 bottom-4 z-40 flex justify-center sm:bottom-6">
       <FabBar from="bottom" className="w-full sm:w-auto">
         <SearchBox onSelect={onSearchSelect} />
         <FabDivider />
-        <ModeMenu mode={mode} onChange={onModeChange} />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDisplayChange(display === "map" ? "list" : "map")}
-          aria-label={display === "map" ? t.showList : t.showMap}
-          title={display === "map" ? t.showList : t.showMap}
-        >
-          {display === "map" ? <List className="size-4" /> : <Map className="size-4" />}
-        </Button>
-        <RoutesDialog onSelect={onRouteSelect} />
+        <ViewMenu
+          mode={mode}
+          onModeChange={onModeChange}
+          display={display}
+          onDisplayChange={onDisplayChange}
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -78,9 +73,10 @@ export function CommandBar({
           grouping={grouping}
           onVisibleChange={onVisibleGroupsChange}
           onGroupByChange={onGroupByChange}
+          onAbout={() => setAboutOpen(true)}
         />
-        <AboutDialog />
       </FabBar>
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
     </div>
   );
 }

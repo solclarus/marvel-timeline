@@ -70,7 +70,7 @@ export function WatchedToggle({ work }: { work: WorkNode }) {
 
 // Marks a whole list watched, or (once it all is) unmarks it. Only what's
 // out counts: a work still to come can't have been watched.
-export function BulkWatched({ works, label }: { works: WorkNode[]; label?: string }) {
+export function BulkWatched({ works }: { works: WorkNode[] }) {
   const { t } = useI18n();
   const watched = useWatched();
   const ids = works.filter((w) => !isUpcoming(w)).map((w) => w.id);
@@ -81,7 +81,6 @@ export function BulkWatched({ works, label }: { works: WorkNode[]; label?: strin
     <button
       type="button"
       onClick={() => setWatched(ids, !all)}
-      aria-label={label ? `${text}: ${label}` : undefined}
       className="shrink-0 rounded-full px-2 py-0.5 text-xs font-normal whitespace-nowrap text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-marquee focus-visible:outline-none"
     >
       {text}
