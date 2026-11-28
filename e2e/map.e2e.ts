@@ -243,4 +243,12 @@ test("the menu leads to filters and display, and back", async ({ page }) => {
   await panel.getByRole("button", { name: "Back to Menu" }).click();
   await panel.getByRole("button", { name: "Display", exact: true }).click();
   await expect(panel.getByRole("button", { name: "Titles" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // Whatever can be clicked shows a pointer, menu items included.
+  const cursor = (locator: import("@playwright/test").Locator) =>
+    locator.evaluate((el) => getComputedStyle(el).cursor);
+  await page.getByRole("button", { name: /^View:/ }).click();
+  expect(await cursor(page.getByRole("menuitemradio", { name: "Release" }))).toBe("pointer");
+  expect(await cursor(page.locator('button[aria-label="Iron Man"]'))).toBe("pointer");
 });
