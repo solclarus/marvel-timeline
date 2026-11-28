@@ -16,7 +16,7 @@ import {
   timelineYear,
   type ViewMode,
 } from "./layout";
-import { CARD_PAD_PX, POSTER_PX } from "./metrics";
+import { METRICS, type NodeArt } from "./metrics";
 import {
   computeEdgeVisibility,
   GLOBAL_STEP,
@@ -398,11 +398,12 @@ describe("fitBox", () => {
   });
 });
 
-describe("phase bands", () => {
+describe.each<NodeArt>(["poster", "logo"])("phase bands (%s)", (art) => {
+  const { node, cardPad } = METRICS[art];
   for (const by of ["franchise", "earth"] as const) {
     it(`never take in works outside the phases (by ${by})`, () => {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
-      const layout = computeLayout("recommended", grouping);
+      const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
       const bands = computePhaseBands("recommended", layout, grouping);
       const inside = WORKS.filter((w) => w.phase === undefined)
         .filter((w) => {
@@ -425,7 +426,7 @@ describe("phase bands", () => {
       by: "franchise",
       visible: new Set(GROUPS.franchise.map((g) => g.key)),
     };
-    const layout = computeLayout("recommended", grouping);
+    const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
     const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
     const column = 100 / layout.totalLanes;
     for (const w of WORKS.filter((w) => w.id.startsWith("one-shot-"))) {
@@ -441,7 +442,7 @@ describe("phase bands", () => {
   it("sit wholly inside the card that holds the phases, with room to spare", () => {
     for (const by of ["franchise", "earth"] as const) {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
-      const layout = computeLayout("recommended", grouping);
+      const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
       const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
       const card = computeGroupCards("recommended", layout, grouping, sagas).find(
         (c) => c.key === PHASE_GROUP[by],
@@ -459,7 +460,7 @@ describe("phase bands", () => {
   it("keep neighboring group cards evenly apart", () => {
     for (const by of ["franchise", "earth"] as const) {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
-      const layout = computeLayout("recommended", grouping);
+      const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
       const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
       const cards = computeGroupCards("recommended", layout, grouping, sagas).sort(
         (a, b) => a.left - b.left,
@@ -475,7 +476,7 @@ describe("phase bands", () => {
   it("line up the top edges of cards starting in the first row, padded evenly", () => {
     for (const by of ["franchise", "earth"] as const) {
       const grouping: Grouping = { by, visible: new Set(GROUPS[by].map((g) => g.key)) };
-      const layout = computeLayout("recommended", grouping);
+      const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
       const { height } = canvasSize(layout);
       const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
       const cards = computeGroupCards("recommended", layout, grouping, sagas);
@@ -489,7 +490,7 @@ describe("phase bands", () => {
           (w) => layout.positions.get(w.id)!.y,
         );
         expect(Math.round(((Math.min(...ys) - card.top) / 100) * height)).toBe(
-          POSTER_PX.height / 2 + CARD_PAD_PX,
+          node.height / 2 + cardPad,
         );
       }
     }
@@ -500,13 +501,13 @@ describe("phase bands", () => {
       by: "franchise",
       visible: new Set(GROUPS.franchise.map((g) => g.key)),
     };
-    const layout = computeLayout("recommended", grouping);
+    const layout = computeLayout("recommended", grouping, WORK_GRAPHS.all, art);
     const { height } = canvasSize(layout);
     const sagas = computeSagaBands(layout, computePhaseBands("recommended", layout, grouping));
     const gaps = sagas
       .slice(1)
       .map((saga, i) => ((saga.top - (sagas[i].top + sagas[i].height)) / 100) * height);
-    expect(gaps.map(Math.round)).toEqual([CARD_PAD_PX, CARD_PAD_PX]);
+    expect(gaps.map(Math.round)).toEqual([cardPad, cardPad]);
     expect(sagas[0].top).toBeGreaterThanOrEqual(0);
   });
 
@@ -518,7 +519,7 @@ describe("phase bands", () => {
       { by: "franchise", visible: new Set(GROUPS.franchise.map((g) => g.key)) },
       { by: "earth", visible: new Set(GROUPS.earth.map((g) => g.key)) },
     ] satisfies Grouping[]) {
-      const layout = computeLayout("recommended", grouping, graph);
+      const layout = computeLayout("recommended", grouping, graph, art);
       const row = 100 / (graph.maxStep + 1);
       for (const band of computePhaseBands("recommended", layout, grouping)) {
         const rows = new Set(

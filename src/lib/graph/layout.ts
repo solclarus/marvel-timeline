@@ -1,6 +1,6 @@
 import { computeGitGraphLayout } from "./git-graph-layout";
 import type { Grouping } from "./groups";
-import type { GraphLayout, ViewMode } from "./metrics";
+import { METRICS, type GraphLayout, type NodeArt, type ViewMode } from "./metrics";
 import { WORK_GRAPHS, type WorkGraph } from "./relations";
 import { computeTimelineLayout } from "./timeline-layout";
 
@@ -8,9 +8,12 @@ export * from "./backdrop";
 export { recommendedTimeRank } from "./git-graph-layout";
 export {
   canvasSize,
+  METRICS,
   pointToPx,
   type Axis,
   type GraphLayout,
+  type Metrics,
+  type NodeArt,
   type Point,
   type TimelineGrid,
   type ViewMode,
@@ -21,10 +24,12 @@ export function computeLayout(
   mode: ViewMode,
   grouping: Grouping,
   graph: WorkGraph = WORK_GRAPHS.all,
+  art: NodeArt = "poster",
 ): GraphLayout {
+  const m = METRICS[art];
   return mode === "recommended"
-    ? computeGitGraphLayout(grouping, graph)
-    : computeTimelineLayout(mode, grouping, graph);
+    ? computeGitGraphLayout(grouping, graph, m)
+    : computeTimelineLayout(mode, grouping, graph, m);
 }
 
 export function computeEdgeGeometry(

@@ -12,6 +12,7 @@
     "test": "vitest run",
     "check:tmdb": "node --env-file-if-exists=.env.local scripts/check-tmdb.ts",
     "fetch:runtimes": "node --env-file-if-exists=.env.local scripts/fetch-runtimes.ts && oxfmt src/data/runtimes.ts",
+    "fetch:logos": "node --env-file-if-exists=.env.local scripts/fetch-logos.ts && oxfmt src/data/logos.ts",
     "test:e2e": "playwright test",
     "prepare": "simple-git-hooks"
   },

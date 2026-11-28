@@ -2,20 +2,7 @@ import { WORKS, type WorkNode } from "@/data/works";
 
 import { GROUPS, groupKeyOf, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
 import { assignLanes, centerMainLane } from "./lanes";
-import {
-  canvasHeight,
-  CARD_PAD_PX,
-  GROUP_GAP_PX,
-  LANE_PX,
-  PHASE_CARD_DROP_PX,
-  ROW_PX,
-  SAGA_BREAK_PX,
-  SAGA_TOP_PX,
-  SUBGROUP_GAP_PX,
-  UNPHASED_CLEARANCE,
-  type GraphLayout,
-  type Point,
-} from "./metrics";
+import { canvasHeight, METRICS, type GraphLayout, type Point, type Metrics } from "./metrics";
 import { sagaOf, sagaStartSteps, WORK_BY_ID, type Saga, type WorkGraph } from "./relations";
 
 export function recommendedTimeRank(): Map<string, number> {
@@ -55,6 +42,7 @@ function placeUnphased(
   phasedLanes: Map<string, number>,
   stepMap: Map<string, number>,
   laneMap: Map<string, number>,
+  clearance: number,
 ): number {
   const bySaga = new Map<Saga, { minStep: number; maxLane: number }>();
   for (const [id, laneIndex] of phasedLanes) {
@@ -78,7 +66,7 @@ function placeUnphased(
     usedInRow.set(step, offset + 1);
     // Far enough out that the saga frame (two paddings past its posters)
     // keeps a padding's clearance from this poster too.
-    const laneIndex = (band?.maxLane ?? -1) + 1 + UNPHASED_CLEARANCE + offset;
+    const laneIndex = (band?.maxLane ?? -1) + 1 + clearance + offset;
     laneMap.set(work.id, laneIndex);
     lanes = Math.max(lanes, laneIndex + 1);
   }
@@ -96,7 +84,11 @@ function laneSubgroups(grouping: Grouping, band: string, works: WorkNode[]): str
   return [...keys].sort((a, b) => rank(a) - rank(b));
 }
 
-export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): GraphLayout {
+export function computeGitGraphLayout(
+  grouping: Grouping,
+  graph: WorkGraph,
+  m: Metrics = METRICS.poster,
+): GraphLayout {
   const { step: stepMap, maxStep } = graph;
   const bands = visibleGroups(grouping).map((group) => group.key);
   const timeRank = recommendedTimeRank();
@@ -125,7 +117,7 @@ export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): Gra
       .filter((w) => laneSubgroupOf(w, grouping) === sub + UNPHASED)
       .sort(byStepThenTime);
     const phasedLanes = new Map(laneMap);
-    const lanes = placeUnphased(unphased, phasedLanes, stepMap, laneMap);
+    const lanes = placeUnphased(unphased, phasedLanes, stepMap, laneMap, m.unphasedClearance);
     laneCount.set(sub, Math.max(1, lanes));
     laneBySub.set(sub, laneMap);
     // Phase bands and saga frames nest two more paddings around their
@@ -140,7 +132,7 @@ export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): Gra
     });
     if (phased.length > 0) {
       const lanesUsed = phased.map(([, lane]) => lane);
-      const nest = (2 * CARD_PAD_PX) / LANE_PX;
+      const nest = (2 * m.cardPad) / m.lane;
       sagaOutset.set(sub, {
         left: Math.min(...lanesUsed) === 0 ? nest : 0,
         right: Math.max(...lanesUsed) === Math.max(1, lanes) - 1 ? nest : 0,
@@ -153,9 +145,9 @@ export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): Gra
   const subStart = new Map<string, number>();
   let total = 0;
   bands.forEach((band, i) => {
-    if (i > 0) total += GROUP_GAP_PX / LANE_PX;
+    if (i > 0) total += m.groupGap / m.lane;
     subsByBand.get(band)!.forEach((sub, j) => {
-      if (j > 0) total += SUBGROUP_GAP_PX / LANE_PX;
+      if (j > 0) total += m.subgroupGap / m.lane;
       total += sagaOutset.get(sub)?.left ?? 0;
       subStart.set(sub, total);
       total += laneCount.get(sub)!;
@@ -163,17 +155,17 @@ export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): Gra
     });
   });
 
-  // Rows are ROW_PX apart, plus room above the first saga's frame and a
+  // Rows are `m.row` apart, plus room above the first saga's frame and a
   // card padding between sagas: their frames nest two paddings past their
   // posters, more than a row's spare space.
   const sagaStarts = [...sagaStartSteps(graph).values()].sort((a, b) => a - b).slice(1);
   const rowY = (step: number) =>
-    SAGA_TOP_PX +
-    step * ROW_PX +
-    ROW_PX / 2 +
-    sagaStarts.filter((start) => start <= step).length * SAGA_BREAK_PX;
-  const extraPx = SAGA_TOP_PX + sagaStarts.length * SAGA_BREAK_PX + PHASE_CARD_DROP_PX;
-  const heightPx = canvasHeight(maxStep + 1, extraPx);
+    m.sagaTop +
+    step * m.row +
+    m.row / 2 +
+    sagaStarts.filter((start) => start <= step).length * m.sagaBreak;
+  const extraPx = m.sagaTop + sagaStarts.length * m.sagaBreak + m.phaseCardDrop;
+  const heightPx = canvasHeight(m, maxStep + 1, extraPx);
   const positions = new Map<string, Point>();
   const laneWidth = 100 / total;
   for (const work of graph.works) {
@@ -186,11 +178,11 @@ export function computeGitGraphLayout(grouping: Grouping, graph: WorkGraph): Gra
       x: (subStart.get(sub)! + laneIndex) * laneWidth + laneWidth / 2,
       y:
         ((rowY(step) +
-          (groupKeyOf(work, grouping.by) === PHASE_GROUP[grouping.by] ? PHASE_CARD_DROP_PX : 0)) /
+          (groupKeyOf(work, grouping.by) === PHASE_GROUP[grouping.by] ? m.phaseCardDrop : 0)) /
           heightPx) *
         100,
     });
   }
 
-  return { positions, totalLanes: total, rowCount: maxStep + 1, headerPx: extraPx };
+  return { positions, metrics: m, totalLanes: total, rowCount: maxStep + 1, headerPx: extraPx };
 }

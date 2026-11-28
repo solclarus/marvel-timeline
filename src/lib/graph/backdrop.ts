@@ -1,15 +1,7 @@
 import { isUpcoming, WORKS } from "@/data/works";
 
 import { groupKeyOf, PHASE_GROUP, visibleGroups, type Grouping } from "./groups";
-import {
-  canvasSize,
-  CARD_PAD_PX,
-  POSTER_PX,
-  TIMELINE_PX,
-  type GraphLayout,
-  type Point,
-  type ViewMode,
-} from "./metrics";
+import { canvasSize, type GraphLayout, type Point, type ViewMode } from "./metrics";
 import { sagaOf, WORK_BY_ID, type Saga } from "./relations";
 import { releaseMonth, timelineYear } from "./timeline-layout";
 
@@ -45,8 +37,9 @@ export function computeGroupCards(
 ) {
   if (mode !== "recommended") return [];
   const { width, height } = canvasSize(layout);
-  const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
-  const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
+  const { node, cardPad } = layout.metrics;
+  const padX = ((node.width / 2 + cardPad) / width) * 100;
+  const padY = ((node.height / 2 + cardPad) / height) * 100;
 
   return visibleGroups(grouping).flatMap((group) => {
     const points = WORKS.filter((w) => groupKeyOf(w, grouping.by) === group.key)
@@ -61,8 +54,8 @@ export function computeGroupCards(
     let bottom = Math.max(...ys) + padY;
     // The card holding the phases also wraps their saga frames.
     if (mode === "recommended" && group.key === PHASE_GROUP[grouping.by]) {
-      const sideX = (CARD_PAD_PX / width) * 100;
-      const sideY = (CARD_PAD_PX / height) * 100;
+      const sideX = (cardPad / width) * 100;
+      const sideY = (cardPad / height) * 100;
       for (const saga of sagaBands) {
         left = Math.min(left, saga.left - sideX);
         right = Math.max(right, saga.left + saga.width + sideX);
@@ -101,8 +94,9 @@ export function groupCardAt<T extends { left: number; top: number; width: number
 export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping: Grouping) {
   if (mode !== "recommended") return [];
   const { width, height } = canvasSize(layout);
-  const padX = ((POSTER_PX.width / 2 + CARD_PAD_PX) / width) * 100;
-  const padY = ((POSTER_PX.height / 2 + CARD_PAD_PX) / height) * 100;
+  const { node, cardPad } = layout.metrics;
+  const padX = ((node.width / 2 + cardPad) / width) * 100;
+  const padY = ((node.height / 2 + cardPad) / height) * 100;
   const byPhase = new Map<number, { minY: number; maxY: number; minX: number; maxX: number }>();
   for (const work of WORKS) {
     if (work.phase === undefined || groupKeyOf(work, grouping.by) !== PHASE_GROUP[grouping.by]) {
@@ -136,15 +130,15 @@ export function computePhaseBands(mode: ViewMode, layout: GraphLayout, grouping:
     }));
 }
 
-// One frame per saga around its phase bands, CARD_PAD_PX out; sagas are
+// One frame per saga around its phase bands, a card padding out; sagas are
 // kept apart by an empty row (see `buildSteps`).
 export function computeSagaBands(
   layout: GraphLayout,
   phaseBands: ReturnType<typeof computePhaseBands>,
 ) {
   const { width, height } = canvasSize(layout);
-  const padX = (CARD_PAD_PX / width) * 100;
-  const padY = (CARD_PAD_PX / height) * 100;
+  const padX = (layout.metrics.cardPad / width) * 100;
+  const padY = (layout.metrics.cardPad / height) * 100;
   const bySaga = new Map<Saga, typeof phaseBands>();
   for (const band of phaseBands) {
     if (!bySaga.has(band.saga)) bySaga.set(band.saga, []);
@@ -178,7 +172,7 @@ export function computeTimelineBackdrop(layout: GraphLayout, today = new Date())
   const row = grid.rows.find((r) => r.year === today.getFullYear());
   const month = grid.months.find((m) => m.month === today.getMonth());
   if (row && month) {
-    const column = (TIMELINE_PX.column / canvasSize(layout).width) * 100;
+    const column = (layout.metrics.timeline.column / canvasSize(layout).width) * 100;
     const released = [...layout.positions.keys()]
       .map((id) => WORK_BY_ID.get(id)!)
       .filter(

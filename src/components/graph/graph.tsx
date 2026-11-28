@@ -28,7 +28,6 @@ import {
   type Axis,
   type ViewMode,
 } from "@/lib/graph/layout";
-import { POSTER_PX } from "@/lib/graph/metrics";
 import {
   computeEdgeVisibility,
   getRelatedDistances,
@@ -40,6 +39,7 @@ import {
 import { routeWorks, watchFirst } from "@/lib/graph/watch-order";
 import { useI18n } from "@/lib/i18n";
 import { motionMs } from "@/lib/motion";
+import { useNodeArt } from "@/lib/node-art";
 import { parseUrlState, withMedium } from "@/lib/url-state";
 
 import { CommandBar } from "./command-bar";
@@ -88,7 +88,9 @@ export function Graph() {
 
   // React Compiler memoizes these, which keeps `layout` and `canvas` stable
   // for the selection fit.
-  const layout = computeLayout(mode, grouping, graph);
+  const [art] = useNodeArt();
+  const layout = computeLayout(mode, grouping, graph, art);
+  const nodeSize = layout.metrics.node;
   const canvas = canvasSize(layout);
   const phaseBands = computePhaseBands(mode, layout, grouping);
   const sagaBands = computeSagaBands(layout, phaseBands);
@@ -187,7 +189,7 @@ export function Graph() {
     graph,
     layout,
     canvas,
-    node: POSTER_PX,
+    node: nodeSize,
     scale: FIT_SCALE,
   });
 
@@ -284,7 +286,7 @@ export function Graph() {
   const geometry = computeEdgeGeometry(
     axis === "y" ? canvas.height : canvas.width,
     axis === "y" ? layout.rowCount : layout.totalLanes,
-    axis === "y" ? POSTER_PX.height : POSTER_PX.width,
+    axis === "y" ? nodeSize.height : nodeSize.width,
     axis === "y" ? (layout.headerPx ?? 0) : 0,
   );
 
@@ -379,6 +381,8 @@ export function Graph() {
                     axis={axis}
                     hasIncoming={edgeVisibility.hasIncoming.has(work.id)}
                     hasOutgoing={edgeVisibility.hasOutgoing.has(work.id)}
+                    art={art}
+                    size={nodeSize}
                     markClass={
                       layout.timeline
                         ? GROUPS[grouping.by].find((g) => g.key === groupKeyOf(work, grouping.by))
